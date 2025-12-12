@@ -1,6 +1,6 @@
 # API Quick Reference
 
-- **Version:** 3.10.0
+- **Version:** 1.0.0-CE
 - **Last Updated:** December 12, 2025
 - **Base URL:** `http://localhost:3000/api/v2`
 

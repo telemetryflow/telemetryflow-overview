@@ -1,6 +1,6 @@
 # Domain-Driven Design & CQRS Implementation
 
-- **Version:** 3.10.0
+- **Version:** 1.0.0-CE
 - **Last Updated:** December 12, 2025
 - **Status:** ✅ Complete
 

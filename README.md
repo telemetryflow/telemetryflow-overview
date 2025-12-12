@@ -25,7 +25,7 @@
 
 </div>
 
-- **Version:** 3.10.0
+- **Version:** 1.0.0-CE
 - **Status:** Production Ready
 - **License:** Apache 2.0
 - **Built by:** DevOpsCorner Indonesia
