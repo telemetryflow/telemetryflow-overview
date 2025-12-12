@@ -946,7 +946,7 @@ flowchart TD
 ### Seed Files
 
 | Order | File | Purpose | Records |
-|-------|------|---------|---------||
+|-------|------|---------|---------|
 | 1 | `1704240000001-seed-iam-roles-permissions.ts` | Create 5 roles with explicit permissions | 5 roles, 22+ permissions |
 | 2 | `1704240000002-seed-auth-test-users.ts` | Create test users for each role | 5 users |
 | 3 | `1704240000003-seed-groups.ts` | Create user groups | 4 groups |
@@ -954,7 +954,7 @@ flowchart TD
 ### Permission Enforcement Components
 
 | Component | Location | Purpose |
-|-----------|----------|---------||
+|-----------|----------|---------|
 | **Guards** | `@RequirePermissions()` decorator | Checks user permissions before controller execution |
 | **Decorators** | `@CurrentUser()` | Extracts authenticated user from request |
 | **Repositories** | Auto-scoping queries | Automatically filters by organization/tenant |
@@ -963,7 +963,7 @@ flowchart TD
 ### Multi-Tenancy Implementation
 
 | Level | Implementation | Example |
-|-------|----------------|---------||
+|-------|----------------|---------|
 | **Organization** | Query filter | `WHERE organizationId = :orgId` |
 | **Tenant** | Repository scoping | `findByTenant(tenantId)` |
 | **Workspace** | Resource filtering | `WHERE workspaceId = :wsId` |
