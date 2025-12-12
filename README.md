@@ -180,10 +180,30 @@ pnpm dev
 
 ### Default Credentials
 
+```bash
+# Super Administrator
+Email: super.administrator@telemetryflow.id
+Password: SuperAdmin@123456
+
+# Administrator
+Email: admin.telemetryflow@telemetryflow.id
+Password: Admin@123456
+
+# Developer
+Email: developer.telemetryflow@telemetryflow.id
+Password: Developer@123456
+
+# Viewer
+Email: viewer.telemetryflow@telemetryflow.id
+Password: Viewer@123456
+
+# Demo
+Email: demo.telemetryflow@telemetryflow.id
+Password: Demo@123456
 ```
-Email: admin@telemetryflow.io
-Password: Admin@123
-```
+
+> References:
+> [06-RBAC-SYSTEM-PLATFORM.md](./architecture/06-RBAC-SYSTEM-PLATFORM.md)
 
 ---
 
