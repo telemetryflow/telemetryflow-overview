@@ -414,8 +414,8 @@ stateDiagram-v2
     Attempt3 --> Active: Successful Login
     Attempt4 --> Active: Successful Login
 
-    Active: Failed Attempts: 0
-    Locked: Account Locked<br/>Duration: 15 min
+    Active: Failed Attempts 0
+    Locked: Account Locked Duration 15 min
 ```
 
 **Lockout Rules:**
