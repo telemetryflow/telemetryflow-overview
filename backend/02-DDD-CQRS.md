@@ -1003,7 +1003,7 @@ graph LR
     end
 
     subgraph "Event Bus"
-        Bus[@nestjs/cqrs EventBus]
+        Bus[NestJS CQRS EventBus]
     end
 
     Module --> Handlers

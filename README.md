@@ -85,7 +85,8 @@ This documentation is organized into the following sections:
 │   ├── 02-DATA-FLOW.md                # How data flows through the system
 │   ├── 03-MULTI-TENANCY.md            # Multi-tenancy architecture
 │   ├── 04-SECURITY.md                 # Security architecture
-│   └── 05-PERFORMANCE.md              # Performance optimizations
+│   ├── 05-PERFORMANCE.md              # Performance optimizations
+│   └── 06-RBAC-SYSTEM-PLATFORM.md     # 5-Tier RBAC system
 ├── backend/
 │   ├── 00-BACKEND-OVERVIEW.md         # Backend architecture overview
 │   ├── 01-TECH-STACK.md               # Technology stack details
