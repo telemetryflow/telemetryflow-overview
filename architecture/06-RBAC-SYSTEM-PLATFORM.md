@@ -357,11 +357,21 @@ graph TD
 #### Demo Data Lifecycle
 
 ```mermaid
-timeline
-    title Demo Environment Data Lifecycle
-    00:00 : Demo data created : User experiments : Data accumulates
-    06:00 : Auto-cleanup triggered : All data deleted : Environment reset
-    06:01 : Fresh seed data loaded : Ready for new demo : Cycle repeats
+gantt
+    title Demo Environment Data Lifecycle (6-hour cycle)
+    dateFormat HH:mm
+    axisFormat %H:%M
+
+    section Data Phase
+    Demo data created    :active, data, 00:00, 06:00
+    User experiments     :active, exp, 00:30, 05:30
+
+    section Cleanup Phase
+    Auto-cleanup         :crit, cleanup, 06:00, 06:01
+
+    section Reset Phase
+    Fresh seed data      :done, seed, 06:01, 06:05
+    Ready for demo       :milestone, ready, 06:05, 0m
 ```
 
 **Typical Users**:
@@ -500,13 +510,13 @@ pie title Permission Distribution Across Roles
 
 ### Default Users
 
-| User | Email | Role | Organization | Workspace | Tenant | Password |
-|------|-------|------|--------------|-----------|--------|----------|
-| Super Administrator | super.administrator@telemetryflow.id | super_administrator | All | All | All | `TelemetryFlow@2025` |
-| Administrator TelemetryFlow | admin.telemetryflow@telemetryflow.id | administrator | TelemetryFlow | All in Org | All in Org | `TelemetryFlow@2025` |
-| Developer TelemetryFlow | developer.telemetryflow@telemetryflow.id | developer | TelemetryFlow | All in Org | All in Org | `TelemetryFlow@2025` |
-| Viewer TelemetryFlow | viewer.telemetryflow@telemetryflow.id | viewer | TelemetryFlow | All in Org | All in Org | `TelemetryFlow@2025` |
-| Demo TelemetryFlow | demo.telemetryflow@telemetryflow.id | demo | Demo Org | Demo WS | Demo Tenant | `TelemetryFlow@2025` |
+| User | Email | Password | Role | Organization | Tenant |
+|------|-------|----------|------|--------------|--------|
+| Super Administrator | `superadmin.telemetryflow@telemetryflow.id` | `SuperAdmin@123456` | super_administrator | All | All |
+| Administrator TelemetryFlow | `administrator.telemetryflow@telemetryflow.id` | `Admin@123456` | administrator | TelemetryFlow | TelemetryFlow |
+| Developer TelemetryFlow | `developer.telemetryflow@telemetryflow.id` | `Developer@123456` | developer | TelemetryFlow | TelemetryFlow |
+| Viewer TelemetryFlow | `viewer.telemetryflow@telemetryflow.id` | `Viewer@123456` | viewer | TelemetryFlow | TelemetryFlow |
+| Demo TelemetryFlow | `demo.telemetryflow@telemetryflow.id` | `Demo@123456` | demo | Demo Org | Demo Tenant |
 
 ### Role Assignment Flow
 
