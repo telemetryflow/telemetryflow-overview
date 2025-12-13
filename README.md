@@ -2,9 +2,9 @@
 
 <div align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://github.com/telemetryflow/.github/blob/main/docs/assets/tfo-logo-dark.svg">
-    <source media="(prefers-color-scheme: light)" srcset="https://github.com/telemetryflow/.github/blob/main/docs/assets/tfo-logo-light.svg">
-    <img src="https://github.com/telemetryflow/.github/blob/main/docs/assets/tfo-logo-light.svg" alt="TelemetryFlow Logo" width="80%">
+    <source media="(prefers-color-scheme: dark)" srcset="https://github.com/telemetryflow/.github/raw/main/docs/assets/tfo-logo-dark.svg">
+    <source media="(prefers-color-scheme: light)" srcset="https://github.com/telemetryflow/.github/raw/main/docs/assets/tfo-logo-light.svg">
+    <img src="https://github.com/telemetryflow/.github/raw/main/docs/assets/tfo-logo-light.svg" alt="TelemetryFlow Logo" width="80%">
   </picture>
 
   <h3>Enterprise-Grade Observability Platform for Modern Cloud Infrastructure</h3>
@@ -124,9 +124,9 @@ This documentation is organized into the following sections:
 │   └── 05-VISUALIZATION.md            # ECharts integration
 ├── shared/
 │   ├── API-REFERENCE.md               # REST API documentation
-│   ├── OTLP-INGESTION.md              # OTLP ingestion guide
 │   ├── DATABASE-SCHEMA.md             # PostgreSQL + ClickHouse schemas
-│   └── NAMING-CONVENTIONS.md          # Coding standards
+│   ├── NAMING-CONVENTIONS.md          # Coding standards
+│   └── OTLP-INGESTION.md              # OTLP ingestion guide
 └── deployment/
     ├── DOCKER-COMPOSE.md              # Docker deployment
     ├── KUBERNETES.md                  # Kubernetes deployment

@@ -1,4 +1,4 @@
-# API Quick Reference
+# API Reference
 
 - **Version:** 1.0.0-CE
 - **Last Updated:** December 12, 2025
