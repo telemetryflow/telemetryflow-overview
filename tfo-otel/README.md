@@ -312,9 +312,9 @@ Agents automatically register with TelemetryFlow Platform:
 
 ### Documentation
 
-- **Platform Docs:** [../docs/_overview_/](../docs/_overview_/)
-- **API Reference:** [../docs/_overview_/shared/OTLP-INGESTION.md](../docs/_overview_/shared/OTLP-INGESTION.md)
-- **Troubleshooting:** [DEPLOYMENT.md](DEPLOYMENT.md#troubleshooting)
+- **Platform Docs:** [README.md](../README.md)
+- **API Reference:** [OTLP-INGESTION.md](../shared/OTLP-INGESTION.md)
+- **Troubleshooting:** [DEPLOYMENT.md](./DEPLOYMENT.md#troubleshooting)
 
 ### Community
 
