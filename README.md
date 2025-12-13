@@ -961,7 +961,7 @@ When creating a new module, follow the standard structure:
 | Test Cases | 280+ |
 | Test Coverage | 88-92% |
 | Documentation Pages | 203+ |
-| Version | 3.10.0 |
+| Version | 1.0.0-CE |
 
 ---
 

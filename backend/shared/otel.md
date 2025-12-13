@@ -4,7 +4,7 @@
 - **Category**: Backend / Shared Modules
 - **Status**: Production Ready
 - **Priority:** 🔥 HIGH - Observability
-- **Version**: 3.10.0
+- **Version**: 1.0.0-CE
 
 ---
 
@@ -74,7 +74,7 @@ export class OtelService implements OnModuleDestroy {
 
     const otlpEndpoint = process.env.OTEL_EXPORTER_OTLP_ENDPOINT || 'http://localhost:4317';
     const serviceName = process.env.OTEL_SERVICE_NAME || 'telemetryflow-backend';
-    const serviceVersion = process.env.OTEL_SERVICE_VERSION || '3.10.0';
+    const serviceVersion = process.env.OTEL_SERVICE_VERSION || '1.0.0-CE';
     const environment = process.env.NODE_ENV || 'development';
 
     // Create resource with service information
@@ -297,7 +297,7 @@ sequenceDiagram
 # OpenTelemetry Configuration
 OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317
 OTEL_SERVICE_NAME=telemetryflow-backend
-OTEL_SERVICE_VERSION=3.10.0
+OTEL_SERVICE_VERSION=1.0.0-CE
 NODE_ENV=production
 
 # Sampling (optional)

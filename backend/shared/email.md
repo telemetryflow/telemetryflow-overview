@@ -3,7 +3,7 @@
 - **Module**: `shared/email`
 - **Category**: Backend / Shared Infrastructure
 - **Status**: Production Ready
-- **Version**: 3.10.0
+- **Version**: 1.0.0-CE
 
 ---
 

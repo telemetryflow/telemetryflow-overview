@@ -1,6 +1,6 @@
 # State Management with Pinia
 
-- **Version**: 3.10.0
+- **Version**: 1.0.0-CE
 - **Library**: Pinia 3.0.4
 - **Pattern**: Composition API Stores
 - **Status**: ✅ Production Ready

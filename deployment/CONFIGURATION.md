@@ -1,6 +1,6 @@
 # Environment Configuration Guide
 
-- **Version:** 3.10.0
+- **Version:** 1.0.0-CE
 - **Last Updated:** December 13, 2025
 - **Status:** ✅ Production Ready
 
@@ -468,7 +468,7 @@ QUEUE_DEBUG=false                 # Enable queue debug logging
 # OPENTELEMETRY CONFIGURATION
 #================================================================================================
 OTEL_SERVICE_NAME=telemetryflow_platform
-SERVICE_VERSION=3.10.0
+SERVICE_VERSION=1.0.0-CE
 SERVICE_NAMESPACE=devopscorner
 SERVICE_TEAM=platform
 
@@ -837,4 +837,4 @@ npm run config:validate
 
 ---
 
-**Version:** 3.10.0 | **Maintained By:** DevOpsCorner Indonesia
+**Version:** 1.0.0-CE | **Maintained By:** DevOpsCorner Indonesia

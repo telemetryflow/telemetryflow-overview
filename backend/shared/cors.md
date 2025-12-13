@@ -4,7 +4,7 @@
 - **Category**: Backend / Shared Modules
 - **Status**: Production Ready
 - **Priority:** 🔥 HIGH - Security
-- **Version**: 3.10.0
+- **Version**: 1.0.0-CE
 
 ---
 
