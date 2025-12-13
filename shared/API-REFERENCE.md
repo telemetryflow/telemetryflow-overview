@@ -310,5 +310,5 @@ Response:
 
 ---
 
-- **File Location:** `./shared/QUICK-REFERENCE.md`
+- **File Location:** `./shared/API-REFERENCE.md`
 - **Maintained By:** DevOpsCorner Indonesia
