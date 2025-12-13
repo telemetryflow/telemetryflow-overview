@@ -510,8 +510,8 @@ GROUP BY tenant_id, metric_name, toStartOfHour(timestamp);
 NODE_ENV=production
 APP_NAME=TelemetryFlow
 APP_VERSION=1.0.0-CE
-API_BASE_URL=https://api.telemetryflow.io
-FRONTEND_URL=https://app.telemetryflow.io
+API_BASE_URL=https://api.telemetryflow.id
+FRONTEND_URL=https://app.telemetryflow.id
 
 # Server
 BACKEND_PORT=3100
@@ -531,7 +531,7 @@ JWT_REFRESH_TOKEN_EXPIRES_IN=7d
 SESSION_MAX_AGE=86400000  # 24 hours
 
 # PostgreSQL
-POSTGRES_HOST=postgres.internal.telemetryflow.io
+POSTGRES_HOST=postgres.internal.telemetryflow.id
 POSTGRES_PORT=5432
 POSTGRES_DB=telemetryflow
 POSTGRES_USER=telemetryflow_user
@@ -541,7 +541,7 @@ POSTGRES_POOL_MIN=5
 POSTGRES_POOL_MAX=50
 
 # ClickHouse
-CLICKHOUSE_HOST=http://clickhouse.internal.telemetryflow.io:8123
+CLICKHOUSE_HOST=http://clickhouse.internal.telemetryflow.id:8123
 CLICKHOUSE_USER=telemetryflow_user
 CLICKHOUSE_PASSWORD=<secure-clickhouse-password>
 CLICKHOUSE_DATABASE=telemetryflow
@@ -550,19 +550,19 @@ CLICKHOUSE_ASYNC_INSERT=1
 CLICKHOUSE_WAIT_FOR_ASYNC_INSERT=0
 
 # Redis
-REDIS_HOST=redis.internal.telemetryflow.io
+REDIS_HOST=redis.internal.telemetryflow.id
 REDIS_PORT=6379
 REDIS_PASSWORD=<secure-redis-password>
 REDIS_DB=0
 REDIS_TTL=3600
 
 # NATS
-NATS_URL=nats://nats.internal.telemetryflow.io:4222
+NATS_URL=nats://nats.internal.telemetryflow.id:4222
 NATS_USER=telemetryflow_user
 NATS_PASSWORD=<secure-nats-password>
 
 # BullMQ
-BULLMQ_REDIS_HOST=redis.internal.telemetryflow.io
+BULLMQ_REDIS_HOST=redis.internal.telemetryflow.id
 BULLMQ_REDIS_PORT=6379
 BULLMQ_REDIS_PASSWORD=<secure-redis-password>
 BULLMQ_REDIS_DB=1
@@ -573,14 +573,14 @@ EMAIL_PORT=587
 EMAIL_SECURE=true
 EMAIL_USER=apikey
 EMAIL_PASSWORD=<sendgrid-api-key>
-EMAIL_FROM=noreply@telemetryflow.io
+EMAIL_FROM=noreply@telemetryflow.id
 
 # Rate Limiting
 RATE_LIMIT_WINDOW_MS=60000
 RATE_LIMIT_MAX_REQUESTS=100
 
 # CORS
-CORS_ORIGINS=https://app.telemetryflow.io,https://telemetryflow.io
+CORS_ORIGINS=https://app.telemetryflow.id,https://telemetryflow.id
 CORS_CREDENTIALS=true
 
 # Logging
@@ -632,7 +632,7 @@ BACKUP_S3_SECRET_KEY=<aws-secret-key>
 
 ```bash
 # Backend health
-curl https://api.telemetryflow.io/health
+curl https://api.telemetryflow.id/health
 
 # Expected response:
 {
@@ -743,7 +743,7 @@ TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 BACKUP_FILE="$BACKUP_DIR/telemetryflow_$TIMESTAMP.sql.gz"
 
 # Create backup
-pg_dump -h postgres.internal.telemetryflow.io \
+pg_dump -h postgres.internal.telemetryflow.id \
         -U telemetryflow_user \
         -d telemetryflow \
         | gzip > $BACKUP_FILE
@@ -920,7 +920,7 @@ PM2_INSTANCES=4
 
 ```bash
 # Test API endpoint (100 concurrent, 10000 requests)
-ab -n 10000 -c 100 https://api.telemetryflow.io/api/v1/metrics
+ab -n 10000 -c 100 https://api.telemetryflow.id/api/v1/metrics
 
 # Expected results:
 # - Requests per second: > 1000
@@ -979,7 +979,7 @@ docker-compose up -d
 
 # 6. Verify health
 docker-compose ps
-curl https://api.telemetryflow.io/health
+curl https://api.telemetryflow.id/health
 
 # 7. Check logs
 docker-compose logs -f backend
@@ -1056,15 +1056,15 @@ services:
 
 ```bash
 # Backend health
-curl https://api.telemetryflow.io/health
+curl https://api.telemetryflow.id/health
 # Expected: 200 OK
 
 # Frontend accessibility
-curl https://app.telemetryflow.io
+curl https://app.telemetryflow.id
 # Expected: 200 OK
 
 # OTLP ingestion
-curl https://api.telemetryflow.io:4317
+curl https://api.telemetryflow.id:4317
 # Expected: Connection accepted
 ```
 
@@ -1072,18 +1072,18 @@ curl https://api.telemetryflow.io:4317
 
 ```bash
 # Test authentication
-curl -X POST https://api.telemetryflow.io/api/v1/auth/login \
+curl -X POST https://api.telemetryflow.id/api/v1/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email":"admin@telemetryflow.io","password":"password"}'
+  -d '{"email":"admin@telemetryflow.id","password":"password"}'
 
 # Test metrics ingestion
-curl -X POST https://api.telemetryflow.io/v1/metrics \
+curl -X POST https://api.telemetryflow.id/v1/metrics \
   -H "Content-Type: application/json" \
   -H "X-API-Key: your-api-key" \
   -d '{"resourceMetrics":[...]}'
 
 # Test metrics query
-curl https://api.telemetryflow.io/api/v1/metrics?metric_name=cpu_usage \
+curl https://api.telemetryflow.id/api/v1/metrics?metric_name=cpu_usage \
   -H "Authorization: Bearer <token>"
 ```
 
@@ -1091,7 +1091,7 @@ curl https://api.telemetryflow.io/api/v1/metrics?metric_name=cpu_usage \
 
 ```bash
 # Check response times
-ab -n 100 -c 10 https://api.telemetryflow.io/api/v1/metrics
+ab -n 100 -c 10 https://api.telemetryflow.id/api/v1/metrics
 
 # Expected:
 # - Mean time per request: < 200ms
@@ -1183,7 +1183,7 @@ docker-compose pull
 docker-compose up -d
 
 # 5. Verify health
-curl https://api.telemetryflow.io/health
+curl https://api.telemetryflow.id/health
 
 # 6. Rollback database (if needed)
 docker-compose exec postgres psql -U telemetryflow_user -d telemetryflow
@@ -1211,7 +1211,7 @@ kubectl logs -f deployment/backend
 
 ```bash
 # PostgreSQL: Restore from backup
-pg_restore -h postgres.internal.telemetryflow.io \
+pg_restore -h postgres.internal.telemetryflow.id \
            -U telemetryflow_user \
            -d telemetryflow \
            /backups/postgres/telemetryflow_20251212_100000.sql.gz
@@ -1561,10 +1561,10 @@ docker volume prune
 
 | Role | Contact | Phone | Email |
 |------|---------|-------|-------|
-| **DevOps Lead** | John Doe | +1-555-0001 | john@telemetryflow.io |
-| **Backend Lead** | Jane Smith | +1-555-0002 | jane@telemetryflow.io |
-| **Database Admin** | Bob Johnson | +1-555-0003 | bob@telemetryflow.io |
-| **Security Lead** | Alice Brown | +1-555-0004 | alice@telemetryflow.io |
+| **DevOps Lead** | John Doe | +1-555-0001 | john@telemetryflow.id |
+| **Backend Lead** | Jane Smith | +1-555-0002 | jane@telemetryflow.id |
+| **Database Admin** | Bob Johnson | +1-555-0003 | bob@telemetryflow.id |
+| **Security Lead** | Alice Brown | +1-555-0004 | alice@telemetryflow.id |
 
 ### Escalation Path
 

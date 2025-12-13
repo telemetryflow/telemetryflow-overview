@@ -395,8 +395,8 @@ VITE_WS_URL=ws://localhost:3100
 VITE_APP_TITLE=TelemetryFlow (Dev)
 
 # .env.production
-VITE_API_BASE_URL=https://api.telemetryflow.io
-VITE_WS_URL=wss://api.telemetryflow.io
+VITE_API_BASE_URL=https://api.telemetryflow.id
+VITE_WS_URL=wss://api.telemetryflow.id
 VITE_APP_TITLE=TelemetryFlow
 ```
 

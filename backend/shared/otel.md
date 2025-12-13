@@ -312,7 +312,7 @@ OTEL_TRACES_SAMPLER_ARG=0.1  # Sample 10% of traces
 **W3C Trace Context:**
 ```http
 GET /api/metrics HTTP/1.1
-Host: api.telemetryflow.io
+Host: api.telemetryflow.id
 traceparent: 00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01
 tracestate: congo=t61rcWkgMzE
 

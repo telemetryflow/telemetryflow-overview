@@ -316,7 +316,7 @@ const developmentCORS = {
 // Default CORS for production
 const productionCORS = {
   name: 'Production',
-  origins: ['https://app.telemetryflow.io'],
+  origins: ['https://app.telemetryflow.id'],
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   headers: ['Content-Type', 'Authorization', 'X-Tenant-ID'],
   credentials: true,
