@@ -318,8 +318,8 @@ Agents automatically register with TelemetryFlow Platform:
 
 ### Community
 
-- **GitHub Issues:** [https://github.com/devopscorner/telemetryflow-platform/issues](https://github.com/devopscorner/telemetryflow-platform/issues)
-- **Discussions:** [https://github.com/devopscorner/telemetryflow-platform/discussions](https://github.com/devopscorner/telemetryflow-platform/discussions)
+- **GitHub Issues:** [https://github.com/telemetryflow/telemetryflow-platform/issues](https://github.com/telemetryflow/telemetryflow-platform/issues)
+- **Discussions:** [https://github.com/telemetryflow/telemetryflow-platform/discussions](https://github.com/telemetryflow/telemetryflow-platform/discussions)
 
 ### Resources
 
