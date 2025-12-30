@@ -1,6 +1,6 @@
 # TFO-OTEL to TelemetryFlow Platform - Ingestion Flow
 
-- **Version:** 1.0.0-CE
+- **Version:** 1.1.1-CE
 - **Last Updated:** December 13, 2025
 - **Component:** Complete Ingestion Pipeline
 - **Protocol:** OTLP/gRPC (4317), OTLP/HTTP (4318)
@@ -242,7 +242,7 @@ processors:
         value: ${env:TELEMETRYFLOW_TENANT_ID}
         action: upsert
       - key: collector.version
-        value: "1.0.0-CE"
+        value: "1.1.1-CE"
         action: upsert
 
 exporters:
@@ -343,7 +343,7 @@ The payload contains metrics with injected attributes:
         },
         {
           "key": "collector.version",
-          "value": { "stringValue": "1.0.0-CE" }
+          "value": { "stringValue": "1.1.1-CE" }
         }
       ]
     },
@@ -1069,4 +1069,4 @@ curl http://localhost:8888/metrics | grep duration_milliseconds
 
 ---
 
-**Version:** 1.0.0-CE | **Component:** Ingestion Flow | **Last Updated:** December 13, 2025
+**Version:** 1.1.1-CE | **Component:** Ingestion Flow | **Last Updated:** December 13, 2025

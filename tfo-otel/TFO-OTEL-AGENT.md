@@ -1,37 +1,52 @@
 # TFO-OTEL-Agent Documentation
 
-- **Version:** 1.0.0-CE
-- **Last Updated:** December 13, 2025
-- **Component:** Edge Telemetry Collector
-- **Base Image:** otel/opentelemetry-collector-contrib:0.88.0
+- **Version:** 1.1.1-CE
+- **Last Updated:** December 2025
+- **Component:** TelemetryFlow Agent (Edge Telemetry Collector)
+- **Go Version:** 1.24+
+- **OpenTelemetry SDK:** v1.39.0
+- **Status:** Production Ready
 
 ---
 
 ## Table of Contents
 
 1. [Overview](#overview)
-2. [Installation](#installation)
-3. [Configuration](#configuration)
-4. [Auto-Registration](#auto-registration)
-5. [Deployment Patterns](#deployment-patterns)
-6. [Monitoring](#monitoring)
-7. [High Availability](#high-availability)
-8. [Troubleshooting](#troubleshooting)
-9. [Best Practices](#best-practices)
+2. [Features](#features)
+3. [Installation](#installation)
+4. [Configuration](#configuration)
+5. [CLI Commands](#cli-commands)
+6. [Auto-Registration](#auto-registration)
+7. [Deployment Patterns](#deployment-patterns)
+8. [Monitoring](#monitoring)
+9. [High Availability](#high-availability)
+10. [Troubleshooting](#troubleshooting)
+11. [Best Practices](#best-practices)
 
 ---
 
 ## Overview
 
-**TFO-OTEL-Agent** is a lightweight edge telemetry collector designed for distributed deployments. It runs on edge nodes, application servers, or Kubernetes clusters to collect telemetry data locally and forward it to TFO-OTEL-Collector or directly to TelemetryFlow Platform.
+**TFO-OTEL-Agent** is an enterprise-grade telemetry collection agent built on **OpenTelemetry Go SDK v1.39.0**. It is a custom Go implementation providing comprehensive system monitoring with metrics collection, heartbeat monitoring, and OTLP telemetry export for the **TelemetryFlow Platform**.
+
+The agent is aligned with the TelemetryFlow ecosystem using the same OTEL SDK version as TFO-Go-SDK v1.1.1.
+
+This agent works as the **client-side counterpart** to the TelemetryFlow Backend Agent Module, providing:
+
+- Agent registration & lifecycle management
+- Heartbeat & health monitoring
+- System metrics collection
+- OTLP telemetry export
 
 ### Key Characteristics
 
+- **Custom Go Implementation**: Built with Go 1.24+, custom Cobra CLI
 - **Lightweight**: ~50MB RAM, <1% CPU (idle), ~5% CPU (peak)
 - **Edge Optimized**: Designed for resource-constrained environments
 - **Auto-Registration**: Automatically registers with TelemetryFlow Platform
-- **Local Buffering**: Persistent queue for network outage resilience
-- **Multi-Protocol**: OTLP gRPC/HTTP, Prometheus scraping, FluentBit logs
+- **Disk-Backed Buffer**: Persistent queue for network outage resilience
+- **Multi-Protocol**: OTLP gRPC/HTTP, Prometheus scraping, Log collection
+- **Cross-Platform**: Linux, macOS, and Windows support
 
 ### Architecture Role
 
@@ -39,7 +54,7 @@
 graph LR
     APP[Applications] -->|OTLP| AGENT[TFO-OTEL-Agent]
     INFRA[Infrastructure] -->|Prometheus| AGENT
-    LOGS[Log Files] -->|FluentBit| AGENT
+    LOGS[Log Files] -->|File Collector| AGENT
 
     AGENT -->|OTLP HTTP| COLLECTOR[TFO-OTEL-Collector]
     AGENT -.->|Direct Mode| TFO[TelemetryFlow API]
@@ -49,58 +64,154 @@ graph LR
     style TFO fill:#64B5F6,stroke:#1976D2,color:#fff
 ```
 
-### Use Cases
+### Project Structure
 
-1. **Per-Host Deployment**: One agent per physical/virtual server
-2. **Per-Cluster Deployment**: DaemonSet on Kubernetes nodes
-3. **Edge Computing**: IoT gateways with intermittent connectivity
-4. **Application Sidecar**: Co-located with microservices
+```
+telemetryflow-agent/
+├── cmd/tfo-agent/           # CLI entry point
+│   └── main.go              # Cobra CLI with banner
+├── internal/                # Core implementation (DDD)
+│   ├── agent/               # Core agent lifecycle
+│   ├── buffer/              # Disk-backed retry buffer
+│   ├── collector/           # Metric collectors
+│   │   └── system/          # System metrics collector
+│   ├── config/              # Configuration management
+│   ├── exporter/            # OTLP data exporters (SDK v1.39.0)
+│   └── version/             # Version and banner info
+├── pkg/                     # LEGO Building Blocks
+│   ├── api/                 # HTTP API client
+│   ├── banner/              # Startup banner
+│   ├── config/              # Config loader utilities
+│   └── plugin/              # Plugin registry system
+├── tests/                   # Comprehensive testing (DDD)
+│   ├── unit/                # Unit tests
+│   │   ├── domain/          # Domain layer tests
+│   │   │   ├── agent/       # Agent tests
+│   │   │   ├── plugin/      # Plugin tests
+│   │   │   └── telemetry/   # Telemetry tests
+│   │   ├── application/     # Application layer tests
+│   │   ├── infrastructure/  # Infrastructure layer tests
+│   │   │   ├── api/         # API client tests
+│   │   │   ├── buffer/      # Buffer tests
+│   │   │   ├── config/      # Config tests
+│   │   │   └── exporter/    # Exporter tests
+│   │   └── presentation/    # CLI/Banner tests
+│   ├── integration/         # Integration tests
+│   ├── e2e/                 # End-to-end tests
+│   ├── mocks/               # Mock implementations
+│   └── fixtures/            # Test fixtures
+├── docs/                    # Documentation
+├── configs/                 # Configuration templates
+├── scripts/                 # Build/install scripts
+├── build/                   # Build output
+├── Makefile
+├── Dockerfile
+├── docker-compose.yml
+├── .env.example
+└── README.md
+```
+
+---
+
+## Features
+
+### OpenTelemetry SDK v1.39.0
+
+- **OpenTelemetry Native**: Built on OTEL Go SDK v1.39.0 (aligned with TFO-Go-SDK)
+- **OTLP Export**: OpenTelemetry Protocol for metrics, logs, and traces
+- **Multi-Signal Support**: Metrics, logs, and traces collection
+- **SDK Alignment**: Uses same OTEL SDK version as TFO-Go-SDK for compatibility
+
+### Agent Lifecycle (Backend Integration)
+
+- **Agent Registration**: Auto-register with TelemetryFlow backend
+- **Heartbeat Monitoring**: Regular health checks to backend
+- **Health Status Sync**: Report agent health and system info
+- **Activation/Deactivation**: Remote agent control from backend
+
+### System Monitoring
+
+- **System Metrics Collection**: CPU, memory, disk, and network metrics
+- **Process Monitoring**: Track running processes
+- **Resource Detection**: Auto-detect host, OS, and container info
+
+### Reliability
+
+- **Disk-Backed Buffer**: Resilient retry buffer for offline scenarios
+- **Auto-Reconnection**: Automatic retry with exponential backoff
+- **Graceful Shutdown**: Signal handling (SIGINT, SIGTERM, SIGHUP)
+
+### LEGO Building Blocks
+
+The `pkg/` directory contains reusable building blocks:
+
+| Block | Description |
+|-------|-------------|
+| `pkg/banner` | ASCII art startup banner |
+| `pkg/config` | Flexible configuration loader |
+| `pkg/plugin` | Plugin registry for extensibility |
+| `pkg/api` | HTTP client for backend communication |
 
 ---
 
 ## Installation
 
-### Method 1: Docker
-
-#### Basic Deployment
+### Method 1: From Source
 
 ```bash
-docker run -d \
-  --name tfo-otel-agent \
-  --hostname $(hostname) \
-  -p 4317:4317 \
-  -p 4318:4318 \
-  -e TELEMETRYFLOW_ENDPOINT=http://tfo-collector:4318 \
-  -e TELEMETRYFLOW_WORKSPACE_ID=your-workspace-id \
-  -e TELEMETRYFLOW_TENANT_ID=your-tenant-id \
-  -e AGENT_HOSTNAME=$(hostname) \
-  -e AGENT_IP=$(hostname -I | awk '{print $1}') \
-  -v $(pwd)/config/otel-agent-config.yaml:/etc/otel-agent-config.yaml \
-  -v /var/lib/otel-agent:/var/lib/otelcol \
-  otel/opentelemetry-collector-contrib:0.88.0 \
-  --config=/etc/otel-agent-config.yaml
+# Clone the repository
+git clone https://github.com/telemetryflow/telemetryflow-agent.git
+cd telemetryflow-agent
+
+# Build
+make build
+
+# Run
+./build/tfo-agent --help
 ```
 
-#### With Persistent Queue
+### Method 2: Docker Compose (Recommended)
 
 ```bash
-docker run -d \
-  --name tfo-otel-agent \
-  -p 4317:4317 \
-  -p 4318:4318 \
-  -e TELEMETRYFLOW_ENDPOINT=http://tfo-collector:4318 \
-  -e TELEMETRYFLOW_WORKSPACE_ID=your-workspace-id \
-  -e TELEMETRYFLOW_TENANT_ID=your-tenant-id \
-  -v $(pwd)/config/otel-agent-config.yaml:/etc/otel-agent-config.yaml \
-  -v /var/lib/otel-agent/queue:/var/lib/otelcol/queue \
-  --restart unless-stopped \
-  otel/opentelemetry-collector-contrib:0.88.0 \
-  --config=/etc/otel-agent-config.yaml
+# Copy environment template
+cp .env.example .env
+
+# Edit .env with your configuration
+vim .env
+
+# Build and start
+docker-compose up -d --build
+
+# View logs
+docker-compose logs -f tfo-agent
+
+# Stop
+docker-compose down
 ```
 
-### Method 2: Kubernetes (DaemonSet)
+### Method 3: Docker Directly
 
-#### DaemonSet Deployment
+```bash
+# Build image
+docker build \
+  --build-arg VERSION=1.1.0 \
+  --build-arg GIT_COMMIT=$(git rev-parse --short HEAD) \
+  --build-arg GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD) \
+  --build-arg BUILD_TIME=$(date -u '+%Y-%m-%dT%H:%M:%SZ') \
+  -t telemetryflow/telemetryflow-agent:1.1.1 .
+
+# Run container
+docker run -d --name tfo-agent \
+  -p 4317:4317 \
+  -p 4318:4318 \
+  -p 8888:8888 \
+  -p 13133:13133 \
+  -v /path/to/config.yaml:/etc/tfo-agent/tfo-agent.yaml:ro \
+  -v /var/lib/tfo-agent:/var/lib/tfo-agent \
+  telemetryflow/telemetryflow-agent:1.1.1
+```
+
+### Method 4: Kubernetes (DaemonSet)
 
 ```yaml
 apiVersion: v1
@@ -112,163 +223,100 @@ metadata:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: otel-agent-config
+  name: tfo-agent-config
   namespace: observability
 data:
-  config.yaml: |
+  tfo-agent.yaml: |
+    agent:
+      description: "TelemetryFlow Agent - K8s"
+      tags:
+        environment: "production"
+        cluster: "main"
+
+    collectors:
+      metrics:
+        enabled: true
+        interval: 30s
+        cpu:
+          enabled: true
+        memory:
+          enabled: true
+        disk:
+          enabled: true
+        network:
+          enabled: true
+
     receivers:
       otlp:
+        enabled: true
         protocols:
           grpc:
-            endpoint: 0.0.0.0:4317
+            enabled: true
+            endpoint: "0.0.0.0:4317"
           http:
-            endpoint: 0.0.0.0:4318
-
-      prometheus:
-        config:
-          scrape_configs:
-            # Scrape node-exporter on same node
-            - job_name: 'node-exporter'
-              static_configs:
-                - targets: ['localhost:9100']
-
-            # Scrape kubelet metrics
-            - job_name: 'kubelet'
-              kubernetes_sd_configs:
-                - role: node
-              scheme: https
-              tls_config:
-                ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
-              bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
-
-      # Log collection
-      filelog:
-        include:
-          - /var/log/pods/**/*.log
-        include_file_path: true
-        include_file_name: false
-        operators:
-          - type: json_parser
-            timestamp:
-              parse_from: attributes.time
-              layout: '%Y-%m-%dT%H:%M:%S.%LZ'
+            enabled: true
+            endpoint: "0.0.0.0:4318"
 
     processors:
       batch:
-        timeout: 10s
-        send_batch_size: 512
-        send_batch_max_size: 1024
-
+        enabled: true
+        send_batch_size: 8192
+        timeout: 200ms
       memory_limiter:
-        limit_mib: 256
-        spike_limit_mib: 64
-        check_interval: 1s
+        enabled: true
+        limit_percentage: 80
 
-      resource:
-        attributes:
-          - key: host.name
-            value: ${env:HOSTNAME}
-            action: upsert
-          - key: host.ip
-            value: ${env:HOST_IP}
-            action: upsert
-          - key: k8s.node.name
-            value: ${env:K8S_NODE_NAME}
-            action: upsert
+    exporter:
+      otlp:
+        enabled: true
+        endpoint: "http://tfo-collector.observability.svc.cluster.local:4317"
+        compression: "gzip"
 
-      attributes:
-        actions:
-          - key: telemetryflow.workspace.id
-            value: ${env:TELEMETRYFLOW_WORKSPACE_ID}
-            action: upsert
-          - key: telemetryflow.tenant.id
-            value: ${env:TELEMETRYFLOW_TENANT_ID}
-            action: upsert
-          - key: agent.version
-            value: "1.0.0-CE"
-            action: upsert
-          - key: agent.type
-            value: "tfo-otel-agent"
-            action: upsert
+    buffer:
+      enabled: true
+      path: "/var/lib/tfo-agent/buffer"
+      max_size_mb: 100
 
-    exporters:
-      otlphttp:
-        endpoint: ${env:TELEMETRYFLOW_ENDPOINT}
-        headers:
-          X-Workspace-Id: "${env:TELEMETRYFLOW_WORKSPACE_ID}"
-          X-Tenant-Id: "${env:TELEMETRYFLOW_TENANT_ID}"
-        compression: gzip
-        retry_on_failure:
-          enabled: true
-          initial_interval: 5s
-          max_interval: 30s
-          max_elapsed_time: 300s
-        sending_queue:
-          enabled: true
-          num_consumers: 10
-          queue_size: 5000
-          storage: file_storage
-
-      logging:
-        loglevel: info
+    heartbeat:
+      enabled: true
+      interval: 60s
 
     extensions:
       health_check:
-        endpoint: 0.0.0.0:13133
-
-      file_storage:
-        directory: /var/lib/otelcol/queue
-        timeout: 10s
-
-    service:
-      extensions: [health_check, file_storage]
-
-      pipelines:
-        metrics:
-          receivers: [otlp, prometheus]
-          processors: [memory_limiter, resource, attributes, batch]
-          exporters: [otlphttp, logging]
-
-        logs:
-          receivers: [otlp, filelog]
-          processors: [memory_limiter, resource, attributes, batch]
-          exporters: [otlphttp, logging]
-
-        traces:
-          receivers: [otlp]
-          processors: [memory_limiter, resource, attributes, batch]
-          exporters: [otlphttp, logging]
+        enabled: true
+        endpoint: "0.0.0.0:13133"
 
 ---
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
-  name: tfo-otel-agent
+  name: tfo-agent
   namespace: observability
   labels:
-    app: tfo-otel-agent
-    version: "1.0.0-CE"
+    app: tfo-agent
+    version: "1.1.1-CE"
 spec:
   selector:
     matchLabels:
-      app: tfo-otel-agent
+      app: tfo-agent
   template:
     metadata:
       labels:
-        app: tfo-otel-agent
-        version: "1.0.0-CE"
+        app: tfo-agent
+        version: "1.1.1-CE"
     spec:
-      serviceAccountName: tfo-otel-agent
+      serviceAccountName: tfo-agent
       hostNetwork: true
       dnsPolicy: ClusterFirstWithHostNet
 
       containers:
-      - name: otel-agent
-        image: otel/opentelemetry-collector-contrib:0.88.0
+      - name: tfo-agent
+        image: telemetryflow/telemetryflow-agent:1.1.1
         imagePullPolicy: IfNotPresent
 
         args:
-          - "--config=/etc/otel-agent/config.yaml"
+          - start
+          - --config=/etc/tfo-agent/tfo-agent.yaml
 
         env:
         - name: HOSTNAME
@@ -283,18 +331,18 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: spec.nodeName
-        - name: TELEMETRYFLOW_ENDPOINT
-          value: "http://tfo-otel-collector.observability.svc.cluster.local:4318"
-        - name: TELEMETRYFLOW_WORKSPACE_ID
+        - name: TELEMETRYFLOW_API_ENDPOINT
+          value: "https://api.telemetryflow.id"
+        - name: TELEMETRYFLOW_API_KEY_ID
           valueFrom:
             secretKeyRef:
               name: telemetryflow-secrets
-              key: workspace-id
-        - name: TELEMETRYFLOW_TENANT_ID
+              key: api-key-id
+        - name: TELEMETRYFLOW_API_KEY_SECRET
           valueFrom:
             secretKeyRef:
               name: telemetryflow-secrets
-              key: tenant-id
+              key: api-key-secret
 
         ports:
         - name: otlp-grpc
@@ -333,43 +381,31 @@ spec:
 
         volumeMounts:
         - name: config
-          mountPath: /etc/otel-agent
-        - name: varlog
-          mountPath: /var/log
-          readOnly: true
-        - name: varlibdockercontainers
-          mountPath: /var/lib/docker/containers
-          readOnly: true
-        - name: queue-storage
-          mountPath: /var/lib/otelcol/queue
+          mountPath: /etc/tfo-agent
+        - name: buffer-storage
+          mountPath: /var/lib/tfo-agent
 
       volumes:
       - name: config
         configMap:
-          name: otel-agent-config
-      - name: varlog
+          name: tfo-agent-config
+      - name: buffer-storage
         hostPath:
-          path: /var/log
-      - name: varlibdockercontainers
-        hostPath:
-          path: /var/lib/docker/containers
-      - name: queue-storage
-        hostPath:
-          path: /var/lib/otel-agent/queue
+          path: /var/lib/tfo-agent
           type: DirectoryOrCreate
 
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: tfo-otel-agent
+  name: tfo-agent
   namespace: observability
 
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: tfo-otel-agent
+  name: tfo-agent
 rules:
 - apiGroups: [""]
   resources:
@@ -379,260 +415,300 @@ rules:
     - endpoints
     - pods
   verbs: ["get", "list", "watch"]
-- apiGroups:
-    - extensions
-  resources:
-    - ingresses
-  verbs: ["get", "list", "watch"]
 
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: tfo-otel-agent
+  name: tfo-agent
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: tfo-otel-agent
+  name: tfo-agent
 subjects:
 - kind: ServiceAccount
-  name: tfo-otel-agent
+  name: tfo-agent
   namespace: observability
 ```
 
-### Method 3: Systemd Service (Binary)
-
-#### Install Binary
+### Method 5: Systemd Service
 
 ```bash
-# Download collector binary
-wget https://github.com/open-telemetry/opentelemetry-collector-releases/releases/download/v0.88.0/otelcol-contrib_0.88.0_linux_amd64.tar.gz
+# Install binary
+sudo make install
 
-# Extract
-tar -xzf otelcol-contrib_0.88.0_linux_amd64.tar.gz
-
-# Move to system path
-sudo mv otelcol-contrib /usr/local/bin/tfo-otel-agent
-sudo chmod +x /usr/local/bin/tfo-otel-agent
+# Or manually
+sudo cp ./build/tfo-agent /usr/local/bin/tfo-agent
+sudo chmod +x /usr/local/bin/tfo-agent
 
 # Create directories
-sudo mkdir -p /etc/otel-agent
-sudo mkdir -p /var/lib/otel-agent/queue
-sudo mkdir -p /var/log/otel-agent
+sudo mkdir -p /etc/tfo-agent
+sudo mkdir -p /var/lib/tfo-agent/buffer
+sudo mkdir -p /var/log/tfo-agent
+
+# Copy config
+sudo cp configs/tfo-agent.yaml /etc/tfo-agent/
+
+# Create service user
+sudo useradd -r -s /bin/false telemetryflow
+
+# Set permissions
+sudo chown -R telemetryflow:telemetryflow /etc/tfo-agent
+sudo chown -R telemetryflow:telemetryflow /var/lib/tfo-agent
+sudo chown -R telemetryflow:telemetryflow /var/log/tfo-agent
 ```
 
-#### Create Systemd Service
+Create systemd service:
 
 ```bash
-sudo tee /etc/systemd/system/tfo-otel-agent.service > /dev/null <<EOF
+sudo tee /etc/systemd/system/tfo-agent.service > /dev/null <<EOF
 [Unit]
-Description=TelemetryFlow OTEL Agent
+Description=TelemetryFlow Agent
 After=network.target
 
 [Service]
 Type=simple
-User=otel
-Group=otel
-ExecStart=/usr/local/bin/tfo-otel-agent --config=/etc/otel-agent/config.yaml
+User=telemetryflow
+Group=telemetryflow
+ExecStart=/usr/local/bin/tfo-agent start --config /etc/tfo-agent/tfo-agent.yaml
 Restart=always
-RestartSec=10
-StandardOutput=journal
-StandardError=journal
-SyslogIdentifier=tfo-otel-agent
-
-# Environment variables
-Environment="TELEMETRYFLOW_ENDPOINT=http://tfo-collector:4318"
-Environment="TELEMETRYFLOW_WORKSPACE_ID=your-workspace-id"
-Environment="TELEMETRYFLOW_TENANT_ID=your-tenant-id"
-Environment="HOSTNAME=%H"
+RestartSec=5
 
 # Security
 NoNewPrivileges=true
 PrivateTmp=true
 ProtectSystem=strict
 ProtectHome=true
-ReadWritePaths=/var/lib/otel-agent
+ReadWritePaths=/var/lib/tfo-agent
 
 [Install]
 WantedBy=multi-user.target
 EOF
 ```
 
-#### Create User and Start Service
+Enable and start:
 
 ```bash
-# Create service user
-sudo useradd -r -s /bin/false otel
-
-# Set permissions
-sudo chown -R otel:otel /etc/otel-agent
-sudo chown -R otel:otel /var/lib/otel-agent
-sudo chown -R otel:otel /var/log/otel-agent
-
-# Enable and start service
 sudo systemctl daemon-reload
-sudo systemctl enable tfo-otel-agent
-sudo systemctl start tfo-otel-agent
-
-# Check status
-sudo systemctl status tfo-otel-agent
+sudo systemctl enable tfo-agent
+sudo systemctl start tfo-agent
+sudo systemctl status tfo-agent
 ```
 
 ---
 
 ## Configuration
 
+TelemetryFlow Agent uses a **custom YAML configuration format** with `enabled` flags for easy feature toggling. This differs from the standard OpenTelemetry Collector configuration format.
+
+### Configuration File Locations
+
+The agent searches for configuration in the following order:
+
+1. Path specified via `--config` flag
+2. `./configs/tfo-agent.yaml` (current directory)
+3. `~/.tfo-agent/tfo-agent.yaml` (user home)
+4. `/etc/tfo-agent/tfo-agent.yaml` (system)
+
 ### Minimal Configuration
 
 ```yaml
-receivers:
+agent:
+  description: "TelemetryFlow Agent"
+
+collectors:
+  metrics:
+    enabled: true
+    interval: 60s
+
+exporter:
   otlp:
-    protocols:
-      grpc:
-        endpoint: 0.0.0.0:4317
-      http:
-        endpoint: 0.0.0.0:4318
-
-processors:
-  batch:
-    timeout: 10s
-    send_batch_size: 512
-
-  memory_limiter:
-    limit_mib: 256
-    check_interval: 1s
-
-  attributes:
-    actions:
-      - key: telemetryflow.workspace.id
-        value: ${env:TELEMETRYFLOW_WORKSPACE_ID}
-        action: upsert
-      - key: telemetryflow.tenant.id
-        value: ${env:TELEMETRYFLOW_TENANT_ID}
-        action: upsert
-
-exporters:
-  otlphttp:
-    endpoint: ${env:TELEMETRYFLOW_ENDPOINT}
-    headers:
-      X-Workspace-Id: "${env:TELEMETRYFLOW_WORKSPACE_ID}"
-      X-Tenant-Id: "${env:TELEMETRYFLOW_TENANT_ID}"
-    compression: gzip
-
-extensions:
-  health_check:
-    endpoint: 0.0.0.0:13133
-
-service:
-  extensions: [health_check]
-  pipelines:
-    metrics:
-      receivers: [otlp]
-      processors: [memory_limiter, attributes, batch]
-      exporters: [otlphttp]
-    logs:
-      receivers: [otlp]
-      processors: [memory_limiter, attributes, batch]
-      exporters: [otlphttp]
-    traces:
-      receivers: [otlp]
-      processors: [memory_limiter, attributes, batch]
-      exporters: [otlphttp]
+    enabled: true
+    endpoint: "http://tfo-collector:4317"
 ```
 
-### Production Configuration with Resilience
+### Production Configuration
 
 ```yaml
+# =============================================================================
+# TelemetryFlow Agent Configuration - Production
+# =============================================================================
+
+agent:
+  id: ""                           # Auto-generated if empty
+  hostname: ""                     # Auto-detected if empty
+  description: "Production Agent"
+  tags:
+    environment: "production"
+    datacenter: "dc1"
+
+# -----------------------------------------------------------------------------
+# Collectors
+# -----------------------------------------------------------------------------
+collectors:
+  metrics:
+    enabled: true
+    interval: 30s
+    cpu:
+      enabled: true
+      per_cpu: true
+    memory:
+      enabled: true
+    disk:
+      enabled: true
+      mount_points: ["/", "/data"]
+    network:
+      enabled: true
+      interfaces: ["eth0", "ens*"]
+
+  logs:
+    enabled: true
+    paths:
+      - /var/log/app/*.log
+    exclude_paths:
+      - /var/log/*.gz
+
+  traces:
+    enabled: true
+
+# -----------------------------------------------------------------------------
+# Receivers
+# -----------------------------------------------------------------------------
 receivers:
   otlp:
+    enabled: true
     protocols:
       grpc:
-        endpoint: 0.0.0.0:4317
-        max_recv_msg_size_mib: 4
+        enabled: true
+        endpoint: "0.0.0.0:4317"
       http:
-        endpoint: 0.0.0.0:4318
+        enabled: true
+        endpoint: "0.0.0.0:4318"
 
+# -----------------------------------------------------------------------------
+# Processors
+# -----------------------------------------------------------------------------
 processors:
   batch:
-    timeout: 10s
-    send_batch_size: 512
-    send_batch_max_size: 1024
+    enabled: true
+    send_batch_size: 8192
+    timeout: 200ms
 
   memory_limiter:
-    limit_mib: 256
-    spike_limit_mib: 64
-    check_interval: 1s
+    enabled: true
+    limit_percentage: 80
+    spike_limit_percentage: 25
 
-  resource:
-    attributes:
-      - key: host.name
-        value: ${env:HOSTNAME}
-        action: upsert
-      - key: host.ip
-        value: ${env:HOST_IP}
-        action: upsert
+  resource_detection:
+    enabled: true
+    detectors: [env, system, docker]
 
-  attributes:
-    actions:
-      - key: telemetryflow.workspace.id
-        value: ${env:TELEMETRYFLOW_WORKSPACE_ID}
-        action: upsert
-      - key: telemetryflow.tenant.id
-        value: ${env:TELEMETRYFLOW_TENANT_ID}
-        action: upsert
-      - key: agent.version
-        value: "1.0.0-CE"
-        action: upsert
-
-exporters:
-  otlphttp:
-    endpoint: ${env:TELEMETRYFLOW_ENDPOINT}
-    headers:
-      X-Workspace-Id: "${env:TELEMETRYFLOW_WORKSPACE_ID}"
-      X-Tenant-Id: "${env:TELEMETRYFLOW_TENANT_ID}"
-    compression: gzip
-    timeout: 30s
-    retry_on_failure:
+# -----------------------------------------------------------------------------
+# Exporter
+# -----------------------------------------------------------------------------
+exporter:
+  otlp:
+    enabled: true
+    endpoint: "http://tfo-collector:4317"
+    compression: "gzip"
+    retry:
       enabled: true
       initial_interval: 5s
       max_interval: 30s
-      max_elapsed_time: 300s
-    sending_queue:
+    queue:
       enabled: true
-      num_consumers: 10
       queue_size: 5000
-      storage: file_storage
 
+# -----------------------------------------------------------------------------
+# Buffer
+# -----------------------------------------------------------------------------
+buffer:
+  enabled: true
+  path: "/var/lib/tfo-agent/buffer"
+  max_size_mb: 500
+  flush_interval: 5s
+
+# -----------------------------------------------------------------------------
+# Heartbeat
+# -----------------------------------------------------------------------------
+heartbeat:
+  enabled: true
+  interval: 60s
+  timeout: 10s
+
+# -----------------------------------------------------------------------------
+# Extensions
+# -----------------------------------------------------------------------------
 extensions:
   health_check:
-    endpoint: 0.0.0.0:13133
+    enabled: true
+    endpoint: "0.0.0.0:13133"
 
-  file_storage:
-    directory: /var/lib/otel-agent/queue
-    timeout: 10s
-    compaction:
-      directory: /var/lib/otel-agent/queue
-      on_start: true
-      on_rebound: true
+# -----------------------------------------------------------------------------
+# Logging
+# -----------------------------------------------------------------------------
+logging:
+  level: "info"
+  format: "json"
+```
 
-service:
-  extensions: [health_check, file_storage]
+### Environment Variable Substitution
 
-  pipelines:
-    metrics:
-      receivers: [otlp]
-      processors: [memory_limiter, resource, attributes, batch]
-      exporters: [otlphttp]
+Configuration values can reference environment variables:
 
-    logs:
-      receivers: [otlp]
-      processors: [memory_limiter, resource, attributes, batch]
-      exporters: [otlphttp]
+```yaml
+exporter:
+  otlp:
+    endpoint: "${COLLECTOR_ENDPOINT:-http://localhost:4317}"
+    headers:
+      X-API-Key: "${TFO_API_KEY}"
+```
 
-    traces:
-      receivers: [otlp]
-      processors: [memory_limiter, resource, attributes, batch]
-      exporters: [otlphttp]
+---
+
+## CLI Commands
+
+TelemetryFlow Agent provides a custom Cobra CLI with the following commands:
+
+### Start Agent
+
+```bash
+# Start with default config
+tfo-agent start
+
+# Start with custom config
+tfo-agent start --config /path/to/config.yaml
+
+# Start with debug logging
+TELEMETRYFLOW_LOG_LEVEL=debug tfo-agent start
+```
+
+### Validate Configuration
+
+```bash
+# Validate and show parsed config
+tfo-agent config validate --config /path/to/config.yaml
+```
+
+### Show Version
+
+```bash
+tfo-agent version
+
+# Output:
+# TelemetryFlow Agent
+# Version:    1.1.1-CE
+# Git Commit: abc1234
+# Git Branch: main
+# Build Time: 2025-12-26T00:00:00Z
+# Go Version: go1.24
+```
+
+### Help
+
+```bash
+tfo-agent --help
+tfo-agent start --help
 ```
 
 ---
@@ -645,63 +721,57 @@ TFO-OTEL-Agent automatically registers with TelemetryFlow Platform and sends per
 
 ```mermaid
 sequenceDiagram
-    participant Agent as TFO-OTEL-Agent
-    participant Collector as TFO-OTEL-Collector
-    participant API as TelemetryFlow API
+    participant Agent as TFO-Agent
+    participant Backend as TelemetryFlow Backend
     participant DB as PostgreSQL
 
     Agent->>Agent: Start up
-    Agent->>Agent: Load config & env vars
-    Agent->>Collector: POST /v1/metrics (with headers)
-    Collector->>API: POST /api/v1/agents/register
+    Agent->>Agent: Load config
+    Agent->>Backend: POST /api/v1/agents/register
+    Note over Agent,Backend: Registration payload with metadata
 
-    Note over API: Extract from headers:<br/>- Workspace ID<br/>- Tenant ID<br/>- Agent metadata
-
-    API->>DB: INSERT INTO agents
-    DB-->>API: Agent ID
-    API-->>Collector: 201 Created {agent_id}
-    Collector-->>Agent: ACK
+    Backend->>DB: INSERT INTO agents
+    DB-->>Backend: Agent ID
+    Backend-->>Agent: 201 Created {agent_id}
 
     loop Every 60 seconds
-        Agent->>Collector: POST /v1/metrics (heartbeat)
-        Collector->>API: POST /api/v1/agents/:id/heartbeat
-        API->>DB: UPDATE agents SET last_seen_at
-        DB-->>API: OK
-        API-->>Collector: 200 OK
-        Collector-->>Agent: ACK
+        Agent->>Backend: POST /api/v1/agents/:id/heartbeat
+        Backend->>DB: UPDATE agents SET last_seen_at
+        DB-->>Backend: OK
+        Backend-->>Agent: 200 OK
     end
 ```
 
-### Agent Metadata
-
-Agents report the following metadata during registration:
+### Agent Registration Payload
 
 ```json
 {
-  "agent_id": "tfo-agent-prod-node-01",
-  "version": "1.0.0-CE",
+  "agent_id": "auto-generated-uuid",
+  "version": "1.1.1",
   "hostname": "prod-node-01",
   "ip_address": "10.0.1.15",
-  "workspace_id": "550e8400-e29b-41d4-a716-446655440000",
-  "tenant_id": "660e8400-e29b-41d4-a716-446655440001",
-  "capabilities": ["otlp_grpc", "otlp_http", "prometheus_scrape"],
+  "capabilities": ["otlp_grpc", "otlp_http", "system_metrics"],
   "resource_attributes": {
     "os.type": "linux",
     "os.description": "Ubuntu 22.04",
-    "host.arch": "amd64",
-    "service.name": "tfo-otel-agent",
-    "service.version": "1.0.0-CE"
+    "host.arch": "amd64"
   },
-  "registered_at": "2025-12-13T10:00:00Z",
-  "last_seen_at": "2025-12-13T10:00:00Z"
+  "tags": {
+    "environment": "production",
+    "datacenter": "dc1"
+  }
 }
 ```
 
-### Heartbeat Monitoring
+### Heartbeat Configuration
 
-- **Heartbeat Interval**: 60 seconds
-- **Timeout**: Agent marked offline after 15 minutes of inactivity
-- **Auto-Recovery**: Agent automatically re-registers when coming back online
+```yaml
+heartbeat:
+  enabled: true
+  interval: 60s      # Heartbeat interval
+  timeout: 10s       # Request timeout
+  max_retries: 3     # Max retries before marking failed
+```
 
 ---
 
@@ -714,87 +784,29 @@ Agents report the following metadata during registration:
 ```mermaid
 graph TB
     subgraph HOST[Physical/Virtual Host]
-        AGENT[TFO-OTEL-Agent<br/>:4317, :4318]
+        AGENT[TFO-Agent<br/>:4317, :4318]
 
         subgraph APPS[Applications]
-            APP1[App 1<br/>OTLP]
-            APP2[App 2<br/>OTLP]
+            APP1[App 1<br/>OTLP SDK]
+            APP2[App 2<br/>OTLP SDK]
         end
-
-        EXPORTER[node-exporter<br/>:9100]
     end
 
-    BACKEND[TFO-OTEL-Collector<br/>or TelemetryFlow API]
+    COLLECTOR[TFO-Collector]
 
     APP1 -->|OTLP| AGENT
     APP2 -->|OTLP| AGENT
-    EXPORTER -->|Prometheus| AGENT
-    AGENT -->|OTLP HTTP| BACKEND
+    AGENT -->|OTLP HTTP| COLLECTOR
 
     style AGENT fill:#FFE082,stroke:#F57C00,color:#000
-    style BACKEND fill:#81C784,stroke:#388E3C,color:#000
-```
-
-**Deployment:**
-
-```bash
-# Docker
-docker run -d \
-  --name tfo-otel-agent \
-  --network host \
-  -e TELEMETRYFLOW_ENDPOINT=http://tfo-collector:4318 \
-  -e TELEMETRYFLOW_WORKSPACE_ID=your-workspace-id \
-  -e TELEMETRYFLOW_TENANT_ID=your-tenant-id \
-  -v /var/lib/otel-agent:/var/lib/otelcol \
-  -v ./config.yaml:/etc/otel-agent-config.yaml \
-  otel/opentelemetry-collector-contrib:0.88.0 \
-  --config=/etc/otel-agent-config.yaml
+    style COLLECTOR fill:#81C784,stroke:#388E3C,color:#000
 ```
 
 ### Pattern 2: Kubernetes DaemonSet
 
 **Use Case:** Monitor all nodes in Kubernetes cluster
 
-```mermaid
-graph TB
-    subgraph CLUSTER[Kubernetes Cluster]
-        subgraph NODE1[Node 1]
-            AGENT1[TFO-OTEL-Agent<br/>DaemonSet Pod]
-            PODS1[App Pods<br/>same node]
-        end
-
-        subgraph NODE2[Node 2]
-            AGENT2[TFO-OTEL-Agent<br/>DaemonSet Pod]
-            PODS2[App Pods<br/>same node]
-        end
-
-        subgraph NODE3[Node 3]
-            AGENT3[TFO-OTEL-Agent<br/>DaemonSet Pod]
-            PODS3[App Pods<br/>same node]
-        end
-    end
-
-    COLLECTOR[TFO-OTEL-Collector<br/>Deployment]
-
-    PODS1 -->|OTLP| AGENT1
-    PODS2 -->|OTLP| AGENT2
-    PODS3 -->|OTLP| AGENT3
-
-    AGENT1 -->|OTLP HTTP| COLLECTOR
-    AGENT2 -->|OTLP HTTP| COLLECTOR
-    AGENT3 -->|OTLP HTTP| COLLECTOR
-
-    style AGENT1 fill:#FFE082,stroke:#F57C00,color:#000
-    style AGENT2 fill:#FFE082,stroke:#F57C00,color:#000
-    style AGENT3 fill:#FFE082,stroke:#F57C00,color:#000
-    style COLLECTOR fill:#81C784,stroke:#388E3C,color:#000
-```
-
-**Benefits:**
-- One agent per node
-- Automatic scaling with cluster
-- Scrape kubelet and node metrics
-- Collect pod logs from node
+See [Kubernetes Installation](#method-4-kubernetes-daemonset) for full manifest.
 
 ### Pattern 3: Sidecar Container
 
@@ -815,33 +827,14 @@ spec:
         env:
         - name: OTEL_EXPORTER_OTLP_ENDPOINT
           value: "http://localhost:4318"
-        ports:
-        - containerPort: 8080
 
       # Sidecar agent
-      - name: otel-agent
-        image: otel/opentelemetry-collector-contrib:0.88.0
-        args:
-          - "--config=/etc/otel-agent/config.yaml"
-        env:
-        - name: TELEMETRYFLOW_ENDPOINT
-          value: "http://tfo-collector:4318"
-        - name: TELEMETRYFLOW_WORKSPACE_ID
-          valueFrom:
-            secretKeyRef:
-              name: telemetryflow-secrets
-              key: workspace-id
-        - name: TELEMETRYFLOW_TENANT_ID
-          valueFrom:
-            secretKeyRef:
-              name: telemetryflow-secrets
-              key: tenant-id
+      - name: tfo-agent
+        image: telemetryflow/telemetryflow-agent:1.1.1
+        args: ["start", "--config=/etc/tfo-agent/config.yaml"]
         ports:
         - containerPort: 4317
         - containerPort: 4318
-        volumeMounts:
-        - name: config
-          mountPath: /etc/otel-agent
         resources:
           requests:
             memory: "64Mi"
@@ -849,11 +842,6 @@ spec:
           limits:
             memory: "128Mi"
             cpu: "200m"
-
-      volumes:
-      - name: config
-        configMap:
-          name: otel-agent-config
 ```
 
 ### Pattern 4: Edge Gateway
@@ -861,88 +849,43 @@ spec:
 **Use Case:** IoT, edge computing with intermittent connectivity
 
 ```yaml
-receivers:
+# Edge-optimized configuration
+buffer:
+  enabled: true
+  path: "/var/lib/tfo-agent/buffer"
+  max_size_mb: 500              # Large buffer for offline storage
+
+exporter:
   otlp:
-    protocols:
-      grpc:
-        endpoint: 0.0.0.0:4317
-      http:
-        endpoint: 0.0.0.0:4318
-
-processors:
-  batch:
-    timeout: 30s          # Longer batching
-    send_batch_size: 2048 # Larger batches
-
-  memory_limiter:
-    limit_mib: 512        # More memory for buffering
-
-exporters:
-  otlphttp:
-    endpoint: ${env:TELEMETRYFLOW_ENDPOINT}
-    compression: gzip
-    timeout: 60s
-    retry_on_failure:
+    enabled: true
+    endpoint: "https://cloud-collector:4317"
+    retry:
       enabled: true
       initial_interval: 10s
       max_interval: 300s
-      max_elapsed_time: 3600s  # Retry for 1 hour
-    sending_queue:
-      enabled: true
-      num_consumers: 5
-      queue_size: 10000          # Large queue
-      storage: file_storage      # Persistent storage
-
-extensions:
-  file_storage:
-    directory: /var/lib/otel-agent/queue
-    timeout: 30s
-    compaction:
-      on_start: true
-      on_rebound: true
-      rebound_needed_threshold_mib: 100
-      rebound_trigger_threshold_mib: 10
-
-service:
-  extensions: [health_check, file_storage]
-  pipelines:
-    metrics:
-      receivers: [otlp]
-      processors: [memory_limiter, batch]
-      exporters: [otlphttp]
+      max_elapsed_time: 3600s   # Retry for 1 hour
 ```
 
 ---
 
 ## Monitoring
 
-### Internal Metrics
+### Collected Metrics
 
-TFO-OTEL-Agent exposes Prometheus metrics at `:8888/metrics`:
+| Metric | Type | Description |
+|--------|------|-------------|
+| `system.cpu.usage` | gauge | CPU usage percentage |
+| `system.cpu.cores` | gauge | Number of CPU cores |
+| `system.memory.total` | gauge | Total memory (bytes) |
+| `system.memory.used` | gauge | Used memory (bytes) |
+| `system.memory.usage` | gauge | Memory usage percentage |
+| `system.disk.total` | gauge | Total disk space (bytes) |
+| `system.disk.used` | gauge | Used disk space (bytes) |
+| `system.disk.usage` | gauge | Disk usage percentage |
+| `system.network.bytes_sent` | counter | Total bytes sent |
+| `system.network.bytes_recv` | counter | Total bytes received |
 
-```bash
-curl http://localhost:8888/metrics
-```
-
-#### Key Metrics
-
-| Metric | Description | Type |
-|--------|-------------|------|
-| `otelcol_receiver_accepted_spans` | Spans accepted by receiver | Counter |
-| `otelcol_receiver_refused_spans` | Spans refused by receiver | Counter |
-| `otelcol_receiver_accepted_metric_points` | Metric points accepted | Counter |
-| `otelcol_receiver_refused_metric_points` | Metric points refused | Counter |
-| `otelcol_exporter_sent_spans` | Spans sent successfully | Counter |
-| `otelcol_exporter_send_failed_spans` | Spans failed to send | Counter |
-| `otelcol_exporter_sent_metric_points` | Metric points sent | Counter |
-| `otelcol_exporter_send_failed_metric_points` | Metric points failed | Counter |
-| `otelcol_exporter_queue_size` | Current queue size | Gauge |
-| `otelcol_exporter_queue_capacity` | Queue capacity | Gauge |
-| `otelcol_processor_batch_batch_send_size` | Batch sizes sent | Histogram |
-| `otelcol_process_runtime_heap_alloc_bytes` | Heap memory allocated | Gauge |
-| `otelcol_process_runtime_total_alloc_bytes` | Total memory allocated | Counter |
-
-### Health Checks
+### Health Check
 
 ```bash
 # Agent health
@@ -951,468 +894,205 @@ curl http://localhost:13133/
 # Expected response: HTTP 200
 ```
 
-### Logging
+### Internal Metrics
 
-Enable debug logging for troubleshooting:
+When Prometheus exporter is enabled:
 
-```yaml
-service:
-  telemetry:
-    logs:
-      level: debug
-      development: true
-      encoding: json
-      output_paths:
-        - stdout
-        - /var/log/otel-agent/agent.log
+```bash
+curl http://localhost:8888/metrics
 ```
 
 ---
 
 ## High Availability
 
-### Agent-Level HA
-
-Agents are inherently stateless, but data loss prevention is achieved through:
-
-#### 1. Persistent Queue
+### Persistent Buffer
 
 ```yaml
-exporters:
-  otlphttp:
-    sending_queue:
-      enabled: true
-      storage: file_storage
-      queue_size: 5000
-
-extensions:
-  file_storage:
-    directory: /var/lib/otel-agent/queue
+buffer:
+  enabled: true
+  path: "/var/lib/tfo-agent/buffer"
+  max_size_mb: 500
 ```
 
-#### 2. Multiple Collector Endpoints
+### Retry Configuration
 
 ```yaml
-exporters:
-  loadbalancing:
-    protocol:
-      otlp:
-        endpoint: dummy  # Required but not used
-    resolver:
-      static:
-        hostnames:
-          - tfo-collector-1.example.com:4318
-          - tfo-collector-2.example.com:4318
-          - tfo-collector-3.example.com:4318
-```
-
-#### 3. Retry Logic
-
-```yaml
-exporters:
-  otlphttp:
-    retry_on_failure:
+exporter:
+  otlp:
+    retry:
       enabled: true
       initial_interval: 5s
       max_interval: 30s
       max_elapsed_time: 300s
 ```
 
-### DaemonSet HA (Kubernetes)
+### Graceful Shutdown
 
-```yaml
-apiVersion: apps/v1
-kind: DaemonSet
-metadata:
-  name: tfo-otel-agent
-spec:
-  updateStrategy:
-    type: RollingUpdate
-    rollingUpdate:
-      maxUnavailable: 1  # Update one node at a time
-  template:
-    spec:
-      tolerations:
-      # Ensure agent runs on all nodes, including masters
-      - effect: NoSchedule
-        key: node-role.kubernetes.io/master
-        operator: Exists
-      - effect: NoSchedule
-        key: node-role.kubernetes.io/control-plane
-        operator: Exists
+The agent handles signals for graceful shutdown:
 
-      priorityClassName: system-node-critical  # High priority
-```
+- **SIGINT/SIGTERM**: Flush buffers and exit
+- **SIGHUP**: Reload configuration (hot reload)
 
 ---
 
 ## Troubleshooting
 
-### Issue 1: Agent Not Registering
-
-**Symptoms:**
-- Agent starts but doesn't appear in TelemetryFlow UI
-- No heartbeat messages in logs
-
-**Diagnosis:**
+### Issue 1: Agent Not Starting
 
 ```bash
-# Check agent logs
-docker logs tfo-otel-agent
+# Check logs
+docker logs tfo-agent
 
 # Or for systemd
-sudo journalctl -u tfo-otel-agent -f
+sudo journalctl -u tfo-agent -f
 
-# Test connectivity to collector
-curl -v http://tfo-collector:4318/v1/metrics
+# Validate config
+tfo-agent config validate --config /etc/tfo-agent/tfo-agent.yaml
 ```
 
-**Solutions:**
-
-1. Verify environment variables:
-```bash
-docker exec tfo-otel-agent env | grep TELEMETRYFLOW
-```
-
-2. Check network connectivity:
-```bash
-docker exec tfo-otel-agent ping tfo-collector
-```
-
-3. Verify workspace/tenant IDs are valid UUIDs
-
-### Issue 2: High Memory Usage
-
-**Symptoms:**
-- Agent memory usage exceeds limits
-- OOMKilled events in Kubernetes
-
-**Diagnosis:**
+### Issue 2: Agent Not Registering
 
 ```bash
-# Check current memory usage
-curl http://localhost:8888/metrics | grep heap_alloc
+# Check API connectivity
+curl -v https://api.telemetryflow.id/health
 
-# Check queue size
-curl http://localhost:8888/metrics | grep queue_size
+# Verify credentials
+echo $TELEMETRYFLOW_API_KEY_ID
+echo $TELEMETRYFLOW_API_KEY_SECRET
 ```
 
-**Solutions:**
+### Issue 3: High Memory Usage
 
-1. Reduce batch size:
 ```yaml
-processors:
-  batch:
-    send_batch_size: 256  # Reduce from 512
-```
-
-2. Lower memory limiter:
-```yaml
+# Reduce memory usage
 processors:
   memory_limiter:
-    limit_mib: 128  # Reduce from 256
-```
+    enabled: true
+    limit_percentage: 60      # Lower limit
 
-3. Increase send frequency:
-```yaml
-processors:
   batch:
-    timeout: 5s  # Reduce from 10s
+    send_batch_size: 256      # Smaller batches
 ```
 
-### Issue 3: Data Not Reaching Backend
-
-**Symptoms:**
-- Agent logs show data sent
-- Data doesn't appear in TelemetryFlow
-
-**Diagnosis:**
+### Issue 4: Buffer Filling Up
 
 ```bash
-# Check exporter metrics
-curl http://localhost:8888/metrics | grep exporter_sent
-curl http://localhost:8888/metrics | grep exporter_send_failed
+# Check buffer disk usage
+du -sh /var/lib/tfo-agent/buffer
 
-# Enable debug logging
-# Add to config.yaml:
-service:
-  telemetry:
-    logs:
-      level: debug
-```
-
-**Solutions:**
-
-1. Verify headers are set correctly:
-```yaml
-exporters:
-  otlphttp:
-    headers:
-      X-Workspace-Id: "${env:TELEMETRYFLOW_WORKSPACE_ID}"
-      X-Tenant-Id: "${env:TELEMETRYFLOW_TENANT_ID}"
-```
-
-2. Check collector logs for errors
-
-3. Test with curl:
-```bash
-curl -X POST http://tfo-collector:4318/v1/metrics \
-  -H "Content-Type: application/json" \
-  -H "X-Workspace-Id: your-workspace-id" \
-  -H "X-Tenant-Id: your-tenant-id" \
-  -d @test-metrics.json
-```
-
-### Issue 4: Queue Filling Up
-
-**Symptoms:**
-- `otelcol_exporter_queue_size` approaching `queue_capacity`
-- Warning logs about queue full
-
-**Diagnosis:**
-
-```bash
-# Check queue metrics
-curl http://localhost:8888/metrics | grep queue
-
-# Check persistent queue disk usage
-du -sh /var/lib/otel-agent/queue
-```
-
-**Solutions:**
-
-1. Increase queue size:
-```yaml
-exporters:
-  otlphttp:
-    sending_queue:
-      queue_size: 10000  # Increase from 5000
-```
-
-2. Add more consumers:
-```yaml
-exporters:
-  otlphttp:
-    sending_queue:
-      num_consumers: 20  # Increase from 10
-```
-
-3. Enable compression:
-```yaml
-exporters:
-  otlphttp:
-    compression: gzip
+# Clear buffer (data will be lost)
+rm -rf /var/lib/tfo-agent/buffer/*
 ```
 
 ---
 
 ## Best Practices
 
-### 1. Resource Management
+### 1. Enable Memory Limiter
 
-**Memory:**
-- Set `memory_limiter` to 80% of container limit
-- Monitor heap allocation metrics
-- Use persistent queue to prevent data loss
-
-**CPU:**
-- Agent typically uses <5% CPU
-- Batch processing reduces CPU overhead
-- Monitor during peak traffic
-
-### 2. Configuration
-
-**Batching:**
 ```yaml
 processors:
-  batch:
-    timeout: 10s           # Balance latency vs throughput
-    send_batch_size: 512   # Optimize for network efficiency
+  memory_limiter:
+    enabled: true
+    limit_percentage: 80
 ```
 
-**Compression:**
+### 2. Configure Disk Buffer
+
 ```yaml
-exporters:
-  otlphttp:
-    compression: gzip      # Reduce bandwidth by 70-90%
+buffer:
+  enabled: true
+  max_size_mb: 500
 ```
 
-**Retry:**
+### 3. Use Compression
+
 ```yaml
-exporters:
-  otlphttp:
-    retry_on_failure:
-      enabled: true
-      initial_interval: 5s
-      max_interval: 30s
-      max_elapsed_time: 300s
+exporter:
+  otlp:
+    compression: "gzip"    # Reduces bandwidth ~70%
 ```
 
-### 3. Security
+### 4. Enable Heartbeat Monitoring
 
-**API Keys:**
-- Never hardcode credentials in config
-- Use environment variables or secrets
-
-**Network:**
-- Use TLS for OTLP connections in production
-- Restrict agent ports to trusted networks
-
-**Kubernetes:**
 ```yaml
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: tfo-otel-agent-policy
-spec:
-  podSelector:
-    matchLabels:
-      app: tfo-otel-agent
-  policyTypes:
-  - Ingress
-  - Egress
-  ingress:
-  - from:
-    - podSelector: {}  # Allow from all pods in namespace
-    ports:
-    - protocol: TCP
-      port: 4317
-    - protocol: TCP
-      port: 4318
-  egress:
-  - to:
-    - podSelector:
-        matchLabels:
-          app: tfo-otel-collector
-    ports:
-    - protocol: TCP
-      port: 4318
+heartbeat:
+  enabled: true
+  interval: 60s
 ```
 
-### 4. Monitoring
+### 5. Use Environment Variables for Secrets
 
-**Alert on:**
-- Agent offline (no heartbeat for >15 minutes)
-- High queue size (>80% capacity)
-- High error rate (>1% of exports failing)
-- High memory usage (>90% of limit)
-
-**Grafana Dashboard Queries:**
-
-```promql
-# Agent status
-up{job="tfo-otel-agent"}
-
-# Data throughput
-rate(otelcol_receiver_accepted_metric_points[5m])
-
-# Error rate
-rate(otelcol_exporter_send_failed_metric_points[5m])
-
-# Queue size
-otelcol_exporter_queue_size / otelcol_exporter_queue_capacity * 100
-```
-
-### 5. Deployment
-
-**Rolling Updates:**
 ```yaml
-# DaemonSet update strategy
-updateStrategy:
-  type: RollingUpdate
-  rollingUpdate:
-    maxUnavailable: 1
-```
-
-**Resource Requests/Limits:**
-```yaml
-resources:
-  requests:
-    memory: "128Mi"
-    cpu: "100m"
-  limits:
-    memory: "256Mi"
-    cpu: "500m"
-```
-
-**Node Affinity:**
-```yaml
-affinity:
-  nodeAffinity:
-    requiredDuringSchedulingIgnoredDuringExecution:
-      nodeSelectorTerms:
-      - matchExpressions:
-        - key: node-role.kubernetes.io/agent
-          operator: In
-          values:
-          - "true"
+exporter:
+  otlp:
+    headers:
+      X-API-Key: "${TFO_API_KEY}"   # Not hardcoded
 ```
 
 ---
 
-## Performance Tuning
+## Development
 
-### Low-Resource Environments
+### Build Commands
 
-**Minimal Configuration:**
+```bash
+# Show all commands
+make help
 
-```yaml
-processors:
-  batch:
-    timeout: 15s
-    send_batch_size: 256
+# Build
+make build              # Build agent for current platform
+make build-all          # Build for all platforms
 
-  memory_limiter:
-    limit_mib: 64
-    spike_limit_mib: 16
+# Run
+make run                # Build and run agent
+make dev                # Run with go run (faster for development)
 
-exporters:
-  otlphttp:
-    compression: gzip
-    sending_queue:
-      queue_size: 1000
+# Test
+make test               # Run tests
+make test-coverage      # Run tests with coverage
 
-resources:
-  requests:
-    memory: "64Mi"
-    cpu: "50m"
-  limits:
-    memory: "128Mi"
-    cpu: "200m"
-```
+# Quality
+make lint               # Run linter
+make fmt                # Format code
+make vet                # Run go vet
 
-### High-Throughput Environments
+# Install
+make install            # Install to /usr/local/bin
+make uninstall          # Uninstall
 
-**Optimized Configuration:**
-
-```yaml
-processors:
-  batch:
-    timeout: 5s
-    send_batch_size: 2048
-    send_batch_max_size: 4096
-
-  memory_limiter:
-    limit_mib: 512
-    spike_limit_mib: 128
-
-exporters:
-  otlphttp:
-    compression: gzip
-    sending_queue:
-      enabled: true
-      num_consumers: 20
-      queue_size: 10000
-
-resources:
-  requests:
-    memory: "256Mi"
-    cpu: "200m"
-  limits:
-    memory: "512Mi"
-    cpu: "1000m"
+# Docker
+make docker-build       # Build Docker image
+make docker-push        # Push Docker image
 ```
 
 ---
 
-**Version:** 1.0.0-CE | **Component:** TFO-OTEL-Agent | **Last Updated:** December 13, 2025
+## Documentation
+
+| Document | Description |
+|----------|-------------|
+| [README](docs/README.md) | Documentation overview |
+| [ARCHITECTURE](docs/ARCHITECTURE.md) | System architecture with diagrams |
+| [INSTALLATION](docs/INSTALLATION.md) | Installation guide |
+| [CONFIGURATION](docs/CONFIGURATION.md) | Configuration reference |
+| [COMMANDS](docs/COMMANDS.md) | CLI commands reference |
+| [DEVELOPMENT](docs/DEVELOPMENT.md) | Development guide and standards |
+| [TROUBLESHOOTING](docs/TROUBLESHOOTING.md) | Common issues and solutions |
+| [GITHUB-WORKFLOWS](docs/GITHUB-WORKFLOWS.md) | CI/CD workflows |
+| [CHANGELOG](CHANGELOG.md) | Version history |
+
+---
+
+## Links
+
+- **Website**: [https://telemetryflow.id](https://telemetryflow.id)
+- **Documentation**: [https://docs.telemetryflow.id](https://docs.telemetryflow.id)
+- **OpenTelemetry**: [https://opentelemetry.io](https://opentelemetry.io)
+- **Repository**: [https://github.com/telemetryflow/telemetryflow-agent](https://github.com/telemetryflow/telemetryflow-agent)
+- **Developer**: [DevOpsCorner Indonesia](https://devopscorner.id)
+
+---
+
+**Version:** 1.1.1-CE | **Component:** TFO-OTEL-Agent | **OTEL SDK:** v1.39.0 | **Last Updated:** December 2025

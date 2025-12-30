@@ -1,6 +1,6 @@
 # TFO-OTEL Deployment Guide
 
-- **Version:** 1.0.0-CE
+- **Version:** 1.1.1-CE
 - **Last Updated:** December 13, 2025
 - **Component:** Deployment Patterns & Best Practices
 - **Target:** Production-Grade Deployments
@@ -146,7 +146,7 @@ spec:
     spec:
       containers:
       - name: otel-agent
-        image: otel/opentelemetry-collector-contrib:0.88.0
+        image: otel/opentelemetry-collector-contrib:0.142.0
         env:
         - name: TELEMETRYFLOW_ENDPOINT
           value: "http://tfo-otel-collector.observability.svc.cluster.local:4318"
@@ -189,7 +189,7 @@ spec:
     spec:
       containers:
       - name: otel-collector
-        image: otel/opentelemetry-collector-contrib:0.88.0
+        image: otel/opentelemetry-collector-contrib:0.142.0
         env:
         - name: TELEMETRYFLOW_ENDPOINT
           value: "https://api.telemetryflow.id/api"
@@ -442,7 +442,7 @@ spec:
     spec:
       containers:
       - name: otel-agent
-        image: otel/opentelemetry-collector-contrib:0.88.0
+        image: otel/opentelemetry-collector-contrib:0.142.0
         env:
         # Direct to TelemetryFlow Platform
         - name: TELEMETRYFLOW_ENDPOINT
@@ -603,7 +603,7 @@ spec:
     spec:
       containers:
       - name: otel-agent
-        image: otel/opentelemetry-collector-contrib:0.88.0
+        image: otel/opentelemetry-collector-contrib:0.142.0
         env:
         - name: TELEMETRYFLOW_ENDPOINT
           value: "https://api.telemetryflow.id/api"
@@ -820,7 +820,7 @@ spec:
                 - us-east-1
       containers:
       - name: otel-collector
-        image: otel/opentelemetry-collector-contrib:0.88.0
+        image: otel/opentelemetry-collector-contrib:0.142.0
         env:
         - name: TELEMETRYFLOW_ENDPOINT
           value: "https://us-east.telemetryflow.id/api"
@@ -1422,4 +1422,4 @@ kubectl scale deployment -n observability tfo-otel-collector --replicas=5
 
 ---
 
-**Version:** 1.0.0-CE | **Component:** Deployment Guide | **Last Updated:** December 13, 2025
+**Version:** 1.1.1-CE | **Component:** Deployment Guide | **Last Updated:** December 13, 2025

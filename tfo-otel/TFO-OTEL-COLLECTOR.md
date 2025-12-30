@@ -1,38 +1,41 @@
-# TFO-OTEL-Collector
+# TFO-OTEL-Collector Documentation
 
-- **Version:** 1.0.0-CE
-- **Last Updated:** December 13, 2025
-- **Status:** ✅ Production Ready
+- **Version:** 1.1.1-CE
+- **Last Updated:** December 2025
+- **Component:** TelemetryFlow Collector (Centralized Telemetry Hub)
+- **Go Version:** 1.24+
+- **OpenTelemetry Collector:** v0.142.0
+- **Status:** Production Ready
 
 ---
 
 ## Table of Contents
 
 1. [Overview](#overview)
-2. [Installation](#installation)
-3. [Configuration](#configuration)
-4. [Receivers](#receivers)
-5. [Processors](#processors)
-6. [Exporters](#exporters)
-7. [Extensions](#extensions)
-8. [Monitoring](#monitoring)
-9. [High Availability](#high-availability)
-10. [Troubleshooting](#troubleshooting)
-11. [Best Practices](#best-practices)
+2. [Build System](#build-system)
+3. [Installation](#installation)
+4. [Configuration](#configuration)
+5. [CLI Commands](#cli-commands)
+6. [Components](#components)
+7. [Monitoring](#monitoring)
+8. [High Availability](#high-availability)
+9. [Troubleshooting](#troubleshooting)
+10. [Best Practices](#best-practices)
 
 ---
 
 ## Overview
 
-**TFO-OTEL-Collector** is the centralized telemetry aggregation hub for TelemetryFlow Platform. It receives data from multiple agents and applications, processes and enriches the data, and exports to multiple backends.
+**TFO-OTEL-Collector** is an enterprise-grade OpenTelemetry Collector distribution for the **TelemetryFlow Platform**. Built on the OpenTelemetry Collector Community (v0.142.0), it provides comprehensive telemetry collection, processing, and export capabilities.
 
 ### Key Capabilities
 
-- **Multi-Protocol Ingestion:** OTLP (gRPC/HTTP), Prometheus, FluentForward
+- **Multi-Protocol Ingestion:** OTLP (gRPC/HTTP), Prometheus, FluentForward, Kafka
 - **Data Processing:** Filtering, transformation, sampling, batching
-- **Multi-Backend Export:** TelemetryFlow, Prometheus, Loki, OpenSearch
+- **Multi-Backend Export:** TelemetryFlow, Prometheus, Loki, OpenSearch, Kafka
 - **High Throughput:** 100K+ data points/second per instance
 - **Multi-Tenancy:** Built-in workspace and tenant context management
+- **Dual Build System:** Standalone CLI and OCB (OpenTelemetry Collector Builder)
 
 ### Architecture Role
 
@@ -66,173 +69,312 @@ graph LR
     style EXPORT fill:#C8E6C9
 ```
 
+### Project Structure
+
+```text
+telemetryflow-collector/
+├── cmd/tfo-collector/        # Standalone CLI entry point
+│   └── main.go               # Cobra CLI with banner
+├── internal/
+│   ├── collector/            # Core collector implementation
+│   ├── config/               # Configuration management
+│   └── version/              # Version and banner info
+├── pkg/                      # LEGO Building Blocks
+│   ├── banner/               # Startup banner
+│   ├── config/               # Config loader utilities
+│   └── plugin/               # Component registry
+├── configs/
+│   ├── tfo-collector.yaml        # Standalone config (custom format)
+│   ├── otel-collector.yaml        # OCB config (standard OTel format)
+│   └── ocb-collector-minimal.yaml
+├── tests/
+│   ├── unit/                 # Unit tests
+│   ├── integration/          # Integration tests
+│   ├── e2e/                  # End-to-end tests
+│   ├── mocks/                # Mock implementations
+│   └── fixtures/             # Test fixtures
+├── build/                    # Build output directory
+│   ├── tfo-collector         # Standalone binary
+│   ├── tfo-collector-ocb     # OCB binary
+│   └── ocb/                  # OCB generated code
+├── manifest.yaml             # OCB manifest
+├── Makefile
+├── Dockerfile                # Standalone build
+├── Dockerfile.ocb            # OCB build
+├── docker-compose.yml        # Docker Compose (standalone)
+├── docker-compose.ocb.yml    # Docker Compose (OCB)
+├── .env.example              # Environment template
+└── README.md
+```
+
+---
+
+## Build System
+
+TelemetryFlow Collector uses a **dual build system** that produces two different binaries from the same codebase:
+
+### Build Types Comparison
+
+| Aspect | Standalone (`tfo-collector`) | OCB (`tfo-collector-ocb`) |
+|--------|------------------------------|---------------------------|
+| **Source** | `cmd/tfo-collector/main.go` | `manifest.yaml` → generated |
+| **CLI** | Cobra (`start`, `version`, `config`) | Standard OTEL (`--config`) |
+| **Config Format** | Custom with `enabled` flags | Standard OTEL YAML |
+| **Banner** | Custom ASCII art | None |
+| **Build Command** | `make build-standalone` | `make build` |
+| **Default Target** | Yes (`make` or `make all`) | No |
+| **Binary Location** | `./build/tfo-collector` | `./build/tfo-collector-ocb` |
+
+### Build Process Diagram
+
+```mermaid
+graph LR
+    subgraph "Source Code"
+        CMD[cmd/tfo-collector/main.go]
+        INTERNAL[internal/]
+        MANIFEST[manifest.yaml]
+    end
+
+    subgraph "Build Process"
+        STANDALONE[make build-standalone]
+        OCB[make build]
+    end
+
+    subgraph "Output ./build/"
+        BIN1[tfo-collector<br/>Standalone Binary]
+        BIN2[tfo-collector-ocb<br/>OCB Binary]
+        OCB_DIR[ocb/<br/>Generated Code]
+    end
+
+    CMD --> STANDALONE
+    INTERNAL --> STANDALONE
+    STANDALONE --> BIN1
+
+    MANIFEST --> OCB
+    OCB --> OCB_DIR
+    OCB_DIR --> BIN2
+
+    style BIN1 fill:#81C784,stroke:#388E3C
+    style BIN2 fill:#64B5F6,stroke:#1976D2
+```
+
+### When to Use Which Build
+
+**Use Standalone (`tfo-collector`) When:**
+
+- You want TelemetryFlow-specific branding and CLI
+- You prefer the custom config format with `enabled` flags
+- You're deploying in a TelemetryFlow ecosystem
+- You need the `start`, `version`, `config` commands
+- You want the ASCII art banner on startup
+
+**Use OCB (`tfo-collector-ocb`) When:**
+
+- You need full OTEL Collector compatibility
+- You're integrating with existing OTEL tooling
+- You need components not in the standalone build
+- You want to use standard OTEL documentation
+- You're validating against OTEL config schemas
+
 ---
 
 ## Installation
 
-### Docker Deployment
+### Method 1: From Source (Standalone - Recommended)
 
-**1. Pull Official Image:**
 ```bash
-docker pull otel/opentelemetry-collector-contrib:0.88.0
+# Clone the repository
+git clone https://github.com/telemetryflow/telemetryflow-collector.git
+cd telemetryflow-collector
+
+# Build standalone collector (default)
+make
+
+# Run with standalone config
+./build/tfo-collector start --config configs/tfo-collector.yaml
+
+# Or use make target
+make run-standalone
 ```
 
-**2. Create Configuration:**
+### Method 2: From Source (OCB Build)
+
 ```bash
-mkdir -p /etc/otel-collector
-cat > /etc/otel-collector/config.yaml <<'EOF'
-# See CONFIGURATION.md for full configuration options
-receivers:
-  otlp:
-    protocols:
-      grpc:
-        endpoint: 0.0.0.0:4317
-      http:
-        endpoint: 0.0.0.0:4318
+# Install OCB
+make install-ocb
 
-processors:
-  batch:
-    timeout: 10s
-    send_batch_size: 1024
+# Build with OCB
+make build
 
-exporters:
-  otlphttp/telemetryflow:
-    endpoint: http://telemetryflow-api:3100/api
-    headers:
-      X-Workspace-Id: "${env:TELEMETRYFLOW_WORKSPACE_ID}"
-      X-Tenant-Id: "${env:TELEMETRYFLOW_TENANT_ID}"
+# Run with OTel-compatible config
+./build/tfo-collector-ocb --config configs/otel-collector.yaml
 
-service:
-  pipelines:
-    metrics:
-      receivers: [otlp]
-      processors: [batch]
-      exporters: [otlphttp/telemetryflow]
-EOF
+# Or use make target
+make run
 ```
 
-**3. Run Container:**
+### Method 3: Docker Compose (Recommended)
+
 ```bash
-docker run -d \
-  --name tfo-otel-collector \
-  --restart unless-stopped \
+# Copy environment template
+cp .env.example .env
+
+# Edit .env with your configuration
+vim .env
+
+# Standalone build
+docker-compose up -d --build
+
+# OR OCB build
+docker-compose -f docker-compose.ocb.yml up -d --build
+
+# View logs
+docker-compose logs -f tfo-collector
+
+# Stop
+docker-compose down
+```
+
+### Method 4: Docker Directly
+
+**Build Standalone Image:**
+
+```bash
+docker build \
+  --build-arg VERSION=1.1.1 \
+  --build-arg GIT_COMMIT=$(git rev-parse --short HEAD) \
+  --build-arg GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD) \
+  --build-arg BUILD_TIME=$(date -u '+%Y-%m-%dT%H:%M:%SZ') \
+  -t telemetryflow/telemetryflow-collector:1.1.1 .
+
+docker run -d --name tfo-collector \
   -p 4317:4317 \
   -p 4318:4318 \
   -p 8888:8888 \
-  -p 8889:8889 \
   -p 13133:13133 \
-  -e TELEMETRYFLOW_WORKSPACE_ID=your-workspace-id \
-  -e TELEMETRYFLOW_TENANT_ID=your-tenant-id \
-  -v /etc/otel-collector/config.yaml:/etc/otel-collector-config.yaml:ro \
-  otel/opentelemetry-collector-contrib:0.88.0 \
-  --config=/etc/otel-collector-config.yaml
+  -v /path/to/config.yaml:/etc/tfo-collector/tfo-collector.yaml:ro \
+  telemetryflow/telemetryflow-collector:1.1.1
 ```
 
-**4. Verify Health:**
+**Build OCB Image:**
+
 ```bash
-curl http://localhost:13133/
-# Expected: {"status":"Server available","upSince":"..."}
+docker build \
+  -f Dockerfile.ocb \
+  --build-arg VERSION=1.1.1 \
+  --build-arg OTEL_VERSION=0.142.0 \
+  -t telemetryflow/telemetryflow-collector-ocb:1.1.1 .
+
+docker run -d --name tfo-collector-ocb \
+  -p 4317:4317 \
+  -p 4318:4318 \
+  -p 8888:8888 \
+  -p 13133:13133 \
+  -v /path/to/config.yaml:/etc/tfo-collector/collector.yaml:ro \
+  telemetryflow/telemetryflow-collector-ocb:1.1.1
 ```
 
-### Kubernetes Deployment
+### Method 5: Kubernetes Deployment
 
-**1. Create ConfigMap:**
 ```yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: observability
+
+---
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: otel-collector-config
+  name: tfo-collector-config
   namespace: observability
 data:
-  config.yaml: |
+  tfo-collector.yaml: |
+    collector:
+      id: "tfo-collector-k8s"
+      description: "TelemetryFlow Collector - Kubernetes"
+
     receivers:
       otlp:
+        enabled: true
         protocols:
           grpc:
-            endpoint: 0.0.0.0:4317
+            enabled: true
+            endpoint: "0.0.0.0:4317"
           http:
-            endpoint: 0.0.0.0:4318
+            enabled: true
+            endpoint: "0.0.0.0:4318"
 
     processors:
       batch:
-        timeout: 10s
-        send_batch_size: 1024
-
+        enabled: true
+        send_batch_size: 8192
+        timeout: 200ms
       memory_limiter:
-        check_interval: 1s
+        enabled: true
         limit_mib: 2048
         spike_limit_mib: 512
 
-      attributes:
-        actions:
-          - key: telemetryflow.workspace.id
-            value: ${env:TELEMETRYFLOW_WORKSPACE_ID}
-            action: upsert
-          - key: telemetryflow.tenant.id
-            value: ${env:TELEMETRYFLOW_TENANT_ID}
-            action: upsert
-
     exporters:
-      otlphttp/telemetryflow:
-        endpoint: http://telemetryflow-api:3100/api
+      otlphttp:
+        enabled: true
+        endpoint: "http://telemetryflow-api:3100/api"
+        compression: "gzip"
         headers:
-          X-Workspace-Id: "${env:TELEMETRYFLOW_WORKSPACE_ID}"
-          X-Tenant-Id: "${env:TELEMETRYFLOW_TENANT_ID}"
+          X-Workspace-Id: "${TELEMETRYFLOW_WORKSPACE_ID}"
+          X-Tenant-Id: "${TELEMETRYFLOW_TENANT_ID}"
 
-    service:
-      pipelines:
-        metrics:
-          receivers: [otlp]
-          processors: [memory_limiter, attributes, batch]
-          exporters: [otlphttp/telemetryflow]
-        logs:
-          receivers: [otlp]
-          processors: [memory_limiter, attributes, batch]
-          exporters: [otlphttp/telemetryflow]
-        traces:
-          receivers: [otlp]
-          processors: [memory_limiter, attributes, batch]
-          exporters: [otlphttp/telemetryflow]
-```
+    extensions:
+      health_check:
+        enabled: true
+        endpoint: "0.0.0.0:13133"
 
-**2. Create Deployment:**
-```yaml
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: otel-collector
+  name: tfo-collector
   namespace: observability
+  labels:
+    app: tfo-collector
+    version: "1.0.0"
 spec:
   replicas: 3
   selector:
     matchLabels:
-      app: otel-collector
+      app: tfo-collector
   template:
     metadata:
       labels:
-        app: otel-collector
+        app: tfo-collector
+        version: "1.0.0"
     spec:
       containers:
-      - name: otel-collector
-        image: otel/opentelemetry-collector-contrib:0.88.0
+      - name: tfo-collector
+        image: telemetryflow/telemetryflow-collector:1.1.1
+        imagePullPolicy: IfNotPresent
+
         args:
-          - --config=/etc/otel-collector-config.yaml
+          - start
+          - --config=/etc/tfo-collector/tfo-collector.yaml
+
         ports:
-        - containerPort: 4317
-          name: otlp-grpc
+        - name: otlp-grpc
+          containerPort: 4317
           protocol: TCP
-        - containerPort: 4318
-          name: otlp-http
+        - name: otlp-http
+          containerPort: 4318
           protocol: TCP
-        - containerPort: 8888
-          name: metrics
+        - name: metrics
+          containerPort: 8888
           protocol: TCP
-        - containerPort: 8889
-          name: prometheus
+        - name: prometheus
+          containerPort: 8889
           protocol: TCP
-        - containerPort: 13133
-          name: health
+        - name: health
+          containerPort: 13133
           protocol: TCP
+
         env:
         - name: TELEMETRYFLOW_WORKSPACE_ID
           valueFrom:
@@ -244,6 +386,7 @@ spec:
             secretKeyRef:
               name: telemetryflow-secrets
               key: tenant-id
+
         resources:
           requests:
             memory: "512Mi"
@@ -251,35 +394,35 @@ spec:
           limits:
             memory: "2Gi"
             cpu: "2000m"
+
         volumeMounts:
         - name: config
-          mountPath: /etc/otel-collector-config.yaml
-          subPath: config.yaml
-          readOnly: true
+          mountPath: /etc/tfo-collector
+
         livenessProbe:
           httpGet:
             path: /
             port: 13133
           initialDelaySeconds: 30
           periodSeconds: 10
+
         readinessProbe:
           httpGet:
             path: /
             port: 13133
           initialDelaySeconds: 10
           periodSeconds: 5
+
       volumes:
       - name: config
         configMap:
-          name: otel-collector-config
-```
+          name: tfo-collector-config
 
-**3. Create Service:**
-```yaml
+---
 apiVersion: v1
 kind: Service
 metadata:
-  name: otel-collector
+  name: tfo-collector
   namespace: observability
 spec:
   type: ClusterIP
@@ -305,536 +448,352 @@ spec:
     protocol: TCP
     name: health
   selector:
-    app: otel-collector
+    app: tfo-collector
 ```
 
-**4. Deploy:**
+### Method 6: Systemd Service
+
 ```bash
-kubectl apply -f configmap.yaml
-kubectl apply -f deployment.yaml
-kubectl apply -f service.yaml
+# Install binary
+sudo make install
 
-# Verify
-kubectl get pods -n observability -l app=otel-collector
-kubectl logs -n observability -l app=otel-collector --tail=50
+# Create directories
+sudo mkdir -p /etc/tfo-collector
+sudo mkdir -p /var/lib/tfo-collector
+sudo mkdir -p /var/log/tfo-collector
+
+# Copy config
+sudo cp configs/tfo-collector.yaml /etc/tfo-collector/
+
+# Create service user
+sudo useradd -r -s /bin/false telemetryflow
+
+# Set permissions
+sudo chown -R telemetryflow:telemetryflow /etc/tfo-collector
+sudo chown -R telemetryflow:telemetryflow /var/lib/tfo-collector
+sudo chown -R telemetryflow:telemetryflow /var/log/tfo-collector
 ```
 
-### Docker Compose Integration
+Create systemd service:
 
-Add to your `docker-compose.yml`:
+```ini
+# /etc/systemd/system/tfo-collector.service
+[Unit]
+Description=TelemetryFlow Collector
+After=network.target
 
-```yaml
-services:
-  otel-collector:
-    image: otel/opentelemetry-collector-contrib:0.88.0
-    container_name: tfo_otel_collector
-    command: ["--config=/etc/otel-collector-config.yaml"]
-    ports:
-      - "4317:4317"   # OTLP gRPC
-      - "4318:4318"   # OTLP HTTP
-      - "8888:8888"   # Prometheus metrics
-      - "8889:8889"   # Prometheus exporter
-      - "13133:13133" # Health check
-    environment:
-      - TELEMETRYFLOW_WORKSPACE_ID=${TELEMETRYFLOW_WORKSPACE_ID}
-      - TELEMETRYFLOW_TENANT_ID=${TELEMETRYFLOW_TENANT_ID}
-    volumes:
-      - ./config/otel/otel-collector-config-telemetryflow.yaml:/etc/otel-collector-config.yaml:ro
-    networks:
-      - telemetryflow-network
-    restart: unless-stopped
-    depends_on:
-      - backend
+[Service]
+Type=simple
+User=telemetryflow
+Group=telemetryflow
+ExecStart=/usr/local/bin/tfo-collector start --config /etc/tfo-collector/tfo-collector.yaml
+Restart=always
+RestartSec=5
+LimitNOFILE=65536
+
+# Security
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/tfo-collector
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Enable and start:
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable tfo-collector
+sudo systemctl start tfo-collector
+sudo systemctl status tfo-collector
 ```
 
 ---
 
 ## Configuration
 
-### Complete Configuration Example
+TelemetryFlow Collector supports two configuration formats depending on the build type.
+
+### Configuration Files
+
+| File | Purpose | Build Type |
+|------|---------|------------|
+| `configs/tfo-collector.yaml` | Custom format with `enabled` flags | Standalone |
+| `configs/otel-collector.yaml` | Standard OTel format | OCB |
+| `configs/ocb-collector-minimal.yaml` | Minimal OTel config for testing | OCB |
+
+### Standalone Configuration (Custom Format)
 
 ```yaml
-# /etc/otel-collector/config.yaml
+# configs/tfo-collector.yaml
+collector:
+  id: "my-collector"
+  description: "TelemetryFlow Collector"
+
 receivers:
-  # OTLP Receiver - Primary ingestion protocol
   otlp:
+    enabled: true
     protocols:
       grpc:
-        endpoint: 0.0.0.0:4317
+        enabled: true
+        endpoint: "0.0.0.0:4317"
         max_recv_msg_size_mib: 4
-        max_concurrent_streams: 100
       http:
-        endpoint: 0.0.0.0:4318
-        cors:
-          allowed_origins:
-            - "*"
+        enabled: true
+        endpoint: "0.0.0.0:4318"
 
-  # Prometheus Receiver - Scrape Prometheus exporters
   prometheus:
+    enabled: true
     config:
       scrape_configs:
         - job_name: 'telemetryflow-api'
           scrape_interval: 15s
           static_configs:
             - targets: ['telemetryflow-api:3100']
-              labels:
-                env: 'production'
-                source: 'telemetryflow-api'
-
-        - job_name: 'node-exporter'
-          scrape_interval: 15s
-          static_configs:
-            - targets: ['node-exporter:9100']
-              labels:
-                env: 'production'
-                source: 'node-exporter'
-
-  # FluentForward Receiver - Ingest from FluentBit/Fluentd
-  fluentforward:
-    endpoint: 0.0.0.0:8006
 
 processors:
-  # Batch Processor - Reduce backend load
   batch:
-    timeout: 10s
-    send_batch_size: 1024
-    send_batch_max_size: 2048
+    enabled: true
+    send_batch_size: 8192
+    timeout: 200ms
 
-  # Memory Limiter - Prevent OOM
+  memory_limiter:
+    enabled: true
+    check_interval: 1s
+    limit_mib: 2048
+    spike_limit_mib: 512
+
+  attributes:
+    enabled: true
+    actions:
+      - key: deployment.environment
+        value: production
+        action: upsert
+      - key: telemetryflow.workspace.id
+        value: ${env:TELEMETRYFLOW_WORKSPACE_ID}
+        action: upsert
+
+exporters:
+  otlphttp:
+    enabled: true
+    endpoint: "http://telemetryflow-api:3100/api"
+    timeout: 30s
+    compression: gzip
+    headers:
+      X-Workspace-Id: "${env:TELEMETRYFLOW_WORKSPACE_ID}"
+      X-Tenant-Id: "${env:TELEMETRYFLOW_TENANT_ID}"
+    retry:
+      enabled: true
+      initial_interval: 5s
+      max_interval: 30s
+    queue:
+      enabled: true
+      num_consumers: 10
+      queue_size: 1000
+
+  prometheus:
+    enabled: true
+    endpoint: "0.0.0.0:8889"
+    namespace: telemetryflow
+
+  logging:
+    enabled: true
+    loglevel: "info"
+
+extensions:
+  health_check:
+    enabled: true
+    endpoint: "0.0.0.0:13133"
+
+  pprof:
+    enabled: false
+    endpoint: "0.0.0.0:1777"
+
+  zpages:
+    enabled: false
+    endpoint: "0.0.0.0:55679"
+```
+
+### OCB Configuration (Standard OTel Format)
+
+```yaml
+# configs/otel-collector.yaml (standard OTel format)
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: "0.0.0.0:4317"
+      http:
+        endpoint: "0.0.0.0:4318"
+
+processors:
+  batch:
+    send_batch_size: 8192
+    timeout: 200ms
+
   memory_limiter:
     check_interval: 1s
     limit_mib: 2048
     spike_limit_mib: 512
 
-  # Resource Detection - Auto-detect environment
-  resourcedetection:
-    detectors: [env, system, docker, kubernetes]
-    timeout: 5s
-    override: false
-
-  # Attributes Processor - Add/modify attributes
-  attributes:
-    actions:
-      # Add environment
-      - key: deployment.environment
-        value: production
-        action: upsert
-
-      # Add multi-tenant context
-      - key: telemetryflow.workspace.id
-        value: ${env:TELEMETRYFLOW_WORKSPACE_ID}
-        action: upsert
-      - key: telemetryflow.tenant.id
-        value: ${env:TELEMETRYFLOW_TENANT_ID}
-        action: upsert
-
-  # Filter Processor - Drop unwanted data
-  filter:
-    metrics:
-      exclude:
-        match_type: regexp
-        metric_names:
-          - ^otelcol_.*  # Drop collector internal metrics
-
-  # Transform Processor - Rename metrics
-  transform:
-    metric_statements:
-      - context: metric
-        statements:
-          # Rename HTTP metrics
-          - replace_pattern(name, "^http_", "http.") where name =~ "^http_"
-
-  # Tail Sampling - Intelligent trace sampling
-  tail_sampling:
-    policies:
-      # Always sample errors
-      - name: error-traces
-        type: status_code
-        status_code:
-          status_codes: [ERROR]
-
-      # Always sample slow traces
-      - name: slow-traces
-        type: latency
-        latency:
-          threshold_ms: 1000
-
-      # Sample 10% of normal traces
-      - name: normal-traces
-        type: probabilistic
-        probabilistic:
-          sampling_percentage: 10
-
 exporters:
-  # OTLP HTTP Exporter - TelemetryFlow Platform
-  otlphttp/telemetryflow:
-    endpoint: http://telemetryflow-api:3100/api
-    timeout: 30s
-    retry_on_failure:
-      enabled: true
-      initial_interval: 5s
-      max_interval: 30s
-      max_elapsed_time: 300s
-    sending_queue:
-      enabled: true
-      num_consumers: 10
-      queue_size: 1000
+  debug:
+    verbosity: detailed
+
+  otlphttp:
+    endpoint: "http://telemetryflow-api:3100/api"
     compression: gzip
     headers:
       X-Workspace-Id: "${env:TELEMETRYFLOW_WORKSPACE_ID}"
       X-Tenant-Id: "${env:TELEMETRYFLOW_TENANT_ID}"
-
-  # Prometheus Exporter - Expose metrics for scraping
-  prometheus:
-    endpoint: "0.0.0.0:8889"
-    namespace: telemetryflow
-    enable_open_metrics: true
-
-  # Loki Exporter - Log aggregation
-  loki:
-    endpoint: http://loki:3100/loki/api/v1/push
-    labels:
-      attributes:
-        service.name: "service"
-        service.namespace: "namespace"
-        deployment.environment: "env"
-        severity_text: "level"
-
-  # OpenSearch Exporter - Full-text search
-  opensearch:
-    endpoints: ["http://opensearch:9200"]
-    index: "telemetryflow-logs"
-    pipeline: "telemetryflow-pipeline"
-
-  # Logging Exporter - Debug output
-  logging:
-    loglevel: info
-    sampling_initial: 5
-    sampling_thereafter: 200
 
 extensions:
-  # Health Check Extension
   health_check:
-    endpoint: 0.0.0.0:13133
-
-  # pprof Extension - CPU/Memory profiling
-  pprof:
-    endpoint: 0.0.0.0:1777
-
-  # zPages Extension - Diagnostic pages
-  zpages:
-    endpoint: 0.0.0.0:55679
+    endpoint: "0.0.0.0:13133"
 
 service:
-  extensions: [health_check, pprof, zpages]
-
+  extensions: [health_check]
   pipelines:
-    # Metrics Pipeline
-    metrics:
-      receivers: [otlp, prometheus]
-      processors:
-        - memory_limiter
-        - resourcedetection
-        - attributes
-        - filter
-        - transform
-        - batch
-      exporters: [otlphttp/telemetryflow, prometheus, logging]
-
-    # Logs Pipeline
-    logs:
-      receivers: [otlp, fluentforward]
-      processors:
-        - memory_limiter
-        - attributes
-        - batch
-      exporters: [otlphttp/telemetryflow, loki, opensearch, logging]
-
-    # Traces Pipeline
     traces:
       receivers: [otlp]
-      processors:
-        - memory_limiter
-        - attributes
-        - tail_sampling
-        - batch
-      exporters: [otlphttp/telemetryflow, logging]
-
-  telemetry:
-    logs:
-      level: info
-      development: false
-      encoding: json
-      output_paths:
-        - stdout
+      processors: [memory_limiter, batch]
+      exporters: [otlphttp, debug]
     metrics:
-      level: detailed
-      address: 0.0.0.0:8888
-```
-
----
-
-## Receivers
-
-### OTLP Receiver
-
-**Purpose:** Primary ingestion protocol for OpenTelemetry data
-
-**Supported Protocols:**
-- gRPC (port 4317) - Higher performance, better for streaming
-- HTTP (port 4318) - Better firewall compatibility, easier debugging
-
-**Configuration:**
-```yaml
-receivers:
-  otlp:
-    protocols:
-      grpc:
-        endpoint: 0.0.0.0:4317
-        max_recv_msg_size_mib: 4
-        max_concurrent_streams: 100
-        keepalive:
-          server_parameters:
-            max_connection_idle: 11s
-            max_connection_age: 12s
-            time: 30s
-            timeout: 5s
-      http:
-        endpoint: 0.0.0.0:4318
-        cors:
-          allowed_origins:
-            - "http://localhost:3000"
-            - "https://app.telemetryflow.id"
-        compression: gzip
-```
-
-### Prometheus Receiver
-
-**Purpose:** Scrape Prometheus exporters and convert to OTLP
-
-**Use Cases:**
-- Legacy Prometheus exporters
-- Infrastructure monitoring (node-exporter, kube-state-metrics)
-- Application metrics (Spring Boot Actuator, custom exporters)
-
-**Configuration:**
-```yaml
-receivers:
-  prometheus:
-    config:
-      global:
-        scrape_interval: 15s
-        evaluation_interval: 15s
-
-      scrape_configs:
-        - job_name: 'kubernetes-pods'
-          kubernetes_sd_configs:
-            - role: pod
-          relabel_configs:
-            - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
-              action: keep
-              regex: true
-```
-
-### FluentForward Receiver
-
-**Purpose:** Receive logs from Fluentd/FluentBit
-
-**Configuration:**
-```yaml
-receivers:
-  fluentforward:
-    endpoint: 0.0.0.0:8006
-```
-
----
-
-## Processors
-
-### Batch Processor
-
-**Purpose:** Batch data to reduce backend load and network overhead
-
-**Configuration:**
-```yaml
-processors:
-  batch:
-    timeout: 10s              # Max wait time
-    send_batch_size: 1024     # Trigger at N items
-    send_batch_max_size: 2048 # Never exceed N items
-```
-
-**Tuning Guidelines:**
-- **High throughput:** Increase `send_batch_size` to 5000+
-- **Low latency:** Decrease `timeout` to 1-5s
-- **Memory constrained:** Decrease `send_batch_max_size`
-
-### Memory Limiter
-
-**Purpose:** Prevent out-of-memory crashes
-
-**Configuration:**
-```yaml
-processors:
-  memory_limiter:
-    check_interval: 1s
-    limit_mib: 2048        # Total memory limit
-    spike_limit_mib: 512   # Spike buffer
-```
-
-**How It Works:**
-1. Check memory usage every `check_interval`
-2. If usage > `limit_mib - spike_limit_mib`, start refusing data
-3. If usage > `limit_mib`, force GC
-
-### Attributes Processor
-
-**Purpose:** Add, update, or delete attributes
-
-**Configuration:**
-```yaml
-processors:
-  attributes:
-    actions:
-      # Add attribute
-      - key: environment
-        value: production
-        action: upsert
-
-      # Delete attribute
-      - key: sensitive_data
-        action: delete
-
-      # Extract from another attribute
-      - key: http.status_code
-        from_attribute: status
-        action: insert
-```
-
-### Filter Processor
-
-**Purpose:** Drop unwanted telemetry data
-
-**Configuration:**
-```yaml
-processors:
-  filter:
-    metrics:
-      exclude:
-        match_type: regexp
-        metric_names:
-          - ^test_.*
-          - ^debug_.*
-
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [otlphttp, debug]
     logs:
-      exclude:
-        match_type: strict
-        bodies:
-          - "health check"
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [otlphttp, debug]
 ```
 
 ---
 
-## Exporters
+## CLI Commands
 
-### OTLP HTTP Exporter (TelemetryFlow)
+### Standalone CLI
 
-**Configuration:**
-```yaml
-exporters:
-  otlphttp/telemetryflow:
-    endpoint: http://telemetryflow-api:3100/api
-    timeout: 30s
-    retry_on_failure:
-      enabled: true
-      initial_interval: 5s
-      max_interval: 30s
-      max_elapsed_time: 300s
-    sending_queue:
-      enabled: true
-      num_consumers: 10
-      queue_size: 1000
-    compression: gzip
-    headers:
-      X-Workspace-Id: "${env:TELEMETRYFLOW_WORKSPACE_ID}"
-      X-Tenant-Id: "${env:TELEMETRYFLOW_TENANT_ID}"
+```bash
+# Show help
+./build/tfo-collector --help
+
+# Start collector
+./build/tfo-collector start --config configs/tfo-collector.yaml
+
+# Show version
+./build/tfo-collector version
+
+# Show parsed config
+./build/tfo-collector config --config configs/tfo-collector.yaml
 ```
 
-### Prometheus Exporter
+### OCB CLI
 
-**Configuration:**
-```yaml
-exporters:
-  prometheus:
-    endpoint: "0.0.0.0:8889"
-    namespace: telemetryflow
-    enable_open_metrics: true
-```
+```bash
+# Show help
+./build/tfo-collector-ocb --help
 
-**Scrape Configuration:**
-```yaml
-# In Prometheus config
-scrape_configs:
-  - job_name: 'otel-collector'
-    static_configs:
-      - targets: ['otel-collector:8889']
-```
+# Run with config
+./build/tfo-collector-ocb --config configs/otel-collector.yaml
 
-### Loki Exporter
-
-**Configuration:**
-```yaml
-exporters:
-  loki:
-    endpoint: http://loki:3100/loki/api/v1/push
-    labels:
-      attributes:
-        service.name: "service"
-        severity_text: "level"
-      resource:
-        telemetryflow.tenant.id: "tenant_id"
+# Validate config
+./build/tfo-collector-ocb validate --config configs/otel-collector.yaml
 ```
 
 ---
 
-## Extensions
+## Components
+
+### Receivers
+
+| Component | Description |
+|-----------|-------------|
+| `otlp` | OTLP gRPC and HTTP receiver |
+| `hostmetrics` | System metrics (CPU, memory, disk, network) |
+| `filelog` | File-based log collection |
+| `prometheus` | Prometheus metrics scraping |
+| `kafka` | Kafka message receiver |
+| `k8s_cluster` | Kubernetes cluster metrics |
+| `k8s_events` | Kubernetes events |
+| `syslog` | Syslog receiver |
+
+### Processors
+
+| Component | Description |
+|-----------|-------------|
+| `batch` | Batches data for efficient export |
+| `memory_limiter` | Prevents OOM conditions |
+| `attributes` | Modify/add/delete attributes |
+| `resource` | Modify resource attributes |
+| `resourcedetection` | Auto-detect resource info |
+| `filter` | Filter telemetry data |
+| `transform` | Transform telemetry using OTTL |
+| `k8sattributes` | Add Kubernetes metadata |
+| `tail_sampling` | Tail-based trace sampling |
+
+### Exporters
+
+| Component | Description |
+|-----------|-------------|
+| `otlp` | OTLP gRPC exporter |
+| `otlphttp` | OTLP HTTP exporter |
+| `debug` | Debug output (development) |
+| `prometheus` | Prometheus metrics endpoint |
+| `prometheusremotewrite` | Prometheus remote write |
+| `kafka` | Kafka exporter |
+| `loki` | Loki log exporter |
+| `elasticsearch` | Elasticsearch exporter |
+| `file` | File exporter |
+
+### Extensions
+
+| Component | Description |
+|-----------|-------------|
+| `health_check` | Health check endpoint |
+| `pprof` | Performance profiling |
+| `zpages` | Debug pages |
+| `basicauth` | Basic authentication |
+| `bearertokenauth` | Bearer token auth |
+| `file_storage` | Persistent storage |
+
+---
+
+## Exposed Ports
+
+| Port | Protocol | Description |
+|------|----------|-------------|
+| 4317 | gRPC | OTLP gRPC receiver |
+| 4318 | HTTP | OTLP HTTP receiver |
+| 8888 | HTTP | Prometheus metrics (self) |
+| 8889 | HTTP | Prometheus exporter |
+| 13133 | HTTP | Health check |
+| 55679 | HTTP | zPages |
+| 1777 | HTTP | pprof |
+
+---
+
+## Monitoring
 
 ### Health Check
 
 **Endpoint:** http://localhost:13133/
 
-**Response:**
-```json
-{
-  "status": "Server available",
-  "upSince": "2025-12-13T10:00:00Z"
-}
+```bash
+curl http://localhost:13133/
+# Expected: {"status":"Server available","upSince":"..."}
 ```
-
-### pprof (Profiling)
-
-**Endpoints:**
-- http://localhost:1777/debug/pprof/
-- http://localhost:1777/debug/pprof/heap
-- http://localhost:1777/debug/pprof/goroutine
-
-### zPages (Diagnostics)
-
-**Endpoints:**
-- http://localhost:55679/debug/servicez
-- http://localhost:55679/debug/pipelinez
-- http://localhost:55679/debug/extensionz
-
----
-
-## Monitoring
 
 ### Collector Metrics
 
 **Endpoint:** http://localhost:8888/metrics
 
 **Key Metrics:**
-```
+
+```promql
 # Data received
 otelcol_receiver_accepted_metric_points
 otelcol_receiver_accepted_log_records
@@ -863,6 +822,7 @@ otelcol_process_runtime_total_alloc_bytes
 Import dashboard ID: 15983 (OpenTelemetry Collector)
 
 Or create custom dashboard:
+
 ```promql
 # Throughput
 rate(otelcol_receiver_accepted_metric_points[5m])
@@ -876,6 +836,22 @@ otelcol_exporter_queue_size
 # Memory usage
 otelcol_process_runtime_heap_alloc_bytes / 1024 / 1024
 ```
+
+### pprof (Profiling)
+
+**Endpoints:**
+
+- http://localhost:1777/debug/pprof/
+- http://localhost:1777/debug/pprof/heap
+- http://localhost:1777/debug/pprof/goroutine
+
+### zPages (Diagnostics)
+
+**Endpoints:**
+
+- http://localhost:55679/debug/servicez
+- http://localhost:55679/debug/pipelinez
+- http://localhost:55679/debug/extensionz
 
 ---
 
@@ -917,9 +893,10 @@ backend otel_collectors_http
 
 ```yaml
 exporters:
-  otlphttp/telemetryflow:
-    endpoint: http://telemetryflow-api:3100/api
-    sending_queue:
+  otlphttp:
+    enabled: true
+    endpoint: "http://telemetryflow-api:3100/api"
+    queue:
       enabled: true
       num_consumers: 10
       queue_size: 5000
@@ -927,8 +904,39 @@ exporters:
 
 extensions:
   file_storage:
-    directory: /var/lib/otel-collector/queue
+    enabled: true
+    directory: "/var/lib/tfo-collector/queue"
     timeout: 10s
+```
+
+### Kubernetes Horizontal Pod Autoscaler
+
+```yaml
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: tfo-collector-hpa
+  namespace: observability
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: tfo-collector
+  minReplicas: 3
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
 ```
 
 ---
@@ -938,27 +946,32 @@ extensions:
 ### Issue: High Memory Usage
 
 **Symptoms:**
+
 - Collector OOM killed
 - High memory metrics
 
 **Solution:**
+
 ```yaml
 processors:
   memory_limiter:
+    enabled: true
     check_interval: 1s
-    limit_mib: 1024  # Reduce limit
+    limit_mib: 1024      # Reduce limit
     spike_limit_mib: 256
 
   batch:
+    enabled: true
     send_batch_size: 512  # Reduce batch size
 ```
 
 ### Issue: Data Not Reaching Backend
 
 **Check:**
+
 ```bash
 # 1. Check collector logs
-docker logs tfo-otel-collector --tail=100
+docker logs tfo-collector --tail=100
 
 # 2. Check exporter metrics
 curl http://localhost:8888/metrics | grep exporter_sent
@@ -972,6 +985,7 @@ curl -X POST http://localhost:4318/v1/metrics \
 ### Issue: High CPU Usage
 
 **Check:**
+
 ```bash
 # Profile CPU
 curl http://localhost:1777/debug/pprof/profile?seconds=30 > cpu.prof
@@ -981,11 +995,31 @@ go tool pprof cpu.prof
 ```
 
 **Optimize:**
+
 ```yaml
 processors:
   batch:
-    timeout: 30s  # Increase batch timeout
-    send_batch_size: 5000  # Increase batch size
+    enabled: true
+    timeout: 30s          # Increase batch timeout
+    send_batch_size: 5000 # Increase batch size
+```
+
+### Issue: OCB Config Error "has invalid keys: enabled"
+
+The OCB build doesn't support the custom `enabled` flags. Use the standard OTEL config format:
+
+```yaml
+# Wrong (standalone format)
+receivers:
+  otlp:
+    enabled: true  # <-- Invalid for OCB
+
+# Correct (OCB format)
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: "0.0.0.0:4317"
 ```
 
 ---
@@ -997,6 +1031,7 @@ processors:
 ```yaml
 processors:
   memory_limiter:
+    enabled: true
     check_interval: 1s
     limit_mib: 2048
 ```
@@ -1005,8 +1040,9 @@ processors:
 
 ```yaml
 exporters:
-  otlphttp/telemetryflow:
-    sending_queue:
+  otlphttp:
+    enabled: true
+    queue:
       enabled: true
       storage: file_storage
 ```
@@ -1015,7 +1051,8 @@ exporters:
 
 ```yaml
 exporters:
-  otlphttp/telemetryflow:
+  otlphttp:
+    enabled: true
     compression: gzip
 ```
 
@@ -1023,8 +1060,9 @@ exporters:
 
 ```yaml
 exporters:
-  otlphttp/telemetryflow:
-    retry_on_failure:
+  otlphttp:
+    enabled: true
+    retry:
       enabled: true
       initial_interval: 5s
       max_interval: 30s
@@ -1042,4 +1080,75 @@ curl http://localhost:8888/metrics
 
 ---
 
-**Version:** 1.0.0-CE | **Maintained By:** DevOpsCorner Indonesia
+## Development
+
+### Build Commands
+
+```bash
+# Show all commands
+make help
+
+# Standalone Build (Default)
+make                    # Build standalone collector
+make build-standalone   # Build standalone collector
+make run-standalone     # Run standalone collector
+make test-standalone    # Run standalone tests
+make tidy               # Tidy go modules
+
+# OCB Build
+make build              # Build with OCB
+make build-all          # Build for all platforms with OCB
+make install-ocb        # Install OpenTelemetry Collector Builder
+make generate           # Generate collector code using OCB
+make run                # Run OCB collector
+make run-debug          # Run OCB with debug logging
+make validate-config    # Validate OCB configuration
+
+# Common
+make test               # Run tests
+make lint               # Run linters
+make clean              # Clean build artifacts
+make docker             # Build Docker image
+make version            # Show version information
+```
+
+### Adding Components (OCB Build)
+
+Edit `manifest.yaml` to add/remove OTEL components:
+
+```yaml
+receivers:
+  - gomod: github.com/open-telemetry/opentelemetry-collector-contrib/receiver/myreceiver v0.142.0
+```
+
+Then rebuild:
+
+```bash
+make clean && make build
+```
+
+---
+
+## Documentation
+
+| Document | Description |
+|----------|-------------|
+| [README](docs/README.md) | Documentation overview |
+| [INSTALLATION](docs/INSTALLATION.md) | Installation guide |
+| [BUILD-SYSTEM](docs/BUILD-SYSTEM.md) | Standalone vs OCB build |
+| [GITHUB-WORKFLOWS](docs/GITHUB-WORKFLOWS.md) | CI/CD workflows |
+| [CHANGELOG](CHANGELOG.md) | Version history |
+
+---
+
+## Links
+
+- **Website**: [https://telemetryflow.id](https://telemetryflow.id)
+- **Documentation**: [https://docs.telemetryflow.id](https://docs.telemetryflow.id)
+- **OpenTelemetry**: [https://opentelemetry.io](https://opentelemetry.io)
+- **Repository**: [https://github.com/telemetryflow/telemetryflow-collector](https://github.com/telemetryflow/telemetryflow-collector)
+- **Developer**: [DevOpsCorner Indonesia](https://devopscorner.id)
+
+---
+
+**Version:** 1.1.1-CE | **Component:** TFO-OTEL-Collector | **OTEL Collector:** v0.142.0 | **Last Updated:** December 2025

@@ -25,7 +25,7 @@
 
 </div>
 
-- **Version:** 1.0.0-CE
+- **Version:** 1.1.1-CE
 - **Status:** Production Ready
 - **License:** Apache 2.0
 - **Built by:** DevOpsCorner Indonesia
@@ -961,7 +961,7 @@ When creating a new module, follow the standard structure:
 | Test Cases | 280+ |
 | Test Coverage | 88-92% |
 | Documentation Pages | 203+ |
-| Version | 1.0.0-CE |
+| Version | 1.1.1-CE |
 
 ---
 

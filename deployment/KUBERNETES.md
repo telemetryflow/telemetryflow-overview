@@ -1,6 +1,6 @@
 # Kubernetes Deployment Guide
 
-- **Version:** 1.0.0-CE
+- **Version:** 1.1.1-CE
 - **Last Updated:** December 13, 2025
 - **Status:** ✅ Production Ready
 
@@ -296,7 +296,7 @@ data:
   NODE_ENV: "production"
   LOG_LEVEL: "info"
   OTEL_SERVICE_NAME: "telemetryflow-platform"
-  SERVICE_VERSION: "1.0.0-CE"
+  SERVICE_VERSION: "1.1.1-CE"
   OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4317"
   CORS_ORIGIN: "https://app.yourdomain.com"
 ```
@@ -342,7 +342,7 @@ metadata:
   labels:
     app: telemetryflow
     component: backend
-    version: v1.0.0-CE
+    version: v1.1.1-CE
 spec:
   replicas: 3
   selector:
@@ -359,7 +359,7 @@ spec:
       labels:
         app: telemetryflow
         component: backend
-        version: v1.0.0-CE
+        version: v1.1.1-CE
       annotations:
         prometheus.io/scrape: "true"
         prometheus.io/port: "3100"
@@ -367,7 +367,7 @@ spec:
     spec:
       containers:
       - name: backend
-        image: devopscorner/telemetryflow-backend:1.0.0-CE
+        image: devopscorner/telemetryflow-backend:1.1.1-CE
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 3100
@@ -481,7 +481,7 @@ spec:
     spec:
       containers:
       - name: frontend
-        image: devopscorner/telemetryflow-frontend:1.0.0-CE
+        image: devopscorner/telemetryflow-frontend:1.1.1-CE
         ports:
         - containerPort: 80
           name: http
@@ -979,4 +979,4 @@ kubectl top pods -n telemetryflow-platform
 
 ---
 
-**Version:** 1.0.0-CE | **Maintained By:** DevOpsCorner Indonesia
+**Version:** 1.1.1-CE | **Maintained By:** DevOpsCorner Indonesia

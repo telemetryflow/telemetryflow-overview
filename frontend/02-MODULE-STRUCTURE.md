@@ -1,6 +1,6 @@
 # Frontend Module Structure
 
-- **Version**: 1.0.0-CE
+- **Version**: 1.1.1-CE
 - **Architecture**: Domain-Driven Design (DDD)
 - **Pattern**: Modular Frontend with Dependency Injection
 - **Status**: ✅ Production Ready

@@ -1,6 +1,6 @@
 # Production Deployment Checklist
 
-- **Version**: 1.0.0-CE
+- **Version**: 1.1.1-CE
 - **Target**: Production Environment
 - **Status**: ✅ Ready for Production
 
@@ -509,7 +509,7 @@ GROUP BY tenant_id, metric_name, toStartOfHour(timestamp);
 # Application
 NODE_ENV=production
 APP_NAME=TelemetryFlow
-APP_VERSION=1.0.0-CE
+APP_VERSION=1.1.1-CE
 API_BASE_URL=https://api.telemetryflow.id
 FRONTEND_URL=https://app.telemetryflow.id
 
@@ -1596,7 +1596,7 @@ docker volume prune
 
 | Date | Version | Changes |
 |------|---------|---------|
-| 2025-12-12 | 1.0.0-CE | Initial production checklist |
+| 2025-12-12 | 1.1.1-CE | Initial production checklist |
 
 ---
 

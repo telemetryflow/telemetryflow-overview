@@ -4,7 +4,7 @@
 - **Category**: Backend / Business Modules
 - **Status**: Production Ready
 - **Priority:** 🔥 HIGH - Core Platform Functionality
-- **Version**: 1.0.0-CE
+- **Version**: 1.1.1-CE
 
 ---
 

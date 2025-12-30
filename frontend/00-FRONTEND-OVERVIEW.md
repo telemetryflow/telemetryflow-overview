@@ -1,6 +1,6 @@
 # Frontend Overview
 
-- **Version**: 1.0.0-CE
+- **Version**: 1.1.1-CE
 - **Framework**: Vue 3.5.24
 - **Build Tool**: Vite 7.2.4
 - **Language**: TypeScript 5.8.3

@@ -1,6 +1,6 @@
 # OTLP Ingestion Guide
 
-- **Version**: 1.0.0-CE
+- **Version**: 1.1.1-CE
 - **Protocol**: OTLP/gRPC (Port 4317)
 - **Formats**: JSON, Protobuf
 - **Status**: ✅ Production Ready

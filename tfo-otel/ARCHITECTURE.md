@@ -1,6 +1,6 @@
 # TFO-OTEL Architecture
 
-- **Version:** 1.0.0-CE
+- **Version:** 1.1.1-CE
 - **Last Updated:** December 13, 2025
 - **Status:** ✅ Production Ready
 
@@ -661,4 +661,4 @@ graph LR
 
 ---
 
-**Version:** 1.0.0-CE | **Maintained By:** DevOpsCorner Indonesia
+**Version:** 1.1.1-CE | **Maintained By:** DevOpsCorner Indonesia
