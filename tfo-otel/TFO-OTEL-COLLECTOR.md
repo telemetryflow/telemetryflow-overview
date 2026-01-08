@@ -1,6 +1,6 @@
 # TFO-OTEL-Collector Documentation
 
-- **Version:** 1.1.1-CE
+- **Version:** 1.1.2-CE
 - **Last Updated:** December 2025
 - **Component:** TelemetryFlow Collector (Centralized Telemetry Hub)
 - **Go Version:** 1.24+
@@ -1151,4 +1151,4 @@ make clean && make build
 
 ---
 
-**Version:** 1.1.1-CE | **Component:** TFO-OTEL-Collector | **OTEL Collector:** v0.142.0 | **Last Updated:** December 2025
+**Version:** 1.1.2-CE | **Component:** TFO-OTEL-Collector | **OTEL Collector:** v0.142.0 | **Last Updated:** December 2025

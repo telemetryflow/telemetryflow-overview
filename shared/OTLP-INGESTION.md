@@ -1,6 +1,6 @@
 # OTLP Ingestion Guide
 
-- **Version**: 1.1.1-CE
+- **Version**: 1.1.2-CE
 - **Protocol**: OTLP/gRPC (Port 4317)
 - **Formats**: JSON, Protobuf
 - **Status**: ✅ Production Ready
@@ -630,5 +630,5 @@ curl -X POST http://localhost:4318/v2/metrics \
 
 ---
 
-- **Last Updated:** December 12, 2025
+- **Last Updated:** January 01st, 2026
 - **Maintained By:** DevOpsCorner Indonesia

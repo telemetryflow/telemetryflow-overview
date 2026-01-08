@@ -4,7 +4,7 @@
 - **Category**: Backend / Shared Modules
 - **Status**: Production Ready
 - **Priority:** 🔥 MEDIUM - Web Interface
-- **Version**: 1.1.1-CE
+- **Version**: 1.1.2-CE
 
 ---
 
@@ -335,7 +335,7 @@ export class FrontendConfig {
       apiUrl: process.env.API_URL || 'http://localhost:3000',
       wsUrl: process.env.WS_URL || 'ws://localhost:3000',
       appName: 'TelemetryFlow',
-      version: '1.1.1-CE',
+      version: '1.1.2-CE',
       environment: process.env.NODE_ENV || 'development',
     };
   }
@@ -410,5 +410,5 @@ public/
 
 ---
 
-- **Last Updated**: December 12, 2025
+- **Last Updated**: January 01st, 2026
 - **Maintained By**: DevOpsCorner Indonesia

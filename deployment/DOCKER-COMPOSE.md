@@ -1,6 +1,6 @@
 # Docker Compose Deployment
 
-- **Version**: 1.1.1-CE
+- **Version**: 1.1.2-CE
 - **Docker Compose**: 3.4.0
 - **Status**: ✅ Production Ready
 
@@ -246,7 +246,7 @@ docker compose --profile dev --profile monitoring up -d
 #================================================================================================
 NODE_ENV=production                    # development | production
 TZ=UTC                                 # Timezone
-VERSION=1.1.1-CE                       # Platform version
+VERSION=1.1.2-CE                       # Platform version
 
 #================================================================================================
 # POSTGRESQL
@@ -746,5 +746,5 @@ docker compose up -d --scale backend=3
 
 ---
 
-- **Last Updated:** December 12, 2025
+- **Last Updated:** January 01st, 2026
 - **Maintained By:** DevOpsCorner Indonesia

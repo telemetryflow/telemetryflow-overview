@@ -1,6 +1,6 @@
 # TFO-OTEL Deployment Guide
 
-- **Version:** 1.1.1-CE
+- **Version:** 1.1.2-CE
 - **Last Updated:** December 13, 2025
 - **Component:** Deployment Patterns & Best Practices
 - **Target:** Production-Grade Deployments
@@ -1422,4 +1422,4 @@ kubectl scale deployment -n observability tfo-otel-collector --replicas=5
 
 ---
 
-**Version:** 1.1.1-CE | **Component:** Deployment Guide | **Last Updated:** December 13, 2025
+**Version:** 1.1.2-CE | **Component:** Deployment Guide | **Last Updated:** December 13, 2025

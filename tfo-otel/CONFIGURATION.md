@@ -1,6 +1,6 @@
 # TFO-OTEL Configuration Reference
 
-- **Version:** 1.1.1-CE
+- **Version:** 1.1.2-CE
 - **Last Updated:** December 13, 2025
 - **Component:** Configuration Guide
 - **Base Version:** OpenTelemetry Collector 0.88.0
@@ -1152,7 +1152,7 @@ processors:
   resource:
     attributes:
       - key: collector.version
-        value: "1.1.1-CE"
+        value: "1.1.2-CE"
         action: upsert
       - key: deployment.environment
         value: ${env:ENVIRONMENT}
@@ -1448,4 +1448,4 @@ service:
 
 ---
 
-**Version:** 1.1.1-CE | **Component:** Configuration Reference | **Last Updated:** December 13, 2025
+**Version:** 1.1.2-CE | **Component:** Configuration Reference | **Last Updated:** December 13, 2025

@@ -1,6 +1,6 @@
 # TFO-OTEL-Agent Documentation
 
-- **Version:** 1.1.1-CE
+- **Version:** 1.1.2-CE
 - **Last Updated:** December 2025
 - **Component:** TelemetryFlow Agent (Edge Telemetry Collector)
 - **Go Version:** 1.24+
@@ -294,7 +294,7 @@ metadata:
   namespace: observability
   labels:
     app: tfo-agent
-    version: "1.1.1-CE"
+    version: "1.1.2-CE"
 spec:
   selector:
     matchLabels:
@@ -303,7 +303,7 @@ spec:
     metadata:
       labels:
         app: tfo-agent
-        version: "1.1.1-CE"
+        version: "1.1.2-CE"
     spec:
       serviceAccountName: tfo-agent
       hostNetwork: true
@@ -697,7 +697,7 @@ tfo-agent version
 
 # Output:
 # TelemetryFlow Agent
-# Version:    1.1.1-CE
+# Version:    1.1.2-CE
 # Git Commit: abc1234
 # Git Branch: main
 # Build Time: 2025-12-26T00:00:00Z
@@ -1095,4 +1095,4 @@ make docker-push        # Push Docker image
 
 ---
 
-**Version:** 1.1.1-CE | **Component:** TFO-OTEL-Agent | **OTEL SDK:** v1.39.0 | **Last Updated:** December 2025
+**Version:** 1.1.2-CE | **Component:** TFO-OTEL-Agent | **OTEL SDK:** v1.39.0 | **Last Updated:** December 2025

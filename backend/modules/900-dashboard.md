@@ -4,7 +4,7 @@
 - **Category**: Backend / Business Modules
 - **Status**: Production Ready
 - **Priority:** 🔥 HIGH - Core Visualization
-- **Version**: 1.1.1-CE
+- **Version**: 1.1.2-CE
 
 ---
 

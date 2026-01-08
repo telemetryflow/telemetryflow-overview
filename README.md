@@ -7,7 +7,7 @@
     <img src="https://github.com/telemetryflow/.github/raw/main/docs/assets/tfo-logo-light.svg" alt="TelemetryFlow Logo" width="80%">
   </picture>
 
-  <h3>Enterprise-Grade Observability Platform for Modern Cloud Infrastructure</h3>
+  <h3>Community Enterprise Observability Platform (CEOP)</h3>
 
   <p>
     <strong>100% OpenTelemetry Compliant</strong> • Built with <strong>DDD/CQRS</strong> • Production-Ready
@@ -25,11 +25,11 @@
 
 </div>
 
-- **Version:** 1.1.1-CE
+- **Version:** 1.1.2-CE
 - **Status:** Production Ready
 - **License:** Apache 2.0
 - **Built by:** DevOpsCorner Indonesia
-- **Last Updated:** December 12, 2025
+- **Last Updated:** January 01st, 2026
 
 ---
 
@@ -48,7 +48,7 @@
 
 ## What is TelemetryFlow?
 
-**TelemetryFlow** is an **enterprise-grade observability platform** that provides complete telemetry collection, storage, and visualization capabilities. It is a **100% OpenTelemetry Protocol (OTLP) compliant** platform designed to be an open-source alternative to commercial observability solutions like Datadog, New Relic, or Dynatrace.
+**TelemetryFlow** is an **enterprise-grade observability platform** that provides complete telemetry collection, storage, and visualization capabilities. It is a 100% OpenTelemetry Protocol (OTLP) compliant platform designed to be an open-source that provides unified metrics, logs, and traces collection following OpenTelemetry standards.
 
 ### Problem It Solves
 
@@ -961,7 +961,7 @@ When creating a new module, follow the standard structure:
 | Test Cases | 280+ |
 | Test Coverage | 88-92% |
 | Documentation Pages | 203+ |
-| Version | 1.1.1-CE |
+| Version | 1.1.2-CE |
 
 ---
 
@@ -976,4 +976,4 @@ Apache License 2.0 - See [LICENSE](./LICENSE) for details.
 Built with ❤️ by **DevOpsCorner Indonesia**
 
 - **Status:** ✅ Production Ready (Zero Build Errors)
-- **Last Updated:** December 12, 2025
+- **Last Updated:** January 01st, 2026
