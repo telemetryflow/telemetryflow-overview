@@ -16,6 +16,8 @@
 [![OpenTelemetry](https://img.shields.io/badge/OTLP-100%25%20Compliant-success?logo=opentelemetry)](https://opentelemetry.io/)
 [![DDD](https://img.shields.io/badge/Architecture-DDD%2FCQRS-blueviolet)](backend/)
 [![RBAC](https://img.shields.io/badge/Security-5--Tier%20RBAC-red)](architecture/06-RBAC-SYSTEM-PLATFORM.md)
+[![MCP Protocol](https://img.shields.io/badge/MCP-2024--11--05-purple?logo=data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMTIgMkM2LjQ4IDIgMiA2LjQ4IDIgMTJzNC40OCAxMCAxMCAxMCAxMC00LjQ4IDEwLTEwUzE3LjUyIDIgMTIgMnoiIGZpbGw9IiNmZmYiLz48L3N2Zz4=)](https://modelcontextprotocol.io/)
+[![Claude API](https://img.shields.io/badge/Claude-Opus%204%20%7C%20Sonnet%204-E1BEE7?logo=anthropic)](https://anthropic.com)
 
 <p align="center">
   <strong>TelemetryFlow Platform</strong> is an enterprise-grade observability platform providing complete telemetry collection, storage, and visualization capabilities. 100% OpenTelemetry Protocol (OTLP) compliant with unified metrics, logs, and traces collection.

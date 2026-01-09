@@ -22,7 +22,8 @@
   [![OpenTelemetry](https://img.shields.io/badge/OTLP-100%25%20Compliant-success?logo=opentelemetry)](https://opentelemetry.io/)
   [![DDD](https://img.shields.io/badge/Architecture-DDD%2FCQRS-blueviolet)](docs-ddd-backend/)
   [![RBAC](https://img.shields.io/badge/Security-5--Tier%20RBAC-red)](../backend/src/modules/iam/)
-
+  [![MCP Protocol](https://img.shields.io/badge/MCP-2024--11--05-purple?logo=data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMTIgMkM2LjQ4IDIgMiA2LjQ4IDIgMTJzNC40OCAxMCAxMCAxMCAxMC00LjQ4IDEwLTEwUzE3LjUyIDIgMTIgMnoiIGZpbGw9IiNmZmYiLz48L3N2Zz4=)](https://modelcontextprotocol.io/)
+  [![Claude API](https://img.shields.io/badge/Claude-Opus%204%20%7C%20Sonnet%204-E1BEE7?logo=anthropic)](https://anthropic.com)
 </div>
 
 - **Version:** 1.1.2-CE
@@ -70,6 +71,7 @@
 - **🔐 Enterprise Security** - JWT, MFA, SSO (Google/GitHub/Azure/Okta), RBAC, API keys
 - **⚡ High Performance** - Multi-level caching, queue-based processing, ClickHouse optimization
 - **📋 Compliance Ready** - Audit logging, GDPR, SOC2, HIPAA support
+- **🤖 AI-Powered Observability** - MCP Server with Claude AI integration for intelligent analysis
 
 ---
 
@@ -127,11 +129,18 @@ This documentation is organized into the following sections:
 │   ├── DATABASE-SCHEMA.md             # PostgreSQL + ClickHouse schemas
 │   ├── NAMING-CONVENTIONS.md          # Coding standards
 │   └── OTLP-INGESTION.md              # OTLP ingestion guide
-└── deployment/
-    ├── DOCKER-COMPOSE.md              # Docker deployment
-    ├── KUBERNETES.md                  # Kubernetes deployment
-    ├── CONFIGURATION.md               # Environment configuration
-    └── PRODUCTION-CHECKLIST.md        # Production deployment guide
+├── deployment/
+│   ├── DOCKER-COMPOSE.md              # Docker deployment
+│   ├── KUBERNETES.md                  # Kubernetes deployment
+│   ├── CONFIGURATION.md               # Environment configuration
+│   └── PRODUCTION-CHECKLIST.md        # Production deployment guide
+└── tfo-otel/
+    ├── README.md                      # TFO-OTEL overview
+    ├── TFO-OTEL-AGENT.md              # TFO-Agent documentation
+    ├── TFO-OTEL-COLLECTOR.md          # TFO-Collector documentation
+    ├── ARCHITECTURE.md                # OTEL architecture
+    ├── CONFIGURATION.md               # OTEL configuration
+    └── INGESTION-FLOW.md              # Telemetry ingestion flow
 ```
 
 ---
@@ -454,6 +463,71 @@ sequenceDiagram
 - Partitioning by tenant and timestamp
 - Data compression (50-90% space savings)
 
+### 7. AI-Powered Observability (TFO-MCP)
+
+**Model Context Protocol Server:**
+
+TFO-MCP is an enterprise-grade MCP server implementation that brings AI capabilities to the TelemetryFlow platform, enabling intelligent analysis and interaction with telemetry data.
+
+```mermaid
+graph LR
+    subgraph "MCP Clients"
+        CC[Claude Code]
+        IDE[IDE Extensions]
+        CLI[CLI Tools]
+    end
+
+    subgraph "TFO-MCP Server"
+        SERVER[MCP Server<br/>JSON-RPC 2.0]
+        TOOLS[8 Built-in Tools]
+        AI[Claude AI<br/>Integration]
+    end
+
+    subgraph "TelemetryFlow"
+        CH[(ClickHouse)]
+        PG[(PostgreSQL)]
+    end
+
+    CC --> SERVER
+    IDE --> SERVER
+    CLI --> SERVER
+    SERVER --> TOOLS
+    SERVER --> AI
+    AI --> CH
+    AI --> PG
+
+    style SERVER fill:#E1BEE7,stroke:#7B1FA2
+    style AI fill:#FFCDD2,stroke:#C62828
+```
+
+**Key Features:**
+
+- Claude AI conversation capabilities via MCP protocol
+- 8 built-in tools (AI chat, file operations, system commands)
+- Domain-Driven Design (DDD) with CQRS architecture
+- OpenTelemetry integration for self-instrumentation
+- Multi-transport support: stdio, SSE (planned), WebSocket (planned)
+
+**Built-in Tools:**
+
+| Tool                  | Category | Description                |
+| --------------------- | -------- | -------------------------- |
+| `claude_conversation` | AI       | Send messages to Claude AI |
+| `read_file`           | File     | Read file contents         |
+| `write_file`          | File     | Write content to file      |
+| `list_directory`      | File     | List directory contents    |
+| `search_files`        | File     | Search files by pattern    |
+| `execute_command`     | System   | Execute shell commands     |
+| `system_info`         | System   | Get system information     |
+| `echo`                | Utility  | Echo input (testing)       |
+
+**Supported Claude Models:**
+
+- Claude 4 Opus - Complex reasoning and analysis
+- Claude 4 Sonnet - Balanced performance (default)
+- Claude 3.7 Sonnet - Extended thinking
+- Claude 3.5 Sonnet/Haiku - Fast responses
+
 ---
 
 ## Architecture Overview
@@ -466,6 +540,7 @@ graph TB
         OTEL[OpenTelemetry SDK/Collector<br/>gRPC/HTTP]
         BROWSER[Web Browser]
         SSO[SSO Providers<br/>Google/GitHub/Azure/Okta]
+        MCP_CLIENT[MCP Clients<br/>Claude Code, IDE Extensions]
     end
 
     subgraph "TelemetryFlow Platform"
@@ -476,6 +551,10 @@ graph TB
         subgraph "Backend Layer"
             API[Backend API<br/>NestJS + TypeScript<br/>Port 3100]
             OTLP_EP[OTLP Endpoint<br/>gRPC Port 4317]
+        end
+
+        subgraph "AI Layer"
+            MCP[TFO-MCP Server<br/>Go + DDD/CQRS<br/>Claude AI Integration]
         end
 
         subgraph "Data Layer"
@@ -492,6 +571,7 @@ graph TB
         subgraph "Integration Layer"
             EMAIL[Email Service<br/>Nodemailer]
             NOTIF[Notification Services<br/>Slack, PagerDuty, Teams]
+            CLAUDE[Anthropic Claude API<br/>AI Analysis]
         end
     end
 
@@ -499,11 +579,14 @@ graph TB
     FE -->|REST API| API
     OTEL -->|OTLP/gRPC| OTLP_EP
     SSO -.->|OAuth2/OIDC| API
+    MCP_CLIENT -->|JSON-RPC 2.0| MCP
 
     API -->|Queries| PG
     API -->|Telemetry Queries| CH
     API -->|Cache/Queue| REDIS
     OTLP_EP -->|Enqueue| QUEUE
+    MCP -->|Query| CH
+    MCP -->|AI Analysis| CLAUDE
 
     QUEUE -->|Process| CH
     QUEUE -->|Alert Check| API
@@ -514,11 +597,13 @@ graph TB
 
     style FE fill:#42b983
     style API fill:#e34c26
+    style MCP fill:#E1BEE7
     style PG fill:#336791
     style CH fill:#ffcc01
     style REDIS fill:#d82c20
     style QUEUE fill:#cf1f1f
     style NATS fill:#27aae1
+    style CLAUDE fill:#FFCDD2
 ```
 
 ### Backend Architecture (DDD + CQRS)
@@ -721,6 +806,21 @@ For detailed architecture documentation, see:
 | **Charts** | ECharts | 6.0.0 | 80+ chart types |
 | **HTTP Client** | Axios | 1.13.2 | REST API calls |
 | **WebSocket** | Socket.IO | 4.8.1 | Real-time updates |
+
+### TFO-MCP (AI Integration)
+
+| Category | Technology | Version | Purpose |
+|----------|-----------|---------|---------|
+| **Language** | Go | 1.24+ | High-performance runtime |
+| **Architecture** | DDD/CQRS | - | Domain-Driven Design patterns |
+| **Protocol** | MCP | 2024-11-05 | Model Context Protocol |
+| **AI SDK** | anthropic-sdk-go | v0.2.0-beta.3 | Claude AI integration |
+| **OTEL SDK** | OpenTelemetry | v1.39.0 | Telemetry instrumentation |
+| **Logging** | zerolog | Latest | Zero-allocation JSON logging |
+| **Config** | Viper | Latest | Configuration management |
+| **Cache** | Redis | 7+ | Response caching |
+| **Queue** | NATS JetStream | Latest | Message queue |
+| **Databases** | PostgreSQL, ClickHouse | 15+, 23+ | Metadata and analytics |
 
 ---
 
@@ -954,6 +1054,7 @@ When creating a new module, follow the standard structure:
 |--------|-------|
 | Backend Modules | 15 |
 | Frontend Modules | 5+ |
+| TFO-MCP Tools | 8 |
 | CQRS Handlers | 40+ |
 | API Endpoints | 120+ |
 | Database Tables | 50+ |
