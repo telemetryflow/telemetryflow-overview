@@ -137,7 +137,7 @@ flowchart TB
 
 ```bash
 # Clone repository
-git clone https://github.com/devopscorner/telemetryflow.git
+git clone https://github.com/telemetryflow/telemetryflow-mcp.git
 cd telemetryflow/telemetryflow-mcp
 
 # Install dependencies
@@ -368,7 +368,7 @@ import (
     "github.com/google/uuid"
 
     // Internal packages
-    "github.com/devopscorner/telemetryflow/telemetryflow-mcp/internal/domain"
+    "github.com/telemetryflow/telemetryflow-mcp/telemetryflow-mcp/internal/domain"
 )
 
 // Constants

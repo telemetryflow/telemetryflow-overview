@@ -367,7 +367,7 @@ spec:
     spec:
       containers:
       - name: backend
-        image: devopscorner/telemetryflow-backend:1.1.2-CE
+        image: telemetryflow/telemetryflow-mcp-backend:1.1.2-CE
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 3100
@@ -481,7 +481,7 @@ spec:
     spec:
       containers:
       - name: frontend
-        image: devopscorner/telemetryflow-frontend:1.1.2-CE
+        image: telemetryflow/telemetryflow-mcp-frontend:1.1.2-CE
         ports:
         - containerPort: 80
           name: http

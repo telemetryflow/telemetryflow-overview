@@ -153,10 +153,10 @@ flowchart TB
 
 ```bash
 # Download latest release (Apple Silicon)
-curl -LO https://github.com/devopscorner/telemetryflow/releases/latest/download/tfo-mcp_darwin_arm64.tar.gz
+curl -LO https://github.com/telemetryflow/telemetryflow-mcp/releases/latest/download/tfo-mcp_darwin_arm64.tar.gz
 
 # Or Intel Mac
-curl -LO https://github.com/devopscorner/telemetryflow/releases/latest/download/tfo-mcp_darwin_amd64.tar.gz
+curl -LO https://github.com/telemetryflow/telemetryflow-mcp/releases/latest/download/tfo-mcp_darwin_amd64.tar.gz
 
 # Extract
 tar -xzf tfo-mcp_darwin_*.tar.gz
@@ -172,10 +172,10 @@ tfo-mcp version
 
 ```bash
 # Download latest release (amd64)
-curl -LO https://github.com/devopscorner/telemetryflow/releases/latest/download/tfo-mcp_linux_amd64.tar.gz
+curl -LO https://github.com/telemetryflow/telemetryflow-mcp/releases/latest/download/tfo-mcp_linux_amd64.tar.gz
 
 # Or ARM64
-curl -LO https://github.com/devopscorner/telemetryflow/releases/latest/download/tfo-mcp_linux_arm64.tar.gz
+curl -LO https://github.com/telemetryflow/telemetryflow-mcp/releases/latest/download/tfo-mcp_linux_arm64.tar.gz
 
 # Extract
 tar -xzf tfo-mcp_linux_*.tar.gz
@@ -194,7 +194,7 @@ tfo-mcp version
 
 ```powershell
 # Download latest release
-Invoke-WebRequest -Uri "https://github.com/devopscorner/telemetryflow/releases/latest/download/tfo-mcp_windows_amd64.zip" -OutFile "tfo-mcp.zip"
+Invoke-WebRequest -Uri "https://github.com/telemetryflow/telemetryflow-mcp/releases/latest/download/tfo-mcp_windows_amd64.zip" -OutFile "tfo-mcp.zip"
 
 # Extract
 Expand-Archive -Path "tfo-mcp.zip" -DestinationPath "."
@@ -214,7 +214,7 @@ tfo-mcp version
 
 ```bash
 # Add tap
-brew tap devopscorner/telemetryflow
+brew tap telemetryflow/telemetryflow-mcp
 
 # Install
 brew install tfo-mcp
@@ -250,7 +250,7 @@ flowchart TB
 
 ```bash
 # 1. Clone repository
-git clone https://github.com/devopscorner/telemetryflow.git
+git clone https://github.com/telemetryflow/telemetryflow-mcp.git
 cd telemetryflow/telemetryflow-mcp
 
 # 2. Download dependencies
@@ -294,10 +294,10 @@ make build-all
 
 ```bash
 # Install latest version
-go install github.com/devopscorner/telemetryflow/telemetryflow-mcp/cmd/mcp@latest
+go install github.com/telemetryflow/telemetryflow-mcp/telemetryflow-mcp/cmd/mcp@latest
 
 # Install specific version
-go install github.com/devopscorner/telemetryflow/telemetryflow-mcp/cmd/mcp@v1.1.2
+go install github.com/telemetryflow/telemetryflow-mcp/telemetryflow-mcp/cmd/mcp@v1.1.2
 
 # Verify
 tfo-mcp version
@@ -609,7 +609,7 @@ flowchart TB
 cp /etc/tfo-mcp/config.yaml /etc/tfo-mcp/config.yaml.bak
 
 # 2. Download new version
-curl -LO https://github.com/devopscorner/telemetryflow/releases/latest/download/tfo-mcp_$(uname -s | tr '[:upper:]' '[:lower:]')_$(uname -m).tar.gz
+curl -LO https://github.com/telemetryflow/telemetryflow-mcp/releases/latest/download/tfo-mcp_$(uname -s | tr '[:upper:]' '[:lower:]')_$(uname -m).tar.gz
 
 # 3. Extract and install
 tar -xzf tfo-mcp_*.tar.gz
@@ -702,7 +702,7 @@ docker volume rm tfo-mcp-config
 brew uninstall tfo-mcp
 
 # Remove tap (optional)
-brew untap devopscorner/telemetryflow
+brew untap telemetryflow/telemetryflow-mcp
 ```
 
 ### Clean Go Install
