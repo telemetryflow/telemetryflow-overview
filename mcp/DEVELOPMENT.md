@@ -27,7 +27,7 @@ This guide provides comprehensive information for developers working on TFO-MCP.
 ```mermaid
 flowchart TB
     subgraph DevEnv["Development Environment"]
-        GO["Go 1.24+"]
+        GO["Go 1.26+"]
         EDITOR["IDE/Editor"]
         GIT["Git"]
         MAKE["Make"]
@@ -63,7 +63,7 @@ flowchart TB
 ```mermaid
 flowchart LR
     subgraph Required["Required"]
-        GO["Go 1.24+"]
+        GO["Go 1.26+"]
         GIT["Git"]
         MAKE["Make"]
     end
@@ -81,13 +81,13 @@ flowchart LR
 ### Installation
 
 ```bash
-# Install Go 1.24+
+# Install Go 1.26+
 # macOS
 brew install go
 
 # Linux
-wget https://go.dev/dl/go1.24.linux-amd64.tar.gz
-sudo tar -C /usr/local -xzf go1.24.linux-amd64.tar.gz
+wget https://go.dev/dl/go1.26.linux-amd64.tar.gz
+sudo tar -C /usr/local -xzf go1.26.linux-amd64.tar.gz
 export PATH=$PATH:/usr/local/go/bin
 
 # Windows
@@ -237,7 +237,7 @@ gitGraph
     checkout develop
     merge feature/new-tool
     checkout main
-    merge develop tag: "v1.1.3"
+    merge develop tag: "v1.2.0"
 ```
 
 ### Branch Naming
@@ -247,7 +247,7 @@ gitGraph
 | Feature | `feature/description` | `feature/add-search-tool` |
 | Bug Fix | `fix/description`     | `fix/session-timeout`     |
 | Hotfix  | `hotfix/description`  | `hotfix/api-error`        |
-| Release | `release/version`     | `release/1.1.3`           |
+| Release | `release/version`     | `release/1.2.0`           |
 
 ### Development Cycle
 
@@ -902,10 +902,10 @@ flowchart LR
         PATCH["PATCH<br/>Bug fixes"]
     end
 
-    subgraph Example["Example: 1.1.2"]
+    subgraph Example["Example: 1.2.0"]
         M["1"]
-        N["1"]
-        P["2"]
+        N["2"]
+        P["0"]
     end
 
     MAJOR --> M
@@ -919,16 +919,16 @@ flowchart LR
 
 ```bash
 # Create release
-make release VERSION=1.1.3
+make release VERSION=1.2.0
 
 # Build all platforms
 make build-all
 
 # Push Docker image
-make docker-push VERSION=1.1.3
+make docker-push VERSION=1.2.0
 
 # Generate changelog
-git log --oneline v1.1.2..HEAD > CHANGELOG_NEW.md
+git log --oneline v1.2.0..HEAD > CHANGELOG_NEW.md
 ```
 
 ### GoReleaser Configuration

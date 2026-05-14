@@ -1,6 +1,6 @@
 # Frontend Module Structure
 
-- **Version**: 1.1.2-CE
+- **Version**: 1.4.0
 - **Architecture**: Domain-Driven Design (DDD)
 - **Pattern**: Modular Frontend with Dependency Injection
 - **Status**: ✅ Production Ready
@@ -12,9 +12,10 @@
 1. [Module Architecture](#module-architecture)
 2. [Module Structure](#module-structure)
 3. [Available Modules](#available-modules)
-4. [Dependency Injection](#dependency-injection)
-5. [Module Registration](#module-registration)
-6. [Creating a New Module](#creating-a-new-module)
+4. [Component Registry System](#component-registry-system)
+5. [Dependency Injection](#dependency-injection)
+6. [Module Registration](#module-registration)
+7. [Creating a New Module](#creating-a-new-module)
 
 ---
 
@@ -79,7 +80,7 @@ modules/{module-name}/
 │       └── {Event}.ts             # Domain event
 ├── infrastructure/
 │   ├── api/
-│   │   └── {module}-api.ts        # API client
+│   │   └── {module}-api.ts        # API client (ENDPOINTS + mock + config.useMock)
 │   ├── repositories/
 │   │   └── {module}-repository.ts # Repository
 │   └── mappers/
@@ -126,6 +127,7 @@ modules/auth/
 ```
 
 **Key Features:**
+
 - JWT authentication
 - MFA support
 - Session persistence
@@ -173,6 +175,7 @@ modules/telemetry/
 ```
 
 **Key Features:**
+
 - Real-time metric charts
 - Log streaming
 - Trace visualization
@@ -234,6 +237,7 @@ modules/iam/
 ```
 
 **Key Features:**
+
 - User management (CRUD)
 - Role-based access control
 - Permission management
@@ -269,6 +273,7 @@ modules/monitoring/
 ```
 
 **Key Features:**
+
 - 14 monitor types (HTTP, TCP, Ping, etc.)
 - Status visualization
 - Health checks
@@ -303,10 +308,90 @@ modules/api-keys/
 ```
 
 **Key Features:**
+
 - Create/revoke API keys
 - Scoped permissions
 - Usage tracking
 - Expiration management
+
+---
+
+## Component Registry System
+
+Frontend modules are connected to visualization components through a centralized registry system:
+
+```mermaid
+graph LR
+    REG[Registry Definitions] --> COMP[Registry Composables]
+    COMP --> VIEWS[Vue Views]
+    COMP --> PANELS[RegistryGraphPanel]
+
+    subgraph "Registries"
+        GR[Graph Registry<br/>260+ entries]
+        SR[Stat Panel Registry<br/>158 entries]
+        DR[DataTable Registry<br/>41 entries]
+    end
+
+    REG --- GR
+    REG --- SR
+    REG --- DR
+
+    style REG fill:#9C27B0
+    style COMP fill:#2196F3
+    style VIEWS fill:#4CAF50
+```
+
+### Registry Composables
+
+```typescript
+// Bridge registries to components
+useGraphFromRegistry(graphId); // → ChartSeries[]
+useStatPanelsFromRegistry(ids, valueMap); // → StatPanelConfig[]
+useDataTableFromRegistry(datatableId); // → columns + RegistryPaginationConfig
+useQueryPanel(); // → TFQL query UI capabilities
+```
+
+### ID Scheme
+
+Registry IDs follow the pattern `XXX[T]####` where:
+
+- `XXX` = module code (HOM, DSH, MET, TRC, LOG, COR, EXP, ALR, RPT, UPT, STP, SVM, NWM, K8S, INF, AGT, RET, SUB, IAM, TEN, AUD, APK, NOT, LLM)
+- `T` = registry type (1=graph, 2=statPanel, 3=datatable)
+- `####` = sequential number
+
+### RegistryGraphPanel
+
+Unified graph component with 3 variants and 13 chart types:
+
+- `variant="default"` -- ChartCard wrapper
+- `variant="mini"` -- Compact icon + value badge
+- `variant="panel"` -- Collapsible QueryEditorPanel + ChartZoomModal
+
+All 21 stat panel views are wired across the application.
+
+### API Client Pattern
+
+Each module's API client follows a consistent pattern:
+
+```typescript
+export const ENDPOINTS = {
+  LIST_ITEMS: "/api/v2/{module}/items",
+  GET_ITEM: (id: string) => `/api/v2/{module}/items/${id}`,
+};
+
+export const mockItems = [
+  /* realistic mock data synced with seed data */
+];
+
+export async function listItems(): Promise<Item[]> {
+  if (config.useMock) return mockItems;
+  return api.get(ENDPOINTS.LIST_ITEMS);
+}
+```
+
+### Timezone Support
+
+End-to-end timezone handling: `chartTimezone` (frontend) → `timezone` param (backend) → ClickHouse `toStartOfInterval()`.
 
 ---
 
@@ -316,8 +401,8 @@ modules/api-keys/
 
 ```typescript
 // main.ts - Module initialization with dependency injection
-import { createApp } from 'vue';
-import App from './App.vue';
+import { createApp } from "vue";
+import App from "./App.vue";
 
 async function setupApp() {
   const app = createApp(App);
@@ -329,11 +414,11 @@ async function setupApp() {
   // Initialize Shared Infrastructure
   // ========================================
   const httpClientInstance = new HttpClient(
-    import.meta.env.VITE_API_BASE_URL || 'http://localhost:3100'
+    import.meta.env.VITE_API_BASE_URL || "http://localhost:3100",
   );
 
-  app.provide('httpClient', httpClientInstance);
-  console.log('[App] Shared infrastructure initialized');
+  app.provide("httpClient", httpClientInstance);
+  console.log("[App] Shared infrastructure initialized");
 
   // ========================================
   // Initialize Auth Module
@@ -343,7 +428,7 @@ async function setupApp() {
   authStore.setAuthApi(authApi);
   await authStore.initializeFromStorage();
 
-  console.log('[App] Auth module registered');
+  console.log("[App] Auth module registered");
 
   // Setup router (after auth store is ready)
   await setupRouter(app);
@@ -353,27 +438,27 @@ async function setupApp() {
   // ========================================
   const metricApi = new MetricApi(httpClientInstance);
   const metricRepository = new MetricRepository(metricApi);
-  app.provide('metricRepository', metricRepository);
+  app.provide("metricRepository", metricRepository);
 
   const metricStore = useMetricStore();
   metricStore.setRepository(metricRepository);
 
-  console.log('[App] Telemetry module registered');
+  console.log("[App] Telemetry module registered");
 
   // ========================================
   // Register IAM Module
   // ========================================
   const userApi = new UserApi(httpClientInstance);
   const userRepository = new UserRepository(userApi);
-  app.provide('userRepository', userRepository);
+  app.provide("userRepository", userRepository);
 
   const userStore = useUserStore();
   userStore.setRepository(userRepository);
 
-  console.log('[App] IAM module registered');
+  console.log("[App] IAM module registered");
 
   // Mount app
-  app.mount('#app');
+  app.mount("#app");
 }
 
 setupApp();
@@ -387,12 +472,12 @@ setupApp();
 
 ```typescript
 // modules/telemetry/application/stores/metric-store.ts
-import { defineStore } from 'pinia';
-import { ref } from 'vue';
-import type { Metric } from '@/modules/telemetry/domain/entities/Metric';
-import type { MetricRepository } from '@/modules/telemetry/infrastructure/repositories/metric-repository';
+import { defineStore } from "pinia";
+import { ref } from "vue";
+import type { Metric } from "@/modules/telemetry/domain/entities/Metric";
+import type { MetricRepository } from "@/modules/telemetry/infrastructure/repositories/metric-repository";
 
-export const useMetricStore = defineStore('metric', () => {
+export const useMetricStore = defineStore("metric", () => {
   // State
   const metrics = ref<Metric[]>([]);
   const loading = ref(false);
@@ -403,20 +488,20 @@ export const useMetricStore = defineStore('metric', () => {
   // Dependency injection setter
   function setRepository(repo: MetricRepository) {
     repository = repo;
-    console.log('[MetricStore] Repository injected');
+    console.log("[MetricStore] Repository injected");
   }
 
   // Actions
   async function fetchMetrics(filters: MetricFilters) {
     if (!repository) {
-      throw new Error('MetricRepository not initialized');
+      throw new Error("MetricRepository not initialized");
     }
 
     loading.value = true;
     try {
       metrics.value = await repository.findAll(filters);
     } catch (error) {
-      console.error('[MetricStore] Failed to fetch metrics:', error);
+      console.error("[MetricStore] Failed to fetch metrics:", error);
       throw error;
     } finally {
       loading.value = false;
@@ -638,10 +723,7 @@ onMounted(async () => {
     <h1 class="text-2xl font-bold mb-4">{Module}</h1>
 
     <n-spin :show="{module}Store.loading">
-      <n-data-table
-        :columns="columns"
-        :data="{module}Store.items"
-      />
+      <n-data-table :columns="columns" :data="{module}Store.items" />
     </n-spin>
   </div>
 </template>
@@ -656,8 +738,11 @@ onMounted(async () => {
 3. **Type Safety**: Use TypeScript interfaces for all DTOs and entities
 4. **Repository Pattern**: Abstract API calls behind repositories
 5. **Domain Events**: Emit events for important business actions
-6. **Composables**: Extract reusable logic into composables
+6. **Composables**: Extract reusable logic into composables (useGraphFromRegistry, useStatPanelsFromRegistry, useDataTableFromRegistry, useQueryPanel)
 7. **Code Splitting**: Lazy load module views and components
+8. **Registry Pattern**: Use component registries for graph, stat panel, and datatable definitions
+9. **API Client Pattern**: Follow ENDPOINTS + mock data + config.useMock branching
+10. **Mock Data**: Keep mock data realistic and synced with seed data
 
 ---
 
@@ -669,5 +754,5 @@ onMounted(async () => {
 
 ---
 
-- **Last Updated:** January 01st, 2026
+- **Last Updated:** May 14, 2026
 - **Maintained By:** DevOpsCorner Indonesia

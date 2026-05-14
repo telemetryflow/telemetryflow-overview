@@ -1,9 +1,9 @@
 # OTLP Ingestion Guide
 
-- **Version**: 1.1.2-CE
-- **Protocol**: OTLP/gRPC (Port 4317)
+- **Version**: 1.4.0
+- **Protocol**: OTLP/gRPC (Port 4317), OTLP/HTTP (Port 4318)
 - **Formats**: JSON, Protobuf
-- **Status**: ✅ Production Ready
+- **Status**: Production Ready
 
 ---
 
@@ -22,65 +22,99 @@
 
 ## Overview
 
-**OpenTelemetry Protocol (OTLP)** is the standard protocol for sending telemetry data. TelemetryFlow supports:
+**OpenTelemetry Protocol (OTLP)** is the standard protocol for sending telemetry data. TelemetryFlow uses the **TFO-Collector** (based on OTEL Collector OCB) with 4 custom components:
 
-- **OTLP/gRPC** - Binary protocol (recommended)
-- **OTLP/HTTP** - JSON protocol (easier for debugging)
+- **tfootlp** (receiver) - Custom OTLP receiver with dual v1/v2 endpoint support
+- **tfo** (exporter) - Exports telemetry to TelemetryFlow Platform backend
+- **tfoauth** (extension) - API key authentication for v2 endpoints (Argon2id hashing)
+- **tfoidentity** (extension) - Multi-tenant identity resolution (workspace_id, tenant_id)
 
 ```mermaid
 graph LR
-    APP[Application] -->|OTLP| COLLECTOR[OTEL Collector]
-    COLLECTOR -->|gRPC 4317| API[TelemetryFlow API]
+    APP[Application] -->|OTLP| COLLECTOR[TFO-Collector]
+    COLLECTOR -->|v1/v2| FOOTLP[tfootlp receiver]
 
-    API -->|transform| PROCESSOR[OTLP Processor]
-    PROCESSOR -->|store| PG[(PostgreSQL)]
-    PROCESSOR -->|store| CH[(ClickHouse)]
+    FOOTLP -->|v2| FOAUTH[tfoauth extension]
+    FOAUTH -->|authenticate| FOID[tfoidentity extension]
+    FOID -->|export| FOEXP[tfo exporter]
+
+    FOEXP -->|store| PLATFORM[TelemetryFlow Platform]
+    PLATFORM -->|metadata| PG[(PostgreSQL)]
+    PLATFORM -->|telemetry| CH[(ClickHouse)]
 
     style APP fill:#4CAF50
-    style API fill:#2196F3
-    style PROCESSOR fill:#FF9800
+    style COLLECTOR fill:#2196F3
+    style FOOTLP fill:#FF9800
+    style FOAUTH fill:#E91E63
+    style FOEXP fill:#9C27B0
 ```
 
 ---
 
 ## OTLP Endpoints
 
+### Dual Endpoint Tiers
+
+| Tier               | gRPC Endpoint    | HTTP Endpoint                | Auth              | Description                 |
+| ------------------ | ---------------- | ---------------------------- | ----------------- | --------------------------- |
+| **v1 (Community)** | `localhost:4317` | `localhost:4318/v1/{signal}` | None              | Standard OTEL, open         |
+| **v2 (Platform)**  | `localhost:4317` | `localhost:4318/v2/{signal}` | tfoauth (API Key) | Authenticated, multi-tenant |
+
 ### gRPC Endpoints (Recommended)
 
-| Signal | Endpoint | Port |
-|--------|----------|------|
-| **Metrics** | `http://localhost:4317` | 4317 |
-| **Logs** | `http://localhost:4317` | 4317 |
-| **Traces** | `http://localhost:4317` | 4317 |
+| Signal      | v1 (Community)   | v2 (Platform)    | Port |
+| ----------- | ---------------- | ---------------- | ---- |
+| **Metrics** | `localhost:4317` | `localhost:4317` | 4317 |
+| **Logs**    | `localhost:4317` | `localhost:4317` | 4317 |
+| **Traces**  | `localhost:4317` | `localhost:4317` | 4317 |
 
 ### HTTP Endpoints (Alternative)
 
-| Signal | Endpoint | Port |
-|--------|----------|------|
-| **Metrics** | `http://localhost:4318/v2/metrics` | 4318 |
-| **Logs** | `http://localhost:4318/v2/logs` | 4318 |
-| **Traces** | `http://localhost:4318/v2/traces` | 4318 |
+| Signal      | v1 (Community)              | v2 (Platform)               | Port |
+| ----------- | --------------------------- | --------------------------- | ---- |
+| **Metrics** | `localhost:4318/v1/metrics` | `localhost:4318/v2/metrics` | 4318 |
+| **Logs**    | `localhost:4318/v1/logs`    | `localhost:4318/v2/logs`    | 4318 |
+| **Traces**  | `localhost:4318/v1/traces`  | `localhost:4318/v2/traces`  | 4318 |
 
 ---
 
 ## Authentication
 
-### API Key Authentication
+### API Key Authentication (v2 / Platform tier)
 
-**Required Headers:**
+**Dual key format (AWS-style):**
+
+| Field          | Format         | Example                |
+| -------------- | -------------- | ---------------------- |
+| **Key ID**     | `tfk-live-*`   | `tfk-live-abc123...`   |
+| **Key Secret** | `tfs-secret-*` | `tfs-secret-xyz789...` |
+
+Keys are verified server-side using **Argon2id** hashing (not bcrypt).
+
+**Required Headers (v2 endpoints only):**
+
 ```http
-X-API-Key: your_api_key_here
+X-API-Key-ID: tfk-live-abc123...
+X-API-Key-Secret: tfs-secret-xyz789...
 X-Tenant-ID: tenant_123
 X-Workspace-ID: workspace_456
 ```
 
 **Example:**
+
 ```bash
+# v2 endpoint — requires API key (tfoauth)
 curl -X POST http://localhost:4318/v2/metrics \
   -H "Content-Type: application/json" \
-  -H "X-API-Key: tf_live_abc123..." \
+  -H "X-API-Key-ID: tfk-live-abc123..." \
+  -H "X-API-Key-Secret: tfs-secret-xyz789..." \
   -H "X-Tenant-ID: tenant_123" \
   -H "X-Workspace-ID: workspace_456" \
+  -d @metrics.json
+
+# v1 endpoint — no auth required (Community)
+curl -X POST http://localhost:4318/v1/metrics \
+  -H "Content-Type: application/json" \
   -d @metrics.json
 ```
 
@@ -92,77 +126,99 @@ curl -X POST http://localhost:4318/v2/metrics \
 
 ```json
 {
-  "resourceMetrics": [{
-    "resource": {
-      "attributes": [{
-        "key": "service.name",
-        "value": { "stringValue": "my-service" }
-      }, {
-        "key": "service.version",
-        "value": { "stringValue": "1.0.0" }
-      }, {
-        "key": "deployment.environment",
-        "value": { "stringValue": "production" }
-      }]
-    },
-    "scopeMetrics": [{
-      "scope": {
-        "name": "my-instrumentation",
-        "version": "1.0.0"
+  "resourceMetrics": [
+    {
+      "resource": {
+        "attributes": [
+          {
+            "key": "service.name",
+            "value": { "stringValue": "my-service" }
+          },
+          {
+            "key": "service.version",
+            "value": { "stringValue": "1.0.0" }
+          },
+          {
+            "key": "deployment.environment",
+            "value": { "stringValue": "production" }
+          }
+        ]
       },
-      "metrics": [{
-        "name": "http_requests_total",
-        "description": "Total number of HTTP requests",
-        "unit": "1",
-        "sum": {
-          "dataPoints": [{
-            "attributes": [{
-              "key": "method",
-              "value": { "stringValue": "GET" }
-            }, {
-              "key": "status_code",
-              "value": { "intValue": 200 }
-            }],
-            "asDouble": 1523.0,
-            "timeUnixNano": "1699564800000000000"
-          }],
-          "aggregationTemporality": 2,
-          "isMonotonic": true
+      "scopeMetrics": [
+        {
+          "scope": {
+            "name": "my-instrumentation",
+            "version": "1.0.0"
+          },
+          "metrics": [
+            {
+              "name": "http_requests_total",
+              "description": "Total number of HTTP requests",
+              "unit": "1",
+              "sum": {
+                "dataPoints": [
+                  {
+                    "attributes": [
+                      {
+                        "key": "method",
+                        "value": { "stringValue": "GET" }
+                      },
+                      {
+                        "key": "status_code",
+                        "value": { "intValue": 200 }
+                      }
+                    ],
+                    "asDouble": 1523.0,
+                    "timeUnixNano": "1699564800000000000"
+                  }
+                ],
+                "aggregationTemporality": 2,
+                "isMonotonic": true
+              }
+            },
+            {
+              "name": "cpu_usage",
+              "description": "CPU usage percentage",
+              "unit": "%",
+              "gauge": {
+                "dataPoints": [
+                  {
+                    "asDouble": 75.5,
+                    "timeUnixNano": "1699564800000000000"
+                  }
+                ]
+              }
+            },
+            {
+              "name": "request_duration",
+              "description": "HTTP request duration",
+              "unit": "ms",
+              "histogram": {
+                "dataPoints": [
+                  {
+                    "attributes": [],
+                    "count": "1000",
+                    "sum": 45000.0,
+                    "bucketCounts": ["100", "200", "300", "400"],
+                    "explicitBounds": [10, 50, 100, 500],
+                    "timeUnixNano": "1699564800000000000"
+                  }
+                ],
+                "aggregationTemporality": 2
+              }
+            }
+          ]
         }
-      }, {
-        "name": "cpu_usage",
-        "description": "CPU usage percentage",
-        "unit": "%",
-        "gauge": {
-          "dataPoints": [{
-            "asDouble": 75.5,
-            "timeUnixNano": "1699564800000000000"
-          }]
-        }
-      }, {
-        "name": "request_duration",
-        "description": "HTTP request duration",
-        "unit": "ms",
-        "histogram": {
-          "dataPoints": [{
-            "attributes": [],
-            "count": "1000",
-            "sum": 45000.0,
-            "bucketCounts": ["100", "200", "300", "400"],
-            "explicitBounds": [10, 50, 100, 500],
-            "timeUnixNano": "1699564800000000000"
-          }],
-          "aggregationTemporality": 2
-        }
-      }]
-    }]
-  }]
+      ]
+    }
+  ]
 }
 ```
 
 ### Metric Types
 
 **1. Counter (Sum with isMonotonic=true):**
+
 ```json
 {
   "name": "http_requests_total",
@@ -175,6 +231,7 @@ curl -X POST http://localhost:4318/v2/metrics \
 ```
 
 **2. Gauge:**
+
 ```json
 {
   "name": "cpu_usage",
@@ -185,16 +242,19 @@ curl -X POST http://localhost:4318/v2/metrics \
 ```
 
 **3. Histogram:**
+
 ```json
 {
   "name": "request_duration",
   "histogram": {
-    "dataPoints": [{
-      "count": "1000",
-      "sum": 45000.0,
-      "bucketCounts": ["100", "200", "300", "400"],
-      "explicitBounds": [10, 50, 100, 500]
-    }]
+    "dataPoints": [
+      {
+        "count": "1000",
+        "sum": 45000.0,
+        "bucketCounts": ["100", "200", "300", "400"],
+        "explicitBounds": [10, 50, 100, 500]
+      }
+    ]
   }
 }
 ```
@@ -207,63 +267,78 @@ curl -X POST http://localhost:4318/v2/metrics \
 
 ```json
 {
-  "resourceLogs": [{
-    "resource": {
-      "attributes": [{
-        "key": "service.name",
-        "value": { "stringValue": "my-service" }
-      }]
-    },
-    "scopeLogs": [{
-      "scope": {
-        "name": "my-logger"
+  "resourceLogs": [
+    {
+      "resource": {
+        "attributes": [
+          {
+            "key": "service.name",
+            "value": { "stringValue": "my-service" }
+          }
+        ]
       },
-      "logRecords": [{
-        "timeUnixNano": "1699564800000000000",
-        "severityNumber": 9,
-        "severityText": "INFO",
-        "body": {
-          "stringValue": "User logged in successfully"
-        },
-        "attributes": [{
-          "key": "user.id",
-          "value": { "stringValue": "user_123" }
-        }, {
-          "key": "user.email",
-          "value": { "stringValue": "user@example.com" }
-        }],
-        "traceId": "0af7651916cd43dd8448eb211c80319c",
-        "spanId": "b7ad6b7169203331"
-      }, {
-        "timeUnixNano": "1699564860000000000",
-        "severityNumber": 17,
-        "severityText": "ERROR",
-        "body": {
-          "stringValue": "Database connection failed"
-        },
-        "attributes": [{
-          "key": "error.type",
-          "value": { "stringValue": "ConnectionError" }
-        }, {
-          "key": "database.name",
-          "value": { "stringValue": "telemetryflow" }
-        }]
-      }]
-    }]
-  }]
+      "scopeLogs": [
+        {
+          "scope": {
+            "name": "my-logger"
+          },
+          "logRecords": [
+            {
+              "timeUnixNano": "1699564800000000000",
+              "severityNumber": 9,
+              "severityText": "INFO",
+              "body": {
+                "stringValue": "User logged in successfully"
+              },
+              "attributes": [
+                {
+                  "key": "user.id",
+                  "value": { "stringValue": "user_123" }
+                },
+                {
+                  "key": "user.email",
+                  "value": { "stringValue": "user@example.com" }
+                }
+              ],
+              "traceId": "0af7651916cd43dd8448eb211c80319c",
+              "spanId": "b7ad6b7169203331"
+            },
+            {
+              "timeUnixNano": "1699564860000000000",
+              "severityNumber": 17,
+              "severityText": "ERROR",
+              "body": {
+                "stringValue": "Database connection failed"
+              },
+              "attributes": [
+                {
+                  "key": "error.type",
+                  "value": { "stringValue": "ConnectionError" }
+                },
+                {
+                  "key": "database.name",
+                  "value": { "stringValue": "telemetryflow" }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
 }
 ```
 
 ### Severity Levels
 
-| Severity | Number | Description |
-|----------|--------|-------------|
-| TRACE | 1 | Finest-grained informational events |
-| DEBUG | 5 | Fine-grained informational events |
-| INFO | 9 | Informational messages |
-| WARN | 13 | Warning messages |
-| ERROR | 17 | Error events |
-| FATAL | 21 | Critical errors |
+| Severity | Number | Description                         |
+| -------- | ------ | ----------------------------------- |
+| TRACE    | 1      | Finest-grained informational events |
+| DEBUG    | 5      | Fine-grained informational events   |
+| INFO     | 9      | Informational messages              |
+| WARN     | 13     | Warning messages                    |
+| ERROR    | 17     | Error events                        |
+| FATAL    | 21     | Critical errors                     |
 
 ---
 
@@ -273,62 +348,74 @@ curl -X POST http://localhost:4318/v2/metrics \
 
 ```json
 {
-  "resourceSpans": [{
-    "resource": {
-      "attributes": [{
-        "key": "service.name",
-        "value": { "stringValue": "api-gateway" }
-      }]
-    },
-    "scopeSpans": [{
-      "scope": {
-        "name": "api-gateway-tracer"
+  "resourceSpans": [
+    {
+      "resource": {
+        "attributes": [
+          {
+            "key": "service.name",
+            "value": { "stringValue": "api-gateway" }
+          }
+        ]
       },
-      "spans": [{
-        "traceId": "0af7651916cd43dd8448eb211c80319c",
-        "spanId": "b7ad6b7169203331",
-        "parentSpanId": "00f067aa0ba902b7",
-        "name": "POST /api/users",
-        "kind": 2,
-        "startTimeUnixNano": "1699564800000000000",
-        "endTimeUnixNano": "1699564800150000000",
-        "attributes": [{
-          "key": "http.method",
-          "value": { "stringValue": "POST" }
-        }, {
-          "key": "http.url",
-          "value": { "stringValue": "/api/users" }
-        }, {
-          "key": "http.status_code",
-          "value": { "intValue": 201 }
-        }],
-        "status": {
-          "code": 1
+      "scopeSpans": [
+        {
+          "scope": {
+            "name": "api-gateway-tracer"
+          },
+          "spans": [
+            {
+              "traceId": "0af7651916cd43dd8448eb211c80319c",
+              "spanId": "b7ad6b7169203331",
+              "parentSpanId": "00f067aa0ba902b7",
+              "name": "POST /api/users",
+              "kind": 2,
+              "startTimeUnixNano": "1699564800000000000",
+              "endTimeUnixNano": "1699564800150000000",
+              "attributes": [
+                {
+                  "key": "http.method",
+                  "value": { "stringValue": "POST" }
+                },
+                {
+                  "key": "http.url",
+                  "value": { "stringValue": "/api/users" }
+                },
+                {
+                  "key": "http.status_code",
+                  "value": { "intValue": 201 }
+                }
+              ],
+              "status": {
+                "code": 1
+              }
+            }
+          ]
         }
-      }]
-    }]
-  }]
+      ]
+    }
+  ]
 }
 ```
 
 ### Span Kinds
 
-| Kind | Value | Description |
-|------|-------|-------------|
-| UNSPECIFIED | 0 | Default |
-| INTERNAL | 1 | Internal operation |
-| SERVER | 2 | Server-side of RPC |
-| CLIENT | 3 | Client-side of RPC |
-| PRODUCER | 4 | Message producer |
-| CONSUMER | 5 | Message consumer |
+| Kind        | Value | Description        |
+| ----------- | ----- | ------------------ |
+| UNSPECIFIED | 0     | Default            |
+| INTERNAL    | 1     | Internal operation |
+| SERVER      | 2     | Server-side of RPC |
+| CLIENT      | 3     | Client-side of RPC |
+| PRODUCER    | 4     | Message producer   |
+| CONSUMER    | 5     | Message consumer   |
 
 ### Span Status Codes
 
-| Code | Name | Description |
-|------|------|-------------|
-| 0 | UNSET | Default status |
-| 1 | OK | Success |
-| 2 | ERROR | Error occurred |
+| Code | Name  | Description    |
+| ---- | ----- | -------------- |
+| 0    | UNSET | Default status |
+| 1    | OK    | Success        |
+| 2    | ERROR | Error occurred |
 
 ---
 
@@ -337,25 +424,32 @@ curl -X POST http://localhost:4318/v2/metrics \
 ### Node.js (OpenTelemetry SDK)
 
 ```typescript
-import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-grpc';
-import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-grpc';
-import { MeterProvider, PeriodicExportingMetricReader } from '@opentelemetry/sdk-metrics';
-import { NodeTracerProvider, BatchSpanProcessor } from '@opentelemetry/sdk-trace-node';
-import { Resource } from '@opentelemetry/resources';
-import { ATTR_SERVICE_NAME } from '@opentelemetry/semantic-conventions';
+import { OTLPMetricExporter } from "@opentelemetry/exporter-metrics-otlp-grpc";
+import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-grpc";
+import {
+  MeterProvider,
+  PeriodicExportingMetricReader,
+} from "@opentelemetry/sdk-metrics";
+import {
+  NodeTracerProvider,
+  BatchSpanProcessor,
+} from "@opentelemetry/sdk-trace-node";
+import { Resource } from "@opentelemetry/resources";
+import { ATTR_SERVICE_NAME } from "@opentelemetry/semantic-conventions";
 
 // Configure resource
 const resource = new Resource({
-  [ATTR_SERVICE_NAME]: 'my-service',
+  [ATTR_SERVICE_NAME]: "my-service",
 });
 
 // Configure metrics
 const metricExporter = new OTLPMetricExporter({
-  url: 'http://localhost:4317',
+  url: "http://localhost:4317",
   headers: {
-    'x-api-key': 'tf_live_abc123...',
-    'x-tenant-id': 'tenant_123',
-    'x-workspace-id': 'workspace_456',
+    "x-api-key-id": "tfk-live-abc123...",
+    "x-api-key-secret": "tfs-secret-xyz789...",
+    "x-tenant-id": "tenant_123",
+    "x-workspace-id": "workspace_456",
   },
 });
 
@@ -370,24 +464,25 @@ const meterProvider = new MeterProvider({
 });
 
 // Get meter
-const meter = meterProvider.getMeter('my-instrumentation');
+const meter = meterProvider.getMeter("my-instrumentation");
 
 // Create counter
-const requestCounter = meter.createCounter('http_requests_total', {
-  description: 'Total HTTP requests',
-  unit: '1',
+const requestCounter = meter.createCounter("http_requests_total", {
+  description: "Total HTTP requests",
+  unit: "1",
 });
 
 // Record metric
-requestCounter.add(1, { method: 'GET', status_code: 200 });
+requestCounter.add(1, { method: "GET", status_code: 200 });
 
 // Configure traces
 const traceExporter = new OTLPTraceExporter({
-  url: 'http://localhost:4317',
+  url: "http://localhost:4317",
   headers: {
-    'x-api-key': 'tf_live_abc123...',
-    'x-tenant-id': 'tenant_123',
-    'x-workspace-id': 'workspace_456',
+    "x-api-key-id": "tfk-live-abc123...",
+    "x-api-key-secret": "tfs-secret-xyz789...",
+    "x-tenant-id": "tenant_123",
+    "x-workspace-id": "workspace_456",
   },
 });
 
@@ -396,13 +491,13 @@ tracerProvider.addSpanProcessor(new BatchSpanProcessor(traceExporter));
 tracerProvider.register();
 
 // Get tracer
-const tracer = tracerProvider.getTracer('my-instrumentation');
+const tracer = tracerProvider.getTracer("my-instrumentation");
 
 // Create span
-const span = tracer.startSpan('process-request');
+const span = tracer.startSpan("process-request");
 span.setAttributes({
-  'http.method': 'POST',
-  'http.url': '/api/users',
+  "http.method": "POST",
+  "http.url": "/api/users",
 });
 // ... do work
 span.end();
@@ -432,7 +527,8 @@ resource = Resource.create({
 metric_exporter = OTLPMetricExporter(
     endpoint="http://localhost:4317",
     headers={
-        "x-api-key": "tf_live_abc123...",
+        "x-api-key-id": "tfk-live-abc123...",
+        "x-api-key-secret": "tfs-secret-xyz789...",
         "x-tenant-id": "tenant_123",
         "x-workspace-id": "workspace_456",
     },
@@ -459,7 +555,8 @@ request_counter.add(1, {"method": "GET", "status_code": 200})
 trace_exporter = OTLPSpanExporter(
     endpoint="http://localhost:4317",
     headers={
-        "x-api-key": "tf_live_abc123...",
+        "x-api-key-id": "tfk-live-abc123...",
+        "x-api-key-secret": "tfs-secret-xyz789...",
         "x-tenant-id": "tenant_123",
         "x-workspace-id": "workspace_456",
     },
@@ -517,9 +614,10 @@ func main() {
         otlpmetricgrpc.WithEndpoint("localhost:4317"),
         otlpmetricgrpc.WithInsecure(),
         otlpmetricgrpc.WithHeaders(map[string]string{
-            "x-api-key":      "tf_live_abc123...",
-            "x-tenant-id":    "tenant_123",
-            "x-workspace-id": "workspace_456",
+            "x-api-key-id":     "tfk-live-abc123...",
+            "x-api-key-secret": "tfs-secret-xyz789...",
+            "x-tenant-id":      "tenant_123",
+            "x-workspace-id":   "workspace_456",
         }),
     )
 
@@ -548,9 +646,10 @@ func main() {
         otlptracegrpc.WithEndpoint("localhost:4317"),
         otlptracegrpc.WithInsecure(),
         otlptracegrpc.WithHeaders(map[string]string{
-            "x-api-key":      "tf_live_abc123...",
-            "x-tenant-id":    "tenant_123",
-            "x-workspace-id": "workspace_456",
+            "x-api-key-id":     "tfk-live-abc123...",
+            "x-api-key-secret": "tfs-secret-xyz789...",
+            "x-tenant-id":      "tenant_123",
+            "x-workspace-id":   "workspace_456",
         }),
     )
 
@@ -581,10 +680,11 @@ func main() {
 ### cURL Example (HTTP/JSON)
 
 ```bash
-# Send metrics
+# Send metrics (v2 — authenticated)
 curl -X POST http://localhost:4318/v2/metrics \
   -H "Content-Type: application/json" \
-  -H "X-API-Key: tf_live_abc123..." \
+  -H "X-API-Key-ID: tfk-live-abc123..." \
+  -H "X-API-Key-Secret: tfs-secret-xyz789..." \
   -H "X-Tenant-ID: tenant_123" \
   -d '{
     "resourceMetrics": [{
@@ -630,5 +730,5 @@ curl -X POST http://localhost:4318/v2/metrics \
 
 ---
 
-- **Last Updated:** January 01st, 2026
+- **Last Updated:** May 2026
 - **Maintained By:** DevOpsCorner Indonesia

@@ -4,7 +4,7 @@
 - **Category**: Backend / Business Modules
 - **Status**: Production Ready
 - **Priority:** 🔥 HIGH - Core SaaS Billing
-- **Version**: 1.1.2-CE
+- **Version**: 1.4.0
 
 ---
 
@@ -48,11 +48,11 @@ graph TB
 ```typescript
 // domain/aggregates/Subscription.ts
 export enum SubscriptionStatus {
-  ACTIVE = 'ACTIVE',
-  CANCELLED = 'CANCELLED',
-  EXPIRED = 'EXPIRED',
-  TRIAL = 'TRIAL',
-  SUSPENDED = 'SUSPENDED',
+  ACTIVE = "ACTIVE",
+  CANCELLED = "CANCELLED",
+  EXPIRED = "EXPIRED",
+  TRIAL = "TRIAL",
+  SUSPENDED = "SUSPENDED",
 }
 
 export class Subscription extends AggregateRoot<SubscriptionId> {
@@ -76,11 +76,15 @@ export class Subscription extends AggregateRoot<SubscriptionId> {
     isTrial: boolean = false,
   ): Subscription {
     const id = SubscriptionId.create();
-    const status = isTrial ? SubscriptionStatus.TRIAL : SubscriptionStatus.ACTIVE;
+    const status = isTrial
+      ? SubscriptionStatus.TRIAL
+      : SubscriptionStatus.ACTIVE;
 
     const now = new Date();
     const periodEnd = new Date(now);
-    periodEnd.setMonth(periodEnd.getMonth() + (billingCycle.isAnnual() ? 12 : 1));
+    periodEnd.setMonth(
+      periodEnd.getMonth() + (billingCycle.isAnnual() ? 12 : 1),
+    );
 
     const subscription = new Subscription(
       id,
@@ -100,13 +104,17 @@ export class Subscription extends AggregateRoot<SubscriptionId> {
   upgrade(newPlanId: SubscriptionPlanId): void {
     const oldPlanId = this.planId;
     this.planId = newPlanId;
-    this.addDomainEvent(new SubscriptionUpgradedEvent(this, oldPlanId, newPlanId));
+    this.addDomainEvent(
+      new SubscriptionUpgradedEvent(this, oldPlanId, newPlanId),
+    );
   }
 
   downgrade(newPlanId: SubscriptionPlanId): void {
     const oldPlanId = this.planId;
     this.planId = newPlanId;
-    this.addDomainEvent(new SubscriptionDowngradedEvent(this, oldPlanId, newPlanId));
+    this.addDomainEvent(
+      new SubscriptionDowngradedEvent(this, oldPlanId, newPlanId),
+    );
   }
 
   cancel(): void {
@@ -131,9 +139,9 @@ export class Subscription extends AggregateRoot<SubscriptionId> {
 ```typescript
 // domain/aggregates/SubscriptionPlan.ts
 export enum PlanTier {
-  FREE = 'FREE',
-  PRO = 'PRO',
-  ENTERPRISE = 'ENTERPRISE',
+  FREE = "FREE",
+  PRO = "PRO",
+  ENTERPRISE = "ENTERPRISE",
 }
 
 export class SubscriptionPlan extends AggregateRoot<SubscriptionPlanId> {
@@ -252,11 +260,11 @@ CREATE TABLE invoices (
 
 ## Subscription Plans
 
-| Plan | Metrics/Month | Logs/Month | Traces/Month | Retention | Users | Price |
-|------|---------------|------------|--------------|-----------|-------|-------|
-| **Free** | 1M | 100K | 50K | 7 days | 1 | $0 |
-| **Pro** | 100M | 10M | 5M | 30 days | 10 | $99/mo |
-| **Enterprise** | Unlimited | Unlimited | Unlimited | 365 days | Unlimited | Custom |
+| Plan           | Metrics/Month | Logs/Month | Traces/Month | Retention | Users     | Price  |
+| -------------- | ------------- | ---------- | ------------ | --------- | --------- | ------ |
+| **Free**       | 1M            | 100K       | 50K          | 7 days    | 1         | $0     |
+| **Pro**        | 100M          | 10M        | 5M           | 30 days   | 10        | $99/mo |
+| **Enterprise** | Unlimited     | Unlimited  | Unlimited    | 365 days  | Unlimited | Custom |
 
 ---
 
@@ -287,16 +295,16 @@ sequenceDiagram
 
 ## API Endpoints
 
-| Method | Endpoint | Description | Required Permission |
-|--------|----------|-------------|---------------------|
-| `GET` | `/api/v1/subscription/plans` | List available plans | Public |
-| `GET` | `/api/v1/subscription` | Get current subscription | `subscription:read:org` |
-| `POST` | `/api/v1/subscription` | Create subscription | `subscription:write:org` |
-| `POST` | `/api/v1/subscription/upgrade` | Upgrade plan | `subscription:write:org` |
-| `POST` | `/api/v1/subscription/downgrade` | Downgrade plan | `subscription:write:org` |
-| `POST` | `/api/v1/subscription/cancel` | Cancel subscription | `subscription:write:org` |
-| `GET` | `/api/v1/subscription/usage` | Get current usage | `subscription:read:org` |
-| `GET` | `/api/v1/subscription/invoices` | List invoices | `subscription:read:org` |
+| Method | Endpoint                         | Description              | Required Permission      |
+| ------ | -------------------------------- | ------------------------ | ------------------------ |
+| `GET`  | `/api/v2/subscription/plans`     | List available plans     | Public                   |
+| `GET`  | `/api/v2/subscription`           | Get current subscription | `subscription:read:org`  |
+| `POST` | `/api/v2/subscription`           | Create subscription      | `subscription:write:org` |
+| `POST` | `/api/v2/subscription/upgrade`   | Upgrade plan             | `subscription:write:org` |
+| `POST` | `/api/v2/subscription/downgrade` | Downgrade plan           | `subscription:write:org` |
+| `POST` | `/api/v2/subscription/cancel`    | Cancel subscription      | `subscription:write:org` |
+| `GET`  | `/api/v2/subscription/usage`     | Get current usage        | `subscription:read:org`  |
+| `GET`  | `/api/v2/subscription/invoices`  | List invoices            | `subscription:read:org`  |
 
 ---
 
@@ -327,5 +335,5 @@ INVOICE_DUE_DAYS=7
 
 ---
 
-- **Last Updated**: January 01st, 2026
+- **Last Updated**: May 14th, 2026
 - **Maintained By**: DevOpsCorner Indonesia

@@ -229,7 +229,7 @@ flowchart LR
 # Server Configuration
 server:
   name: "tfo-mcp"
-  version: "1.1.2"
+  version: "1.2.0"
   description: "TelemetryFlow MCP Server - Claude AI Integration"
   timeout: 30s
 
@@ -272,7 +272,7 @@ logging:
 telemetry:
   enabled: false
   service_name: "tfo-mcp"
-  service_version: "1.1.2"
+  service_version: "1.2.0"
   environment: "development"
   endpoint: "localhost:4317"
   sample_rate: 1.0
@@ -375,7 +375,7 @@ export TELEMETRYFLOW_MCP_RATE_LIMIT_RPM="120"
 flowchart TB
     subgraph ServerConfig["Server Configuration"]
         NAME["name: tfo-mcp"]
-        VERSION["version: 1.1.2"]
+        VERSION["version: 1.2.0"]
         DESC["description: TelemetryFlow MCP Server"]
         TIMEOUT["timeout: 30s"]
     end
@@ -400,7 +400,7 @@ flowchart TB
 | Option        | Type     | Default                    | Description                |
 | ------------- | -------- | -------------------------- | -------------------------- |
 | `name`        | string   | "tfo-mcp"                  | Server identifier          |
-| `version`     | string   | "1.1.2"                    | Server version             |
+| `version`     | string   | "1.2.0"                    | Server version             |
 | `description` | string   | "TelemetryFlow MCP Server" | Human-readable description |
 | `timeout`     | duration | "30s"                      | Default request timeout    |
 
@@ -409,7 +409,7 @@ flowchart TB
 ```yaml
 server:
   name: "tfo-mcp"
-  version: "1.1.2"
+  version: "1.2.0"
   description: "TelemetryFlow MCP Server - Claude AI Integration"
   timeout: 30s
 ```
@@ -698,7 +698,7 @@ flowchart TB
 | ----------------- | -------- | ---------------- | ------------------------- |
 | `enabled`         | bool     | false            | Enable telemetry          |
 | `service_name`    | string   | "tfo-mcp"        | Service name for traces   |
-| `service_version` | string   | "1.1.2"          | Service version           |
+| `service_version` | string   | "1.2.0"          | Service version           |
 | `environment`     | string   | "development"    | Deployment environment    |
 | `endpoint`        | string   | "localhost:4317" | OTLP endpoint             |
 | `sample_rate`     | float    | 1.0              | Trace sampling rate (0-1) |
@@ -710,7 +710,7 @@ flowchart TB
 telemetry:
   enabled: true
   service_name: "tfo-mcp"
-  service_version: "1.1.2"
+  service_version: "1.2.0"
   environment: "production"
   endpoint: "otel-collector:4317"
   sample_rate: 0.1 # 10% sampling
@@ -867,7 +867,7 @@ tfo-mcp validate --config /path/to/config.yaml
 # Development configuration
 server:
   name: "tfo-mcp-dev"
-  version: "1.1.2"
+  version: "1.2.0"
   timeout: 60s
 
 claude:
@@ -894,7 +894,7 @@ security:
 # Production configuration
 server:
   name: "tfo-mcp"
-  version: "1.1.2"
+  version: "1.2.0"
   timeout: 30s
 
 claude:
@@ -1027,7 +1027,6 @@ flowchart TB
 ### Performance Best Practices
 
 1. **Choose appropriate models**
-
    - Use Haiku for quick responses
    - Use Sonnet for balanced performance
    - Use Opus for complex tasks

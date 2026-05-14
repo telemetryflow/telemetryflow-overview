@@ -4,7 +4,7 @@
 - **Category**: Backend / Shared Modules
 - **Status**: Production Ready
 - **Priority:** 🔥 MEDIUM - Web Interface
-- **Version**: 1.1.2-CE
+- **Version**: 1.4.0
 
 ---
 
@@ -53,7 +53,7 @@ graph TB
 
 ```typescript
 // shared/ui/ui.controller.ts
-@Controller('ui')
+@Controller("ui")
 @UseGuards(SessionAuthGuard)
 export class UiController {
   constructor(
@@ -66,8 +66,8 @@ export class UiController {
    * Login page (public)
    */
   @Public()
-  @Get('login')
-  @Render('pages/login')
+  @Get("login")
+  @Render("pages/login")
   loginPage(@Session() session: Record<string, any>) {
     const error = session.error || null;
     const success = session.success || null;
@@ -77,7 +77,7 @@ export class UiController {
     return {
       error,
       success,
-      title: 'Login',
+      title: "Login",
       config: this.getConfig(),
     };
   }
@@ -86,7 +86,7 @@ export class UiController {
    * Login form submission
    */
   @Public()
-  @Post('login')
+  @Post("login")
   async login(
     @Body() body: { email: string; password: string },
     @Res() res: Response,
@@ -96,24 +96,24 @@ export class UiController {
       const result = await this.authService.login(body.email, body.password);
       session.token = result.access_token;
       session.user = result.user;
-      return res.redirect('/ui/dashboard/metrics');
+      return res.redirect("/ui/dashboard/metrics");
     } catch (error) {
-      session.error = 'Invalid email or password';
-      return res.redirect('/ui/login');
+      session.error = "Invalid email or password";
+      return res.redirect("/ui/login");
     }
   }
 
   /**
    * Metrics dashboard (protected)
    */
-  @Public()  // Bypass JWT, SessionAuthGuard still applies
-  @Get('dashboard/metrics')
-  @Render('pages/metrics')
+  @Public() // Bypass JWT, SessionAuthGuard still applies
+  @Get("dashboard/metrics")
+  @Render("pages/metrics")
   metricsPage(@Session() session: Record<string, any>) {
     return {
       user: session.user,
       token: session.token,
-      title: 'Metrics',
+      title: "Metrics",
       config: this.getConfig(),
     };
   }
@@ -122,13 +122,13 @@ export class UiController {
    * Logs dashboard (protected)
    */
   @Public()
-  @Get('dashboard/logs')
-  @Render('pages/logs')
+  @Get("dashboard/logs")
+  @Render("pages/logs")
   logsPage(@Session() session: Record<string, any>) {
     return {
       user: session.user,
       token: session.token,
-      title: 'Logs',
+      title: "Logs",
       config: this.getConfig(),
     };
   }
@@ -137,13 +137,13 @@ export class UiController {
    * Traces dashboard (protected)
    */
   @Public()
-  @Get('dashboard/traces')
-  @Render('pages/traces')
+  @Get("dashboard/traces")
+  @Render("pages/traces")
   tracesPage(@Session() session: Record<string, any>) {
     return {
       user: session.user,
       token: session.token,
-      title: 'Traces',
+      title: "Traces",
       config: this.getConfig(),
     };
   }
@@ -155,28 +155,29 @@ export class UiController {
 ## Session Management
 
 **Session Configuration:**
+
 ```typescript
 // app.module.ts
-import * as session from 'express-session';
-import * as RedisStore from 'connect-redis';
-import { createClient } from 'redis';
+import * as session from "express-session";
+import * as RedisStore from "connect-redis";
+import { createClient } from "redis";
 
 const redisClient = createClient({
-  host: process.env.REDIS_HOST || 'localhost',
+  host: process.env.REDIS_HOST || "localhost",
   port: parseInt(process.env.REDIS_PORT) || 6379,
 });
 
 app.use(
   session({
     store: new RedisStore({ client: redisClient }),
-    secret: process.env.SESSION_SECRET || 'secret',
+    secret: process.env.SESSION_SECRET || "secret",
     resave: false,
     saveUninitialized: false,
     cookie: {
-      secure: process.env.NODE_ENV === 'production', // HTTPS only in production
+      secure: process.env.NODE_ENV === "production", // HTTPS only in production
       httpOnly: true,
       maxAge: 1000 * 60 * 60 * 24, // 24 hours
-      sameSite: 'lax',
+      sameSite: "lax",
     },
   }),
 );
@@ -197,7 +198,7 @@ export class SessionAuthGuard implements CanActivate {
     // Check if user is logged in
     if (!session || !session.user || !session.token) {
       const response = context.switchToHttp().getResponse();
-      response.redirect('/ui/login');
+      response.redirect("/ui/login");
       return false;
     }
 
@@ -210,27 +211,28 @@ export class SessionAuthGuard implements CanActivate {
 
 ## Routes
 
-| Route | Page | Access | Description |
-|-------|------|--------|-------------|
-| `GET /ui/login` | Login | Public | Login form |
-| `POST /ui/login` | - | Public | Login submission |
-| `GET /ui/register` | Register | Public | Registration form |
-| `POST /ui/register` | - | Public | Registration submission |
-| `GET /ui/logout` | - | Public | Logout |
-| `GET /ui/dashboard/metrics` | Metrics | Protected | Metrics dashboard |
-| `GET /ui/dashboard/logs` | Logs | Protected | Logs dashboard |
-| `GET /ui/dashboard/traces` | Traces | Protected | Traces dashboard |
-| `GET /ui/dashboard/alerts` | Alerts | Protected | Alerts dashboard |
-| `GET /ui/dashboard/custom` | Dashboards | Protected | Custom dashboards |
-| `GET /ui/settings/account` | Account | Protected | Account settings |
-| `GET /ui/admin/users` | Users | Protected | User management |
-| `GET /ui/admin/roles` | Roles | Protected | Role management |
+| Route                       | Page       | Access    | Description             |
+| --------------------------- | ---------- | --------- | ----------------------- |
+| `GET /ui/login`             | Login      | Public    | Login form              |
+| `POST /ui/login`            | -          | Public    | Login submission        |
+| `GET /ui/register`          | Register   | Public    | Registration form       |
+| `POST /ui/register`         | -          | Public    | Registration submission |
+| `GET /ui/logout`            | -          | Public    | Logout                  |
+| `GET /ui/dashboard/metrics` | Metrics    | Protected | Metrics dashboard       |
+| `GET /ui/dashboard/logs`    | Logs       | Protected | Logs dashboard          |
+| `GET /ui/dashboard/traces`  | Traces     | Protected | Traces dashboard        |
+| `GET /ui/dashboard/alerts`  | Alerts     | Protected | Alerts dashboard        |
+| `GET /ui/dashboard/custom`  | Dashboards | Protected | Custom dashboards       |
+| `GET /ui/settings/account`  | Account    | Protected | Account settings        |
+| `GET /ui/admin/users`       | Users      | Protected | User management         |
+| `GET /ui/admin/roles`       | Roles      | Protected | Role management         |
 
 ---
 
 ## EJS Templates
 
 **Template Structure:**
+
 ```
 views/
 ├── layouts/
@@ -250,31 +252,31 @@ views/
 ```
 
 **Base Layout Example:**
+
 ```html
 <!-- views/layouts/base.ejs -->
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title><%= title %> - TelemetryFlow</title>
-  <link rel="stylesheet" href="/css/app.css">
-</head>
-<body>
-  <%- include('../partials/header') %>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title><%= title %> - TelemetryFlow</title>
+    <link rel="stylesheet" href="/css/app.css" />
+  </head>
+  <body>
+    <%- include('../partials/header') %>
 
-  <main>
-    <%- body %>
-  </main>
+    <main><%- body %></main>
 
-  <%- include('../partials/footer') %>
+    <%- include('../partials/footer') %>
 
-  <script src="/js/app.js"></script>
-</body>
+    <script src="/js/app.js"></script>
+  </body>
 </html>
 ```
 
 **Metrics Dashboard Example:**
+
 ```html
 <!-- views/pages/metrics.ejs -->
 <% layout('layouts/dashboard') %>
@@ -303,23 +305,23 @@ views/
 
 <script>
   // Use token from session for API calls
-  const token = '<%= token %>';
-  const user = JSON.parse('<%- JSON.stringify(user) %>');
+  const token = "<%= token %>";
+  const user = JSON.parse("<%- JSON.stringify(user) %>");
 
   // Fetch metrics data
-  fetch('/api/v1/metrics', {
+  fetch("/api/v1/metrics", {
     headers: {
-      'Authorization': `Bearer ${token}`,
-      'X-Tenant-ID': user.tenantId,
-    }
+      Authorization: `Bearer ${token}`,
+      "X-Tenant-ID": user.tenantId,
+    },
   })
-  .then(res => res.json())
-  .then(data => {
-    // Render charts
-    renderCPUChart(data.cpu);
-    renderMemoryChart(data.memory);
-    renderNetworkChart(data.network);
-  });
+    .then((res) => res.json())
+    .then((data) => {
+      // Render charts
+      renderCPUChart(data.cpu);
+      renderMemoryChart(data.memory);
+      renderNetworkChart(data.network);
+    });
 </script>
 ```
 
@@ -332,11 +334,11 @@ views/
 export class FrontendConfig {
   static getConfig() {
     return {
-      apiUrl: process.env.API_URL || 'http://localhost:3000',
-      wsUrl: process.env.WS_URL || 'ws://localhost:3000',
-      appName: 'TelemetryFlow',
-      version: '1.1.2-CE',
-      environment: process.env.NODE_ENV || 'development',
+      apiUrl: process.env.API_URL || "http://localhost:3000",
+      wsUrl: process.env.WS_URL || "ws://localhost:3000",
+      appName: "TelemetryFlow",
+      version: "1.4.0",
+      environment: process.env.NODE_ENV || "development",
     };
   }
 }
@@ -347,6 +349,7 @@ export class FrontendConfig {
 ## Error Pages
 
 **Error Test Routes:**
+
 ```typescript
 @Public()
 @Get('error/404')
@@ -368,6 +371,7 @@ error500() {
 ```
 
 **Error Template:**
+
 ```html
 <!-- views/pages/error.ejs -->
 <div class="error-page">
@@ -410,5 +414,5 @@ public/
 
 ---
 
-- **Last Updated**: January 01st, 2026
+- **Last Updated**: May 14th, 2026
 - **Maintained By**: DevOpsCorner Indonesia

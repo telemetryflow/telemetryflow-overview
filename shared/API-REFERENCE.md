@@ -1,7 +1,7 @@
 # API Reference
 
-- **Version:** 1.1.2-CE
-- **Last Updated:** January 01st, 2026
+- **Version:** 1.4.0
+- **Last Updated:** May 2026
 - **Base URL:** `http://localhost:3000/api/v2`
 
 ---
@@ -33,10 +33,12 @@ curl -H "Authorization: Bearer eyJhbGc..."
 ### API Key
 
 ```bash
-# Use API Key for OTLP ingestion
-curl -X POST http://localhost:3000/api/v2/otlp/metrics \
-  -H "X-API-Key-ID: tfk-abc123..." \
-  -H "X-API-Key-Secret: tfs-xyz789..." \
+# Use API Key for OTLP ingestion (via tfootlp receiver)
+# v1 (Community): /v1/metrics — standard OTEL, no auth required
+# v2 (Platform): /v2/metrics — tfoauth authenticated
+curl -X POST http://localhost:4318/v2/metrics \
+  -H "X-API-Key-ID: tfk-live-abc123..." \
+  -H "X-API-Key-Secret: tfs-secret-xyz789..." \
   -H "Content-Type: application/json"
 ```
 
@@ -44,74 +46,89 @@ curl -X POST http://localhost:3000/api/v2/otlp/metrics \
 
 ## Core Endpoints
 
-### OTLP Ingestion
+### OTLP Ingestion (via tfootlp receiver)
+
+> OTLP ingestion uses the custom **tfootlp** receiver, NOT REST endpoints at `/api/v2/otlp/*`.
 
 ```mermaid
 graph LR
-    subgraph "OTLP Endpoints"
-        A[POST /v2/otlp/metrics<br/>Ingest Metrics]
-        B[POST /v2/otlp/logs<br/>Ingest Logs]
-        C[POST /v2/otlp/traces<br/>Ingest Traces]
+    subgraph "v1 — Community (Open OTEL)"
+        A1[POST /v1/metrics]
+        A2[POST /v1/logs]
+        A3[POST /v1/traces]
     end
 
-    subgraph "Auth"
-        D[API Key Required<br/>Rate: 1000/min]
+    subgraph "v2 — Platform (tfoauth)"
+        B1[POST /v2/metrics]
+        B2[POST /v2/logs]
+        B3[POST /v2/traces]
     end
 
-    A --> D
-    B --> D
-    C --> D
+    subgraph "Ports"
+        C[gRPC :4317]
+        D[HTTP :4318]
+    end
 
-    style A fill:#ff6b6b
-    style D fill:#f9ca24
+    A1 --> C
+    A1 --> D
+    B1 --> C
+    B1 --> D
+
+    style A1 fill:#4CAF50
+    style B1 fill:#ff6b6b
 ```
+
+| Tier               | Endpoints                               | Auth              | Description                 |
+| ------------------ | --------------------------------------- | ----------------- | --------------------------- |
+| **v1 (Community)** | `/v1/metrics`, `/v1/logs`, `/v1/traces` | None              | Standard OTEL, open         |
+| **v2 (Platform)**  | `/v2/metrics`, `/v2/logs`, `/v2/traces` | tfoauth (API Key) | Authenticated, multi-tenant |
 
 ### Users (IAM)
 
-| Endpoint | Method | Auth | Permission | Description |
-|----------|--------|------|------------|-------------|
-| `/users` | POST | JWT | `user:write` | Create user |
-| `/users` | GET | JWT | `user:read` | List users |
-| `/users/:id` | GET | JWT | `user:read` | Get user details |
-| `/users/:id` | PUT | JWT | `user:write` | Update user |
-| `/users/:id` | DELETE | JWT | `user:delete` | Delete user |
+| Endpoint     | Method | Auth | Permission    | Description      |
+| ------------ | ------ | ---- | ------------- | ---------------- |
+| `/users`     | POST   | JWT  | `user:write`  | Create user      |
+| `/users`     | GET    | JWT  | `user:read`   | List users       |
+| `/users/:id` | GET    | JWT  | `user:read`   | Get user details |
+| `/users/:id` | PUT    | JWT  | `user:write`  | Update user      |
+| `/users/:id` | DELETE | JWT  | `user:delete` | Delete user      |
 
 ### Metrics
 
-| Endpoint | Method | Auth | Permission | Description |
-|----------|--------|------|------------|-------------|
-| `/telemetry/metrics/ingest` | POST | Public | None | Ingest metrics (OTEL) |
-| `/telemetry/metrics/query` | GET | JWT | `metrics:read` | Query metrics |
-| `/telemetry/metrics/timeseries` | GET | JWT | `metrics:read` | Time series data |
-| `/telemetry/metrics/names` | GET | JWT | `metrics:read` | List metric names |
+| Endpoint                        | Method | Auth   | Permission     | Description           |
+| ------------------------------- | ------ | ------ | -------------- | --------------------- |
+| `/telemetry/metrics/ingest`     | POST   | Public | None           | Ingest metrics (OTEL) |
+| `/telemetry/metrics/query`      | GET    | JWT    | `metrics:read` | Query metrics         |
+| `/telemetry/metrics/timeseries` | GET    | JWT    | `metrics:read` | Time series data      |
+| `/telemetry/metrics/names`      | GET    | JWT    | `metrics:read` | List metric names     |
 
 ### Logs
 
-| Endpoint | Method | Auth | Permission | Description |
-|----------|--------|------|------------|-------------|
-| `/telemetry/logs/query` | GET | JWT | `logs:read` | Query logs |
-| `/telemetry/logs/export` | GET | JWT | `logs:read` | Export logs (CSV/JSON) |
+| Endpoint                 | Method | Auth | Permission  | Description            |
+| ------------------------ | ------ | ---- | ----------- | ---------------------- |
+| `/telemetry/logs/query`  | GET    | JWT  | `logs:read` | Query logs             |
+| `/telemetry/logs/export` | GET    | JWT  | `logs:read` | Export logs (CSV/JSON) |
 
 ### Alerts
 
-| Endpoint | Method | Auth | Permission | Description |
-|----------|--------|------|------------|-------------|
-| `/alerts/rules` | POST | JWT | `alerts:write` | Create alert rule |
-| `/alerts/rules` | GET | JWT | `alerts:read` | List alert rules |
-| `/alerts/rules/:id` | GET | JWT | `alerts:read` | Get rule details |
-| `/alerts/rules/:id` | PUT | JWT | `alerts:write` | Update rule |
-| `/alerts/rules/:id` | DELETE | JWT | `alerts:delete` | Delete rule |
-| `/alerts/incidents` | GET | JWT | `alerts:read` | List incidents |
+| Endpoint            | Method | Auth | Permission      | Description       |
+| ------------------- | ------ | ---- | --------------- | ----------------- |
+| `/alerts/rules`     | POST   | JWT  | `alerts:write`  | Create alert rule |
+| `/alerts/rules`     | GET    | JWT  | `alerts:read`   | List alert rules  |
+| `/alerts/rules/:id` | GET    | JWT  | `alerts:read`   | Get rule details  |
+| `/alerts/rules/:id` | PUT    | JWT  | `alerts:write`  | Update rule       |
+| `/alerts/rules/:id` | DELETE | JWT  | `alerts:delete` | Delete rule       |
+| `/alerts/incidents` | GET    | JWT  | `alerts:read`   | List incidents    |
 
 ### Dashboards
 
-| Endpoint | Method | Auth | Permission | Description |
-|----------|--------|------|------------|-------------|
-| `/dashboards` | POST | JWT | `dashboards:write` | Create dashboard |
-| `/dashboards` | GET | JWT | `dashboards:read` | List dashboards |
-| `/dashboards/:id` | GET | JWT | `dashboards:read` | Get dashboard |
-| `/dashboards/:id` | PUT | JWT | `dashboards:write` | Update dashboard |
-| `/dashboards/:id` | DELETE | JWT | `dashboards:delete` | Delete dashboard |
+| Endpoint          | Method | Auth | Permission          | Description      |
+| ----------------- | ------ | ---- | ------------------- | ---------------- |
+| `/dashboards`     | POST   | JWT  | `dashboards:write`  | Create dashboard |
+| `/dashboards`     | GET    | JWT  | `dashboards:read`   | List dashboards  |
+| `/dashboards/:id` | GET    | JWT  | `dashboards:read`   | Get dashboard    |
+| `/dashboards/:id` | PUT    | JWT  | `dashboards:write`  | Update dashboard |
+| `/dashboards/:id` | DELETE | JWT  | `dashboards:delete` | Delete dashboard |
 
 ---
 
@@ -120,10 +137,10 @@ graph LR
 ### Ingest Metrics (OTLP)
 
 ```json
-POST /v2/otlp/metrics
+POST /v2/metrics
 Headers:
-  X-API-Key-ID: tfk-abc123...
-  X-API-Key-Secret: tfs-xyz789...
+  X-API-Key-ID: tfk-live-abc123...
+  X-API-Key-Secret: tfs-secret-xyz789...
   Content-Type: application/json
 
 Body:
@@ -210,19 +227,19 @@ graph TB
     style J fill:#e74c3c
 ```
 
-| Code | Status | Meaning |
-|------|--------|---------|
-| **200** | OK | Request successful |
-| **201** | Created | Resource created successfully |
-| **202** | Accepted | Accepted for async processing |
-| **204** | No Content | Successful deletion, no content |
-| **400** | Bad Request | Invalid input or validation error |
-| **401** | Unauthorized | Missing or invalid authentication |
-| **403** | Forbidden | Insufficient permissions |
-| **404** | Not Found | Resource doesn't exist |
-| **429** | Too Many Requests | Rate limit exceeded |
-| **500** | Internal Server Error | Unexpected server error |
-| **503** | Service Unavailable | Server maintenance |
+| Code    | Status                | Meaning                           |
+| ------- | --------------------- | --------------------------------- |
+| **200** | OK                    | Request successful                |
+| **201** | Created               | Resource created successfully     |
+| **202** | Accepted              | Accepted for async processing     |
+| **204** | No Content            | Successful deletion, no content   |
+| **400** | Bad Request           | Invalid input or validation error |
+| **401** | Unauthorized          | Missing or invalid authentication |
+| **403** | Forbidden             | Insufficient permissions          |
+| **404** | Not Found             | Resource doesn't exist            |
+| **429** | Too Many Requests     | Rate limit exceeded               |
+| **500** | Internal Server Error | Unexpected server error           |
+| **503** | Service Unavailable   | Server maintenance                |
 
 ---
 
@@ -248,13 +265,14 @@ graph LR
     style D fill:#4ecdc4
 ```
 
-| Endpoint Type | Rate Limit | Window |
-|---------------|------------|--------|
+| Endpoint Type      | Rate Limit    | Window     |
+| ------------------ | ------------- | ---------- |
 | **OTLP Ingestion** | 1000 requests | 60 seconds |
-| **Standard API** | 100 requests | 60 seconds |
-| **Authentication** | 10 requests | 60 seconds |
+| **Standard API**   | 100 requests  | 60 seconds |
+| **Authentication** | 10 requests   | 60 seconds |
 
 **Rate Limit Headers:**
+
 ```
 X-RateLimit-Limit: 100
 X-RateLimit-Remaining: 45
@@ -276,7 +294,8 @@ Retry-After: 15
     "constraint": "must follow OTEL naming convention"
   },
   "timestamp": "2025-01-15T10:30:00.000Z",
-  "path": "/api/v2/telemetry/metrics/query"
+  "path": "/api/v2/telemetry/metrics/query",
+  "correlationId": "req-abc123"
 }
 ```
 
@@ -297,6 +316,36 @@ Response:
     "totalPages": 8
   }
 }
+```
+
+---
+
+## TFQL Query Language
+
+TelemetryFlow Query Language (TFQL) is the unified query interface for telemetry data. It translates to PromQL, ClickHouse SQL, or Elasticsearch DSL depending on the target backend.
+
+```mermaid
+graph LR
+    A[TFQL Query] --> B{Query Router}
+    B -->|Metrics| C[PromQL / ClickHouse SQL]
+    B -->|Logs| D[ClickHouse SQL / Elasticsearch DSL]
+    B -->|Traces| E[ClickHouse SQL]
+
+    style A fill:#4CAF50
+    style B fill:#2196F3
+```
+
+**Example Queries:**
+
+```bash
+# Query metrics via TFQL
+GET /api/v2/telemetry/metrics/query?query=k8s.cpu.usage&start=2026-01-01T00:00:00Z&end=2026-01-02T00:00:00Z&step=1m
+
+# Query logs via TFQL
+GET /api/v2/telemetry/logs/query?query=severity:ERROR AND service:api-gateway&limit=100
+
+# Query traces via TFQL
+GET /api/v2/telemetry/traces/query?query=service:api-gateway AND duration:>500ms
 ```
 
 ---

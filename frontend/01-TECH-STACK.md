@@ -1,7 +1,7 @@
 # Frontend Technology Stack
 
-- **Version:** 1.1.2-CE
-- **Last Updated:** January 01st, 2026
+- **Version:** 1.4.0
+- **Last Updated:** May 14, 2026
 - **Status:** ✅ Production Ready
 
 ---
@@ -78,6 +78,7 @@ graph TB
 ### Vue 3.5.24
 
 **Why Vue 3?**
+
 - **Composition API** - Better logic reuse and organization
 - **Performance** - Virtual DOM optimizations, tree-shaking
 - **TypeScript Support** - First-class TypeScript integration
@@ -101,23 +102,24 @@ graph LR
 ```
 
 **Composition API Example:**
+
 ```vue
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { useMetricsStore } from '@/stores/metrics'
+import { ref, computed, onMounted } from "vue";
+import { useMetricsStore } from "@/stores/metrics";
 
-const metricsStore = useMetricsStore()
-const searchQuery = ref('')
+const metricsStore = useMetricsStore();
+const searchQuery = ref("");
 
 const filteredMetrics = computed(() => {
-  return metricsStore.metrics.filter(m =>
-    m.name.toLowerCase().includes(searchQuery.value.toLowerCase())
-  )
-})
+  return metricsStore.metrics.filter((m) =>
+    m.name.toLowerCase().includes(searchQuery.value.toLowerCase()),
+  );
+});
 
 onMounted(async () => {
-  await metricsStore.fetchMetrics()
-})
+  await metricsStore.fetchMetrics();
+});
 </script>
 
 <template>
@@ -129,6 +131,7 @@ onMounted(async () => {
 ```
 
 **Vue 3 Directives:**
+
 - `v-model` - Two-way data binding
 - `v-if/v-else/v-show` - Conditional rendering
 - `v-for` - List rendering
@@ -142,27 +145,29 @@ onMounted(async () => {
 ### Vite 7.2.4
 
 **Why Vite?**
+
 - **⚡ Instant HMR** - Sub-second updates
 - **📦 Optimized Build** - Rollup-based production builds
 - **🔌 Plugin Ecosystem** - Rich plugin ecosystem
 - **🚀 Fast Startup** - Native ES modules (no bundling in dev)
 
 **Configuration (`vite.config.ts`):**
+
 ```typescript
-import { defineConfig } from 'vite'
-import vue from '@vitejs/plugin-vue'
-import vueJsx from '@vitejs/plugin-vue-jsx'
-import UnoCSS from 'unocss/vite'
-import Icons from 'unplugin-icons/vite'
-import Components from 'unplugin-vue-components/vite'
-import { NaiveUiResolver } from 'unplugin-vue-components/resolvers'
+import { defineConfig } from "vite";
+import vue from "@vitejs/plugin-vue";
+import vueJsx from "@vitejs/plugin-vue-jsx";
+import UnoCSS from "unocss/vite";
+import Icons from "unplugin-icons/vite";
+import Components from "unplugin-vue-components/vite";
+import { NaiveUiResolver } from "unplugin-vue-components/resolvers";
 
 export default defineConfig({
   plugins: [
     vue(),
     vueJsx(),
     UnoCSS(),
-    Icons({ compiler: 'vue3' }),
+    Icons({ compiler: "vue3" }),
     Components({
       resolvers: [NaiveUiResolver()],
     }),
@@ -170,50 +175,50 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: {
-      '/api': {
-        target: 'http://localhost:3100',
+      "/api": {
+        target: "http://localhost:3100",
         changeOrigin: true,
       },
     },
   },
   build: {
-    target: 'es2015',
-    minify: 'terser',
+    target: "es2015",
+    minify: "terser",
     sourcemap: false,
     chunkSizeWarningLimit: 1500,
     rollupOptions: {
       output: {
         manualChunks: {
-          'vue-vendor': ['vue', 'vue-router', 'pinia'],
-          'naive-ui': ['naive-ui'],
-          'echarts': ['echarts'],
+          "vue-vendor": ["vue", "vue-router", "pinia"],
+          "naive-ui": ["naive-ui"],
+          echarts: ["echarts"],
         },
       },
     },
   },
-})
+});
 ```
 
 **Vite Plugins Used:**
 
-| Plugin | Purpose |
-|--------|---------|
-| `@vitejs/plugin-vue` | Vue 3 SFC support |
-| `@vitejs/plugin-vue-jsx` | JSX/TSX support |
-| `@unocss/vite` | UnoCSS integration |
-| `unplugin-icons` | Icon auto-import |
+| Plugin                    | Purpose               |
+| ------------------------- | --------------------- |
+| `@vitejs/plugin-vue`      | Vue 3 SFC support     |
+| `@vitejs/plugin-vue-jsx`  | JSX/TSX support       |
+| `@unocss/vite`            | UnoCSS integration    |
+| `unplugin-icons`          | Icon auto-import      |
 | `unplugin-vue-components` | Component auto-import |
-| `vite-plugin-progress` | Build progress bar |
-| `vite-plugin-svg-icons` | SVG sprite generation |
+| `vite-plugin-progress`    | Build progress bar    |
+| `vite-plugin-svg-icons`   | SVG sprite generation |
 
 **Build Performance:**
 
-| Metric | Development | Production |
-|--------|-------------|------------|
-| **Startup Time** | < 1s | N/A |
-| **HMR Update** | < 100ms | N/A |
-| **Build Time** | N/A | 30-45s |
-| **Bundle Size** | N/A | 800KB (gzipped) |
+| Metric           | Development | Production      |
+| ---------------- | ----------- | --------------- |
+| **Startup Time** | < 1s        | N/A             |
+| **HMR Update**   | < 100ms     | N/A             |
+| **Build Time**   | N/A         | 30-45s          |
+| **Bundle Size**  | N/A         | 800KB (gzipped) |
 
 ---
 
@@ -222,6 +227,7 @@ export default defineConfig({
 ### TypeScript 5.8.3
 
 **Configuration (`tsconfig.json`):**
+
 ```json
 {
   "compilerOptions": {
@@ -247,6 +253,7 @@ export default defineConfig({
 ```
 
 **Type Safety Features:**
+
 - Strict type checking
 - Null safety
 - Interface definitions for all API responses
@@ -254,26 +261,27 @@ export default defineConfig({
 - Generic types
 
 **Type Definition Example:**
+
 ```typescript
 // API Response Types
 export interface MetricDataPoint {
-  timestamp: number
-  value: number
-  labels: Record<string, string>
+  timestamp: number;
+  value: number;
+  labels: Record<string, string>;
 }
 
 export interface MetricResponse {
-  metric_name: string
-  data_points: MetricDataPoint[]
-  total_count: number
+  metric_name: string;
+  data_points: MetricDataPoint[];
+  total_count: number;
 }
 
 // Component Props
 export interface DashboardWidgetProps {
-  widgetId: string
-  title: string
-  type: 'line_chart' | 'bar_chart' | 'gauge' | 'stat'
-  config: WidgetConfig
+  widgetId: string;
+  title: string;
+  type: "line_chart" | "bar_chart" | "gauge" | "stat";
+  config: WidgetConfig;
 }
 ```
 
@@ -284,6 +292,7 @@ export interface DashboardWidgetProps {
 ### Naive UI 2.43.2
 
 **Why Naive UI?**
+
 - **🎨 Beautiful Design** - Modern, clean design system
 - **📦 80+ Components** - Comprehensive component library
 - **🌙 Dark Mode** - Built-in dark theme
@@ -349,6 +358,7 @@ graph TD
    - `n-dropdown`, `n-anchor`, `n-back-top`
 
 **Theme Customization:**
+
 ```typescript
 import { darkTheme } from 'naive-ui'
 
@@ -375,43 +385,48 @@ const themeOverrides = {
 ### UnoCSS 66.5.9
 
 **Why UnoCSS?**
+
 - **⚡ Fast** - 200x faster than Tailwind
 - **📦 Tiny Bundle** - On-demand generation
 - **🎨 Flexible** - Customizable presets
 - **🔧 IDE Support** - IntelliSense for classes
 
 **Configuration:**
+
 ```typescript
-import { defineConfig, presetUno, presetIcons } from 'unocss'
+import { defineConfig, presetUno, presetIcons } from "unocss";
 
 export default defineConfig({
   presets: [
     presetUno(),
     presetIcons({
       scale: 1.2,
-      cdn: 'https://esm.sh/',
+      cdn: "https://esm.sh/",
     }),
   ],
   shortcuts: {
-    'btn-primary': 'px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600',
-    'card': 'p-4 bg-white dark:bg-gray-800 rounded-lg shadow',
+    "btn-primary": "px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600",
+    card: "p-4 bg-white dark:bg-gray-800 rounded-lg shadow",
   },
   theme: {
     colors: {
-      primary: '#18A058',
-      secondary: '#2080F0',
-      success: '#18A058',
-      warning: '#F0A020',
-      error: '#D03050',
+      primary: "#18A058",
+      secondary: "#2080F0",
+      success: "#18A058",
+      warning: "#F0A020",
+      error: "#D03050",
     },
   },
-})
+});
 ```
 
 **Utility Classes:**
+
 ```vue
 <template>
-  <div class="flex items-center justify-between p-4 bg-white dark:bg-gray-800 rounded-lg shadow-md">
+  <div
+    class="flex items-center justify-between p-4 bg-white dark:bg-gray-800 rounded-lg shadow-md"
+  >
     <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Dashboard</h2>
     <button class="btn-primary">Create Widget</button>
   </div>
@@ -419,6 +434,7 @@ export default defineConfig({
 ```
 
 **Icon Usage:**
+
 ```vue
 <template>
   <!-- Material Design Icons -->
@@ -439,6 +455,7 @@ export default defineConfig({
 ### Pinia 3.0.4
 
 **Why Pinia?**
+
 - **🍍 Official Store** - Recommended by Vue team
 - **🚀 Performance** - Optimized reactivity
 - **🔧 DevTools** - Excellent debugging
@@ -467,45 +484,46 @@ graph TB
 ```
 
 **Store Example:**
-```typescript
-import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
-import type { Metric } from '@/types'
 
-export const useMetricsStore = defineStore('metrics', () => {
+```typescript
+import { defineStore } from "pinia";
+import { ref, computed } from "vue";
+import type { Metric } from "@/types";
+
+export const useMetricsStore = defineStore("metrics", () => {
   // State
-  const metrics = ref<Metric[]>([])
-  const loading = ref(false)
-  const error = ref<string | null>(null)
+  const metrics = ref<Metric[]>([]);
+  const loading = ref(false);
+  const error = ref<string | null>(null);
 
   // Getters
-  const metricCount = computed(() => metrics.value.length)
+  const metricCount = computed(() => metrics.value.length);
   const activeMetrics = computed(() =>
-    metrics.value.filter(m => m.status === 'active')
-  )
+    metrics.value.filter((m) => m.status === "active"),
+  );
 
   // Actions
   async function fetchMetrics(workspaceId: string, tenantId: string) {
-    loading.value = true
-    error.value = null
+    loading.value = true;
+    error.value = null;
     try {
       const response = await api.get(`/telemetry/metrics`, {
-        params: { workspace_id: workspaceId, tenant_id: tenantId }
-      })
-      metrics.value = response.data
+        params: { workspace_id: workspaceId, tenant_id: tenantId },
+      });
+      metrics.value = response.data;
     } catch (err) {
-      error.value = err.message
+      error.value = err.message;
     } finally {
-      loading.value = false
+      loading.value = false;
     }
   }
 
   function addMetric(metric: Metric) {
-    metrics.value.push(metric)
+    metrics.value.push(metric);
   }
 
   function clearMetrics() {
-    metrics.value = []
+    metrics.value = [];
   }
 
   return {
@@ -517,28 +535,29 @@ export const useMetricsStore = defineStore('metrics', () => {
     fetchMetrics,
     addMetric,
     clearMetrics,
-  }
-})
+  };
+});
 ```
 
 **Store Persistence:**
+
 ```typescript
-import { createPinia } from 'pinia'
-import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
+import { createPinia } from "pinia";
+import piniaPluginPersistedstate from "pinia-plugin-persistedstate";
 
-const pinia = createPinia()
-pinia.use(piniaPluginPersistedstate)
+const pinia = createPinia();
+pinia.use(piniaPluginPersistedstate);
 
-export const useAuthStore = defineStore('auth', {
+export const useAuthStore = defineStore("auth", {
   state: () => ({
     token: null,
     user: null,
   }),
   persist: {
     storage: localStorage,
-    paths: ['token', 'user'],
+    paths: ["token", "user"],
   },
-})
+});
 ```
 
 ---
@@ -548,6 +567,7 @@ export const useAuthStore = defineStore('auth', {
 ### Vue Router 4.6.3
 
 **Why Vue Router?**
+
 - **📍 Official Router** - Vue team maintained
 - **🔐 Navigation Guards** - Route protection
 - **📱 Nested Routes** - Complex layouts
@@ -575,55 +595,56 @@ graph TB
 ```
 
 **Router Configuration:**
+
 ```typescript
-import { createRouter, createWebHistory } from 'vue-router'
-import type { RouteRecordRaw } from 'vue-router'
+import { createRouter, createWebHistory } from "vue-router";
+import type { RouteRecordRaw } from "vue-router";
 
 const routes: RouteRecordRaw[] = [
   {
-    path: '/',
-    redirect: '/dashboard',
+    path: "/",
+    redirect: "/dashboard",
   },
   {
-    path: '/login',
-    name: 'Login',
-    component: () => import('@/views/auth/Login.vue'),
+    path: "/login",
+    name: "Login",
+    component: () => import("@/views/auth/Login.vue"),
     meta: { requiresAuth: false },
   },
   {
-    path: '/dashboard',
-    name: 'Dashboard',
-    component: () => import('@/views/dashboard/Index.vue'),
-    meta: { requiresAuth: true, roles: ['admin', 'developer', 'viewer'] },
+    path: "/dashboard",
+    name: "Dashboard",
+    component: () => import("@/views/dashboard/Index.vue"),
+    meta: { requiresAuth: true, roles: ["admin", "developer", "viewer"] },
     children: [
       {
-        path: 'overview',
-        name: 'DashboardOverview',
-        component: () => import('@/views/dashboard/Overview.vue'),
+        path: "overview",
+        name: "DashboardOverview",
+        component: () => import("@/views/dashboard/Overview.vue"),
       },
     ],
   },
-]
+];
 
 const router = createRouter({
   history: createWebHistory(),
   routes,
-})
+});
 
 // Navigation Guard
 router.beforeEach((to, from, next) => {
-  const authStore = useAuthStore()
+  const authStore = useAuthStore();
 
   if (to.meta.requiresAuth && !authStore.isAuthenticated) {
-    next('/login')
+    next("/login");
   } else if (to.meta.roles && !to.meta.roles.includes(authStore.user?.role)) {
-    next('/unauthorized')
+    next("/unauthorized");
   } else {
-    next()
+    next();
   }
-})
+});
 
-export default router
+export default router;
 ```
 
 ---
@@ -633,6 +654,7 @@ export default router
 ### ECharts 6.0.0
 
 **Why ECharts?**
+
 - **📊 80+ Chart Types** - Comprehensive charting library
 - **🚀 Performance** - Canvas rendering, millions of points
 - **📱 Responsive** - Auto-resize on window change
@@ -662,54 +684,56 @@ graph LR
 ```
 
 **ECharts Configuration:**
-```typescript
-import * as echarts from 'echarts'
-import { ref, onMounted } from 'vue'
 
-const chartRef = ref<HTMLDivElement>()
+```typescript
+import * as echarts from "echarts";
+import { ref, onMounted } from "vue";
+
+const chartRef = ref<HTMLDivElement>();
 
 onMounted(() => {
-  const chart = echarts.init(chartRef.value!, 'dark')
+  const chart = echarts.init(chartRef.value!, "dark");
 
   const option = {
     title: {
-      text: 'CPU Usage Over Time'
+      text: "CPU Usage Over Time",
     },
     tooltip: {
-      trigger: 'axis'
+      trigger: "axis",
     },
     xAxis: {
-      type: 'time'
+      type: "time",
     },
     yAxis: {
-      type: 'value',
+      type: "value",
       axisLabel: {
-        formatter: '{value} %'
-      }
+        formatter: "{value} %",
+      },
     },
     series: [
       {
-        name: 'CPU',
-        type: 'line',
+        name: "CPU",
+        type: "line",
         smooth: true,
         data: [
           [Date.now() - 3600000, 45],
           [Date.now() - 1800000, 62],
-          [Date.now(), 78]
+          [Date.now(), 78],
         ],
-        areaStyle: {}
-      }
-    ]
-  }
+        areaStyle: {},
+      },
+    ],
+  };
 
-  chart.setOption(option)
+  chart.setOption(option);
 
   // Auto-resize
-  window.addEventListener('resize', () => chart.resize())
-})
+  window.addEventListener("resize", () => chart.resize());
+});
 ```
 
 **Dashboard Widget Types:**
+
 1. **line_chart** - Time series visualization
 2. **bar_chart** - Comparisons
 3. **area_chart** - Cumulative data
@@ -732,44 +756,45 @@ onMounted(() => {
 **Purpose:** HTTP client for REST API calls
 
 **Configuration:**
+
 ```typescript
-import axios from 'axios'
-import { useAuthStore } from '@/stores/auth'
+import axios from "axios";
+import { useAuthStore } from "@/stores/auth";
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3100/api/v2',
+  baseURL: import.meta.env.VITE_API_URL || "http://localhost:3100/api/v2",
   timeout: 30000,
   headers: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   },
-})
+});
 
 // Request Interceptor
 api.interceptors.request.use(
   (config) => {
-    const authStore = useAuthStore()
+    const authStore = useAuthStore();
     if (authStore.token) {
-      config.headers.Authorization = `Bearer ${authStore.token}`
+      config.headers.Authorization = `Bearer ${authStore.token}`;
     }
-    return config
+    return config;
   },
-  (error) => Promise.reject(error)
-)
+  (error) => Promise.reject(error),
+);
 
 // Response Interceptor
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
     if (error.response?.status === 401) {
-      const authStore = useAuthStore()
-      await authStore.logout()
-      router.push('/login')
+      const authStore = useAuthStore();
+      await authStore.logout();
+      router.push("/login");
     }
-    return Promise.reject(error)
-  }
-)
+    return Promise.reject(error);
+  },
+);
 
-export default api
+export default api;
 ```
 
 ---
@@ -779,46 +804,47 @@ export default api
 **Purpose:** Real-time bidirectional communication
 
 **Configuration:**
-```typescript
-import { io, Socket } from 'socket.io-client'
-import { useAuthStore } from '@/stores/auth'
 
-let socket: Socket
+```typescript
+import { io, Socket } from "socket.io-client";
+import { useAuthStore } from "@/stores/auth";
+
+let socket: Socket;
 
 export function connectWebSocket() {
-  const authStore = useAuthStore()
+  const authStore = useAuthStore();
 
-  socket = io(import.meta.env.VITE_WS_URL || 'http://localhost:3100', {
+  socket = io(import.meta.env.VITE_WS_URL || "http://localhost:3100", {
     auth: {
       token: authStore.token,
     },
-    transports: ['websocket'],
+    transports: ["websocket"],
     reconnection: true,
     reconnectionAttempts: 5,
     reconnectionDelay: 1000,
-  })
+  });
 
-  socket.on('connect', () => {
-    console.log('WebSocket connected')
-  })
+  socket.on("connect", () => {
+    console.log("WebSocket connected");
+  });
 
-  socket.on('metrics:new', (metrics) => {
-    const metricsStore = useMetricsStore()
-    metricsStore.addMetrics(metrics)
-  })
+  socket.on("metrics:new", (metrics) => {
+    const metricsStore = useMetricsStore();
+    metricsStore.addMetrics(metrics);
+  });
 
-  socket.on('alert:triggered', (alert) => {
+  socket.on("alert:triggered", (alert) => {
     useNotification().warning({
-      title: 'Alert Triggered',
+      title: "Alert Triggered",
       content: alert.message,
-    })
-  })
+    });
+  });
 
-  return socket
+  return socket;
 }
 
 export function disconnectWebSocket() {
-  socket?.disconnect()
+  socket?.disconnect();
 }
 ```
 
@@ -831,6 +857,7 @@ export function disconnectWebSocket() {
 **Purpose:** Collection of Vue Composition API utilities
 
 **Popular Composables:**
+
 ```typescript
 import {
   useLocalStorage,
@@ -839,21 +866,21 @@ import {
   useWindowSize,
   useDebounce,
   useThrottle,
-} from '@vueuse/core'
+} from "@vueuse/core";
 
 // Dark Mode
-const isDark = useDark()
-const toggleDark = useToggle(isDark)
+const isDark = useDark();
+const toggleDark = useToggle(isDark);
 
 // Window Size
-const { width, height } = useWindowSize()
+const { width, height } = useWindowSize();
 
 // Local Storage
-const userData = useLocalStorage('user-data', {})
+const userData = useLocalStorage("user-data", {});
 
 // Debounced Search
-const searchQuery = ref('')
-const debouncedQuery = useDebounce(searchQuery, 500)
+const searchQuery = ref("");
+const debouncedQuery = useDebounce(searchQuery, 500);
 ```
 
 ---
@@ -863,22 +890,23 @@ const debouncedQuery = useDebounce(searchQuery, 500)
 **Purpose:** Date/time manipulation (2KB alternative to Moment.js)
 
 **Usage:**
-```typescript
-import dayjs from 'dayjs'
-import relativeTime from 'dayjs/plugin/relativeTime'
-import utc from 'dayjs/plugin/utc'
 
-dayjs.extend(relativeTime)
-dayjs.extend(utc)
+```typescript
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
+import utc from "dayjs/plugin/utc";
+
+dayjs.extend(relativeTime);
+dayjs.extend(utc);
 
 // Format
-dayjs().format('YYYY-MM-DD HH:mm:ss')
+dayjs().format("YYYY-MM-DD HH:mm:ss");
 
 // Relative Time
-dayjs().from(dayjs('2023-01-01')) // "2 years ago"
+dayjs().from(dayjs("2023-01-01")); // "2 years ago"
 
 // UTC
-dayjs.utc().format()
+dayjs.utc().format();
 ```
 
 ---
@@ -888,17 +916,15 @@ dayjs.utc().format()
 ### ESLint 9.39.1
 
 **Configuration:**
+
 ```javascript
 module.exports = {
-  extends: [
-    'plugin:vue/vue3-recommended',
-    '@vue/typescript/recommended',
-  ],
+  extends: ["plugin:vue/vue3-recommended", "@vue/typescript/recommended"],
   rules: {
-    'vue/multi-word-component-names': 'off',
-    '@typescript-eslint/no-explicit-any': 'warn',
+    "vue/multi-word-component-names": "off",
+    "@typescript-eslint/no-explicit-any": "warn",
   },
-}
+};
 ```
 
 ---
@@ -906,6 +932,7 @@ module.exports = {
 ### Vue DevTools 8.0.5
 
 **Features:**
+
 - Component inspector
 - Pinia store inspector
 - Router inspector
@@ -916,27 +943,27 @@ module.exports = {
 
 ## Technology Decision Rationale
 
-| Decision | Reason |
-|----------|--------|
-| **Vue 3 over React** | Composition API, easier learning curve, better performance |
-| **Vite over Webpack** | 100x faster HMR, simpler configuration |
-| **Naive UI over Ant Design/Element Plus** | Better TypeScript support, modern design |
-| **UnoCSS over Tailwind** | 200x faster, smaller bundle |
-| **Pinia over Vuex** | Official recommendation, simpler API, better TypeScript |
-| **ECharts over Chart.js** | More chart types, better performance |
-| **Axios over Fetch** | Interceptors, automatic JSON, better errors |
+| Decision                                  | Reason                                                     |
+| ----------------------------------------- | ---------------------------------------------------------- |
+| **Vue 3 over React**                      | Composition API, easier learning curve, better performance |
+| **Vite over Webpack**                     | 100x faster HMR, simpler configuration                     |
+| **Naive UI over Ant Design/Element Plus** | Better TypeScript support, modern design                   |
+| **UnoCSS over Tailwind**                  | 200x faster, smaller bundle                                |
+| **Pinia over Vuex**                       | Official recommendation, simpler API, better TypeScript    |
+| **ECharts over Chart.js**                 | More chart types, better performance                       |
+| **Axios over Fetch**                      | Interceptors, automatic JSON, better errors                |
 
 ---
 
 ## Performance Metrics
 
-| Metric | Target | Actual |
-|--------|--------|--------|
-| **First Contentful Paint** | < 1.5s | 1.2s |
-| **Time to Interactive** | < 3.0s | 2.5s |
-| **Lighthouse Score** | > 90 | 95 |
-| **Bundle Size (gzipped)** | < 1MB | 800KB |
-| **HMR Update** | < 200ms | 100ms |
+| Metric                     | Target  | Actual |
+| -------------------------- | ------- | ------ |
+| **First Contentful Paint** | < 1.5s  | 1.2s   |
+| **Time to Interactive**    | < 3.0s  | 2.5s   |
+| **Lighthouse Score**       | > 90    | 95     |
+| **Bundle Size (gzipped)**  | < 1MB   | 800KB  |
+| **HMR Update**             | < 200ms | 100ms  |
 
 ---
 
@@ -947,6 +974,7 @@ module.exports = {
 **Development:** 10
 
 **Bundle Analysis:**
+
 - Vue core: 120KB
 - Naive UI: 200KB
 - ECharts: 300KB
@@ -958,11 +986,11 @@ module.exports = {
 ## Browser Support
 
 | Browser | Minimum Version |
-|---------|----------------|
-| Chrome | 90+ |
-| Firefox | 88+ |
-| Safari | 14+ |
-| Edge | 90+ |
+| ------- | --------------- |
+| Chrome  | 90+             |
+| Firefox | 88+             |
+| Safari  | 14+             |
+| Edge    | 90+             |
 
 ---
 
@@ -976,5 +1004,5 @@ module.exports = {
 
 ---
 
-- **Last Updated:** January 01st, 2026
+- **Last Updated:** May 14, 2026
 - **Maintained By:** DevOpsCorner Indonesia

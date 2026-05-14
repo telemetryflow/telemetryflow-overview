@@ -4,7 +4,7 @@
 - **Category**: Backend / Business Modules
 - **Status**: Production Ready
 - **Priority:** 🔥 HIGH - Core Visualization
-- **Version**: 1.1.2-CE
+- **Version**: 1.4.0
 
 ---
 
@@ -185,11 +185,11 @@ export class Dashboard extends AggregateRoot {
     tenantId: TenantId,
     createdBy: UserId,
     description?: string,
-    templateId?: DashboardTemplateId
+    templateId?: DashboardTemplateId,
   ): Dashboard {
     // Business Rule: Name cannot be empty
-    if (!name || name.trim() === '') {
-      throw new DomainError('Dashboard name cannot be empty');
+    if (!name || name.trim() === "") {
+      throw new DomainError("Dashboard name cannot be empty");
     }
 
     const dashboard = new Dashboard({
@@ -214,7 +214,7 @@ export class Dashboard extends AggregateRoot {
     template: DashboardTemplate,
     workspaceId: WorkspaceId,
     tenantId: TenantId,
-    createdBy: UserId
+    createdBy: UserId,
   ): Dashboard {
     const dashboard = Dashboard.create(
       template.name,
@@ -222,11 +222,11 @@ export class Dashboard extends AggregateRoot {
       tenantId,
       createdBy,
       template.description,
-      template.id
+      template.id,
     );
 
     // Clone all widgets from template
-    template.widgets.forEach(templateWidget => {
+    template.widgets.forEach((templateWidget) => {
       const widget = Widget.createFromTemplate(templateWidget);
       dashboard.addWidget(widget);
     });
@@ -238,12 +238,12 @@ export class Dashboard extends AggregateRoot {
   addWidget(widget: Widget): void {
     // Business Rule: Widget position must not overlap with existing widgets
     if (this._layout.hasOverlap(widget.position)) {
-      throw new DomainError('Widget position overlaps with existing widget');
+      throw new DomainError("Widget position overlaps with existing widget");
     }
 
     // Business Rule: Widget must be within grid bounds
     if (!this._layout.isWithinBounds(widget.position)) {
-      throw new DomainError('Widget position is outside grid bounds');
+      throw new DomainError("Widget position is outside grid bounds");
     }
 
     this._widgets.push(widget);
@@ -252,9 +252,9 @@ export class Dashboard extends AggregateRoot {
   }
 
   removeWidget(widgetId: WidgetId): void {
-    const widgetIndex = this._widgets.findIndex(w => w.id.equals(widgetId));
+    const widgetIndex = this._widgets.findIndex((w) => w.id.equals(widgetId));
     if (widgetIndex === -1) {
-      throw new DomainError('Widget not found');
+      throw new DomainError("Widget not found");
     }
 
     this._widgets.splice(widgetIndex, 1);
@@ -353,6 +353,7 @@ graph TB
 ### Template Details
 
 **1. System Monitoring Template**
+
 ```json
 {
   "name": "System Monitoring",
@@ -366,7 +367,7 @@ graph TB
         "aggregation": "avg",
         "timeRange": "1h"
       },
-      "position": {"x": 0, "y": 0, "width": 6, "height": 4}
+      "position": { "x": 0, "y": 0, "width": 6, "height": 4 }
     },
     {
       "type": "TIME_SERIES_CHART",
@@ -376,7 +377,7 @@ graph TB
         "aggregation": "avg",
         "timeRange": "1h"
       },
-      "position": {"x": 6, "y": 0, "width": 6, "height": 4}
+      "position": { "x": 6, "y": 0, "width": 6, "height": 4 }
     },
     {
       "type": "GAUGE",
@@ -384,21 +385,23 @@ graph TB
         "title": "Disk Usage",
         "metricName": "system.disk.usage",
         "unit": "%",
-        "thresholds": {"warning": 70, "critical": 90}
+        "thresholds": { "warning": 70, "critical": 90 }
       },
-      "position": {"x": 0, "y": 4, "width": 4, "height": 3}
+      "position": { "x": 0, "y": 4, "width": 4, "height": 3 }
     }
   ]
 }
 ```
 
 **2. Application Performance Template**
+
 - Response Time (P50, P95, P99)
 - Request Throughput
 - Error Rate
 - Active Connections
 
 **3. Logs Explorer Template**
+
 - Live Log Stream
 - Log Level Distribution
 - Error Log Table
@@ -655,12 +658,12 @@ graph LR
     style E fill:#f9ca24
 ```
 
-| Operation | Cache TTL | Performance |
-|-----------|-----------|-------------|
-| **Dashboard List** | 5 minutes | 10ms (cached) |
-| **Dashboard Details** | 1 minute | 50ms (cached) |
-| **Widget Data** | 30 seconds | 100-500ms |
-| **Template List** | 1 hour | 5ms (cached) |
+| Operation             | Cache TTL  | Performance   |
+| --------------------- | ---------- | ------------- |
+| **Dashboard List**    | 5 minutes  | 10ms (cached) |
+| **Dashboard Details** | 1 minute   | 50ms (cached) |
+| **Widget Data**       | 30 seconds | 100-500ms     |
+| **Template List**     | 1 hour     | 5ms (cached)  |
 
 ---
 
@@ -733,15 +736,18 @@ graph TB
 ## Testing
 
 ### Unit Tests
+
 - `Dashboard.aggregate.spec.ts` - Dashboard logic
 - `Widget.aggregate.spec.ts` - Widget validation
 - `DashboardLayout.vo.spec.ts` - Layout calculations
 
 ### Integration Tests
+
 - `dashboard-creation.spec.ts` - Template cloning
 - `widget-management.spec.ts` - Widget CRUD
 
 ### E2E Tests
+
 - `dashboard-lifecycle.e2e.spec.ts` - Complete flow
 
 ---

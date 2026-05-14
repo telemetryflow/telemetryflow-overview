@@ -1,7 +1,7 @@
 # Security Architecture
 
-**Version:** 1.1.2-CE
-**Last Updated:** January 01st, 2026
+**Version:** 1.4.0
+**Last Updated:** May 14, 2026
 **Status:** ✅ Production Ready
 
 ---
@@ -38,6 +38,7 @@ graph TD
 ```
 
 **Security Standards:**
+
 - ✅ OWASP Top 10 compliance
 - ✅ SOC 2 Type II ready
 - ✅ ISO 27001 aligned
@@ -99,7 +100,7 @@ sequenceDiagram
         API-->>Frontend: 403 Forbidden<br/>"Account locked for 15 min"
     end
 
-    API->>API: Compare password<br/>(bcrypt, 10 rounds)
+    API->>API: Compare password<br/>(Argon2id hash verification)
 
     alt Password Incorrect
         API->>DB: Increment failed_attempts
@@ -910,13 +911,13 @@ stateDiagram-v2
 
 ### Rate Limiting
 
-| Endpoint Type | Rate Limit | Window |
-|---------------|------------|--------|
-| **Login** | 5 attempts | 15 min |
-| **API (Default)** | 100 req | 60 sec |
-| **OTLP Ingestion** | 1000 req | 60 sec |
-| **Query API** | 60 req | 60 sec |
-| **Admin API** | 30 req | 60 sec |
+| Endpoint Type      | Rate Limit | Window |
+| ------------------ | ---------- | ------ |
+| **Login**          | 5 attempts | 15 min |
+| **API (Default)**  | 100 req    | 60 sec |
+| **OTLP Ingestion** | 1000 req   | 60 sec |
+| **Query API**      | 60 req     | 60 sec |
+| **Admin API**      | 30 req     | 60 sec |
 
 ---
 
@@ -965,5 +966,13 @@ stateDiagram-v2
 
 ---
 
-- **Last Updated:** January 01st, 2026
+### Telemetry Components
+
+**TFO-Collector v1.2.1** - OCB-native OpenTelemetry Collector distribution with 4 custom TFO components (`tfootlp`, `tfo`, `tfoauth`, `tfoidentity`) for secure OTLP ingestion with built-in authentication.
+
+**TFO-Agent v1.2.0** - Go-based telemetry agent (Go 1.26, OTEL SDK v1.43.0) with 15+ collectors, 39+ integrations, eBPF monitoring, Docker/cAdvisor integration, and Database Monitoring with QAN (9 DB collectors).
+
+---
+
+- **Last Updated:** May 14, 2026
 - **Maintained By:** DevOpsCorner Indonesia

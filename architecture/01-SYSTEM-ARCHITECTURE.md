@@ -1,7 +1,7 @@
 # TelemetryFlow System Architecture
 
-- **Version:** 1.1.2-CE
-- **Last Updated:** January 01st, 2026
+- **Version:** 1.4.0
+- **Last Updated:** May 14, 2026
 
 ---
 
@@ -57,11 +57,12 @@ graph TB
     end
 
     subgraph "Async Processing - BullMQ Queues"
-        Q1[Queue 1: OTLP Ingestion<br/>Metrics/Logs/Traces processing]
-        Q2[Queue 2: Alerts<br/>Alert rule evaluation]
-        Q3[Queue 3: Aggregation<br/>Hourly/daily rollups]
-        Q4[Queue 4: Cleanup<br/>Data retention enforcement]
-        Q5[Queue 5: Notifications<br/>Multi-channel alert delivery]
+        Q1[Queue 1: OTLP Ingestion<br/>concurrency: 10]
+        Q2[Queue 2: Alerts<br/>concurrency: 5]
+        Q3[Queue 3: Telemetry Processing<br/>concurrency: 10]
+        Q4[Queue 4: Domain Events<br/>concurrency: 5]
+        Q5[Queue 5: Notifications<br/>concurrency: 3]
+        Q6[Queue 6: Reports<br/>concurrency: 3]
     end
 
     OTLP -->|OTLP Protocol| Controllers
@@ -79,6 +80,7 @@ graph TB
     InfraLayer --> Q3
     InfraLayer --> Q4
     InfraLayer --> Q5
+    InfraLayer --> Q6
 
     style Controllers fill:#4ecdc4
     style AppLayer fill:#45b7d1
@@ -96,41 +98,49 @@ graph TB
 ### 1. Domain-Driven Design (DDD)
 
 **Why DDD?**
+
 - Complex business logic organized around domain concepts
-- Clear boundaries between modules (15 bounded contexts)
+- Clear boundaries between modules (25+ bounded contexts)
 - Ubiquitous language across team (Metric, Log, Trace, Tenant, etc.)
 - Separation of concerns (domain logic vs infrastructure)
 
 **Key DDD Components:**
+
 - **Aggregates:** User, Organization, Workspace, Tenant, Metric, Log, Trace
 - **Value Objects:** Email, TenantId, MetricName, TraceContext, Timestamp
 - **Domain Events:** UserCreated, MetricIngested, AlertTriggered
 - **Repositories:** Abstraction over data access (ports & adapters)
 - **Domain Services:** Business logic that doesn't belong to a single entity
+- **Query Language:** TFQL (TelemetryFlow Query Language) - unified query interface translating to PromQL, ClickHouse SQL, and Elasticsearch DSL
 
 ### 2. CQRS (Command Query Responsibility Segregation)
 
 **Why CQRS?**
+
 - Separate write operations (Commands) from read operations (Queries)
 - Optimize reads independently from writes
 - Enable event sourcing for audit trails
 - Scale reads and writes independently
 
 **Benefits:**
+
 - **Performance:** Read-optimized models in ClickHouse, write-optimized in PostgreSQL
 - **Complexity Management:** Clear separation of business logic
 - **Scalability:** Independent scaling of command and query sides
 - **Auditability:** Every command produces events for audit log
+- **Query Language:** TFQL provides unified query interface for metrics, logs, and traces
 
 ### 3. Event-Driven Architecture
 
 **Why Event-Driven?**
+
 - Loose coupling between modules
 - Async processing for heavy operations
 - Real-time updates to UI via WebSocket
 - Audit trail of all system changes
 
 **Event Types:**
+
 - **Domain Events:** Business state changes (UserCreated, MetricIngested)
 - **Integration Events:** Cross-module communication (AlertTriggered → NotificationSent)
 - **System Events:** Infrastructure events (CacheMiss, QueueFull)
@@ -138,12 +148,14 @@ graph TB
 ### 4. Microservices-Ready Modularity
 
 **Why Modular Monolith?**
+
 - Start as monolith for simplicity
 - Each module is independently deployable
-- Clear module boundaries (15 modules)
+- Clear module boundaries (25+ modules)
 - Easy to extract to microservices later
 
 **Module Independence:**
+
 - Shared-nothing architecture
 - Communication via events only
 - No direct cross-module imports (only via public APIs)
@@ -178,7 +190,7 @@ graph TB
 ```mermaid
 graph TB
     subgraph "NestJS Backend"
-        Framework[Framework: NestJS 10.x + TypeScript 5.7+<br/>Runtime: Node.js 18-20.x]
+        Framework[Framework: NestJS 11.x + TypeScript 5.7+<br/>Runtime: Node.js 22.x]
 
         subgraph "15 Main Modules - Bounded Contexts"
             M100[100-core<br/>IAM, Multi-tenancy, RBAC]
@@ -296,6 +308,7 @@ graph TD
 ```
 
 **Key Points:**
+
 - **Domain Layer** is independent (no imports from outer layers)
 - **Application Layer** depends only on Domain
 - **Infrastructure Layer** implements Domain interfaces (Dependency Inversion)
@@ -368,13 +381,13 @@ export class IngestMetricsFromOtlpHandler {
     const metrics = this.transformOtlpToDomain(command.otlpMetrics);
 
     // 2. Validate business rules
-    metrics.forEach(metric => metric.validate());
+    metrics.forEach((metric) => metric.validate());
 
     // 3. Emit domain event
     this.eventBus.publish(new MetricIngested(metrics));
 
     // 4. Queue for async processing
-    await this.queueService.addJob('otlp-ingestion', { metrics });
+    await this.queueService.addJob("otlp-ingestion", { metrics });
   }
 }
 
@@ -383,7 +396,7 @@ export class IngestMetricsFromOtlpHandler {
 export class AlertEvaluationHandler {
   async handle(event: MetricIngested): Promise<void> {
     // Evaluate alert rules in background
-    await this.queueService.addJob('alert-evaluation', {
+    await this.queueService.addJob("alert-evaluation", {
       metrics: event.metrics,
     });
   }
@@ -458,6 +471,7 @@ sequenceDiagram
 ### Event Types
 
 **Domain Events:**
+
 - UserCreated, UserUpdated, UserDeleted
 - OrganizationCreated, WorkspaceCreated, TenantCreated
 - MetricIngested, LogIngested, TraceCreated
@@ -466,12 +480,14 @@ sequenceDiagram
 - ApiKeyCreated, ApiKeyRotated, ApiKeyRevoked
 
 **Integration Events:**
+
 - NotificationSent (Email, Slack, PagerDuty)
 - AggregationCompleted
 - DataRetentionApplied
 - CacheInvalidated
 
 **System Events:**
+
 - ServerStarted, ServerShutdown
 - QueueFull, QueueDrained
 - DatabaseConnectionLost, DatabaseConnectionRestored
@@ -528,6 +544,7 @@ graph TB
 ```
 
 **Key Features:**
+
 - TypeORM for migrations and entity management
 - Soft deletion with `deleted_at` column
 - Audit fields: `created_at`, `updated_at`, `created_by`
@@ -553,7 +570,7 @@ graph TB
         end
 
         subgraph "Monitoring Tables - 500-monitoring module"
-            Mon[• uptime_checks - Uptime check results<br/>• agent_heartbeats - Agent health data]
+            Mon[• uptime_checks - Uptime check results<br/>• agent_heartbeats - Agent health data<br/>• kubernetes_metrics - K8s cluster metrics<br/>• vm_metrics - VM infrastructure metrics<br/>• db_monitoring - Database monitoring with QAN]
         end
 
         subgraph "Alert Tables - 600-alerts module"
@@ -573,13 +590,15 @@ graph TB
 ```
 
 **Key Features:**
+
 - Columnar storage (50-90% compression)
 - Partitioning by tenant_id and timestamp
 - 20 optimized indexes (bloom filter, minmax, set)
 - TTL-based automatic data cleanup
-- Materialized views for common queries
+- Materialized views for common queries (24 MVs, rollup cascade: raw -> 1m -> 1h -> 1d)
 - MergeTree engine family
 - Horizontal scaling via sharding
+- TFQL query language support (PromQL, ClickHouse SQL, Elasticsearch DSL)
 
 ### Redis (Cache & Queue)
 
@@ -599,7 +618,7 @@ graph TB
         end
 
         subgraph "BullMQ Queue Keys - queue module"
-            Queue[• bull:otlp:* - OTLP ingestion queue<br/>• bull:alerts:* - Alert evaluation queue<br/>• bull:aggregation:* - Data aggregation queue<br/>• bull:cleanup:* - Data retention queue<br/>• bull:notifications:* - Notification delivery queue]
+            Queue[• bull:otlp:* - OTLP ingestion queue<br/>• bull:domain-events:* - Domain events queue<br/>• bull:telemetry-processing:* - Telemetry processing queue<br/>• bull:alerts:* - Alert evaluation queue<br/>• bull:notifications:* - Notification delivery queue<br/>• bull:reports:* - Report generation queue]
         end
     end
 
@@ -607,6 +626,37 @@ graph TB
     style Session fill:#45b7d1
     style Queue fill:#f9ca24
 ```
+
+### Component Registry System
+
+The frontend uses a centralized registry for UI components with 459 total entries:
+
+- **Graph Registry**: 260+ graph definitions (ID scheme: `XXX1####`)
+- **Stat Panel Registry**: 158 stat panel definitions (ID scheme: `XXX2####`)
+- **DataTable Registry**: 41 datatable definitions (ID scheme: `XXX3####`)
+
+Registry composables bridge registries to components:
+
+- `useGraphFromRegistry(graphId)` -- ChartSeries[]
+- `useStatPanelsFromRegistry(ids, valueMap)` -- StatPanelConfig[]
+- `useDataTableFromRegistry(datatableId)` -- columns + pagination
+
+### TFO-Collector (OTEL Collector)
+
+**TFO-Collector v1.2.1** - OCB-native OpenTelemetry Collector distribution:
+
+- OTEL Core v1.58.0, Contrib v0.152.0
+- 4 custom TFO components: `tfootlp` (OTLP receiver with TFO auth), `tfo` (processor), `tfoauth` (extension), `tfoidentity` (extension)
+
+### TFO-Agent
+
+**TFO-Agent v1.2.0** - Go-based telemetry agent:
+
+- Go 1.26, OTEL SDK v1.43.0
+- 15+ collectors, 39+ integrations
+- eBPF-based kernel monitoring (28 metrics)
+- Docker/cAdvisor integration (32 per-container metrics)
+- Database Monitoring with QAN (Query Analytics) - 9 DB collectors (PostgreSQL, MySQL, MSSQL, MongoDB, CockroachDB, AWS RDS, Aurora, etc.)
 
 ---
 
@@ -685,15 +735,17 @@ sequenceDiagram
 
 ### Queue Configuration
 
-| Queue | Purpose | Concurrency | Priority | Retry |
-|-------|---------|-------------|----------|-------|
-| **otlp-ingestion** | Metrics/logs/traces ingestion | 10 workers | High | 3 attempts |
-| **alerts** | Alert rule evaluation | 5 workers | High | 5 attempts |
-| **aggregation** | Hourly/daily rollups | 2 workers | Medium | 3 attempts |
-| **cleanup** | Data retention enforcement | 1 worker | Low | 3 attempts |
-| **notifications** | Multi-channel delivery | 5 workers | High | 5 attempts |
+| Queue                    | Purpose                       | Concurrency | Priority | Retry      |
+| ------------------------ | ----------------------------- | ----------- | -------- | ---------- |
+| **otlp-ingestion**       | Metrics/logs/traces ingestion | 10 workers  | High     | 3 attempts |
+| **domain-events**        | Cross-module domain events    | 5 workers   | High     | 3 attempts |
+| **telemetry-processing** | Telemetry data processing     | 10 workers  | Medium   | 3 attempts |
+| **alerts**               | Alert rule evaluation         | 5 workers   | High     | 5 attempts |
+| **notifications**        | Multi-channel delivery        | 3 workers   | High     | 5 attempts |
+| **reports**              | Report generation             | 3 workers   | Medium   | 3 attempts |
 
 **Benefits:**
+
 - **Async Processing:** Don't block API responses
 - **Retry Logic:** Auto-retry failed jobs with exponential backoff
 - **Rate Limiting:** Prevent overwhelming downstream systems
@@ -748,6 +800,7 @@ graph TB
 ```
 
 **Scaling Strategies:**
+
 1. **API Layer:** Add more NestJS instances behind load balancer
 2. **Database:** PostgreSQL read replicas, ClickHouse sharding
 3. **Cache:** Redis Cluster for distributed caching
@@ -756,14 +809,14 @@ graph TB
 
 ### Performance Targets
 
-| Metric | Target | Current |
-|--------|--------|---------|
-| API Response Time (p95) | < 200ms | ~150ms |
-| OTLP Ingestion Throughput | 100k metrics/sec | 80k metrics/sec |
-| Dashboard Load Time | < 1s | ~800ms |
-| Cache Hit Rate | 70-80% | 60-80% |
-| Query Performance (ClickHouse) | < 100ms (p95) | ~80ms |
-| Concurrent Users | 1000+ | Tested up to 500 |
+| Metric                         | Target           | Current          |
+| ------------------------------ | ---------------- | ---------------- |
+| API Response Time (p95)        | < 200ms          | ~150ms           |
+| OTLP Ingestion Throughput      | 100k metrics/sec | 80k metrics/sec  |
+| Dashboard Load Time            | < 1s             | ~800ms           |
+| Cache Hit Rate                 | 70-80%           | 60-80%           |
+| Query Performance (ClickHouse) | < 100ms (p95)    | ~80ms            |
+| Concurrent Users               | 1000+            | Tested up to 500 |
 
 ---
 
@@ -772,6 +825,7 @@ graph TB
 See [04-SECURITY.md](./04-SECURITY.md) for detailed security architecture.
 
 **Key Security Layers:**
+
 1. **Network Layer:** HTTPS, WSS, CORS
 2. **Authentication:** JWT, MFA, SSO, API keys
 3. **Authorization:** RBAC, Permission-based access

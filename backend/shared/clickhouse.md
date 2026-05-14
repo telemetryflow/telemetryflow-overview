@@ -4,7 +4,7 @@
 - **Category**: Backend / Shared Modules
 - **Status**: Production Ready
 - **Priority:** 🔥 CRITICAL - Time-Series Database
-- **Version**: 1.1.2-CE
+- **Version**: 1.4.0
 
 ---
 
@@ -50,9 +50,9 @@ graph TB
 
 ```typescript
 // shared/clickhouse/infrastructure/clickhouse.service.ts
-import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
-import { LoggerService } from '@/logger/logger.service';
-import { createClient, ClickHouseClient } from '@clickhouse/client';
+import { Injectable, OnModuleInit, OnModuleDestroy } from "@nestjs/common";
+import { LoggerService } from "@/logger/logger.service";
+import { createClient, ClickHouseClient } from "@clickhouse/client";
 
 @Injectable()
 export class ClickHouseService implements OnModuleInit, OnModuleDestroy {
@@ -64,10 +64,10 @@ export class ClickHouseService implements OnModuleInit, OnModuleDestroy {
   async onModuleInit() {
     try {
       this.client = createClient({
-        host: process.env.CLICKHOUSE_HOST || 'http://localhost:8123',
-        username: process.env.CLICKHOUSE_USER || 'default',
-        password: process.env.CLICKHOUSE_PASSWORD || '',
-        database: process.env.CLICKHOUSE_DATABASE || 'telemetryflow',
+        host: process.env.CLICKHOUSE_HOST || "http://localhost:8123",
+        username: process.env.CLICKHOUSE_USER || "default",
+        password: process.env.CLICKHOUSE_PASSWORD || "",
+        database: process.env.CLICKHOUSE_DATABASE || "telemetryflow",
         clickhouse_settings: {
           // Recommended settings for optimal performance
           async_insert: 1,
@@ -78,7 +78,7 @@ export class ClickHouseService implements OnModuleInit, OnModuleDestroy {
       // Test connection
       const result = await this.client.ping();
       if (result.success) {
-        this.logger.log('[ClickHouse] ✓ Connected successfully', this.context);
+        this.logger.log("[ClickHouse] ✓ Connected successfully", this.context);
       }
     } catch (error) {
       this.logger.error(
@@ -93,23 +93,26 @@ export class ClickHouseService implements OnModuleInit, OnModuleDestroy {
   async onModuleDestroy() {
     if (this.client) {
       await this.client.close();
-      this.logger.log('[ClickHouse] Connection closed', this.context);
+      this.logger.log("[ClickHouse] Connection closed", this.context);
     }
   }
 
   getClient(): ClickHouseClient {
     if (!this.client) {
-      throw new Error('ClickHouse client not initialized');
+      throw new Error("ClickHouse client not initialized");
     }
     return this.client;
   }
 
-  async query<T = any>(query: string, params?: Record<string, any>): Promise<T[]> {
+  async query<T = any>(
+    query: string,
+    params?: Record<string, any>,
+  ): Promise<T[]> {
     try {
       const resultSet = await this.client.query({
         query,
         query_params: params,
-        format: 'JSONEachRow',
+        format: "JSONEachRow",
       });
 
       const data = await resultSet.json<T>();
@@ -129,7 +132,7 @@ export class ClickHouseService implements OnModuleInit, OnModuleDestroy {
       await this.client.insert({
         table,
         values: data,
-        format: 'JSONEachRow',
+        format: "JSONEachRow",
       });
       this.logger.debug(
         `[ClickHouse] Inserted ${data.length} rows into ${table}`,
@@ -148,7 +151,10 @@ export class ClickHouseService implements OnModuleInit, OnModuleDestroy {
   async execute(query: string): Promise<void> {
     try {
       await this.client.exec({ query });
-      this.logger.debug('[ClickHouse] Query executed successfully', this.context);
+      this.logger.debug(
+        "[ClickHouse] Query executed successfully",
+        this.context,
+      );
     } catch (error) {
       this.logger.error(
         `[ClickHouse] Execute failed: ${error.message}`,
@@ -170,6 +176,7 @@ export class ClickHouseService implements OnModuleInit, OnModuleDestroy {
 ## Configuration
 
 **Environment Variables:**
+
 ```bash
 # ClickHouse Connection
 CLICKHOUSE_HOST=http://localhost:8123
@@ -184,6 +191,7 @@ CLICKHOUSE_WAIT_FOR_ASYNC_INSERT=0
 ```
 
 **Client Settings:**
+
 ```typescript
 const clickhouseSettings = {
   // Async inserts (recommended for high throughput)
@@ -206,6 +214,7 @@ const clickhouseSettings = {
 ## Table Schemas
 
 **Metrics Table:**
+
 ```sql
 CREATE TABLE telemetry_metrics (
   -- Time
@@ -264,24 +273,26 @@ GROUP BY tenant_id, metric_name, toStartOfMinute(timestamp);
 ## Query Examples
 
 **Insert Metrics:**
+
 ```typescript
 const metrics = [
   {
     timestamp: new Date(),
-    metric_name: 'http_requests_total',
+    metric_name: "http_requests_total",
     metric_id: uuid(),
-    tenant_id: 'tenant_123',
+    tenant_id: "tenant_123",
     value: 150,
-    unit: 'count',
-    labels: { method: 'GET', path: '/api/users' },
-    service_name: 'api-gateway',
+    unit: "count",
+    labels: { method: "GET", path: "/api/users" },
+    service_name: "api-gateway",
   },
 ];
 
-await clickhouseService.insert('telemetry_metrics', metrics);
+await clickhouseService.insert("telemetry_metrics", metrics);
 ```
 
 **Query Metrics:**
+
 ```typescript
 const query = `
   SELECT
@@ -300,20 +311,21 @@ const query = `
 `;
 
 const results = await clickhouseService.query(query, {
-  tenantId: 'tenant_123',
-  metricName: 'cpu_usage',
-  startTime: new Date('2025-12-12T00:00:00Z'),
-  endTime: new Date('2025-12-12T23:59:59Z'),
+  tenantId: "tenant_123",
+  metricName: "cpu_usage",
+  startTime: new Date("2025-12-12T00:00:00Z"),
+  endTime: new Date("2025-12-12T23:59:59Z"),
 });
 ```
 
 **Parameterized Queries:**
+
 ```typescript
 // Safe from SQL injection
 const results = await clickhouseService.query(
-  'SELECT * FROM telemetry_metrics WHERE tenant_id = {tenantId:UUID} LIMIT {limit:UInt32}',
+  "SELECT * FROM telemetry_metrics WHERE tenant_id = {tenantId:UUID} LIMIT {limit:UInt32}",
   {
-    tenantId: 'tenant_123',
+    tenantId: "tenant_123",
     limit: 100,
   },
 );
@@ -324,6 +336,7 @@ const results = await clickhouseService.query(
 ## Performance Optimizations
 
 **1. Async Inserts:**
+
 ```typescript
 // High-throughput inserts with async_insert
 const settings = {
@@ -332,20 +345,22 @@ const settings = {
 };
 
 // ClickHouse buffers inserts and writes in batches
-await clickhouseService.insert('telemetry_metrics', largeDataset);
+await clickhouseService.insert("telemetry_metrics", largeDataset);
 ```
 
 **2. Batch Inserts:**
+
 ```typescript
 // Batch inserts for better performance
 const batchSize = 10000;
 for (let i = 0; i < data.length; i += batchSize) {
   const batch = data.slice(i, i + batchSize);
-  await clickhouseService.insert('telemetry_metrics', batch);
+  await clickhouseService.insert("telemetry_metrics", batch);
 }
 ```
 
 **3. Compression:**
+
 ```typescript
 // Use CODEC for better compression
 CREATE TABLE telemetry_metrics (
@@ -356,6 +371,7 @@ CREATE TABLE telemetry_metrics (
 ```
 
 **4. Materialized Views:**
+
 ```typescript
 // Pre-aggregate data for faster queries
 CREATE MATERIALIZED VIEW metrics_hourly
@@ -374,9 +390,9 @@ GROUP BY time, metric_name;
 ```typescript
 // Client maintains internal connection pool
 const client = createClient({
-  host: 'http://localhost:8123',
-  max_open_connections: 10,  // Max concurrent connections
-  request_timeout: 30000,     // 30 seconds
+  host: "http://localhost:8123",
+  max_open_connections: 10, // Max concurrent connections
+  request_timeout: 30000, // 30 seconds
   compression: {
     request: true,
     response: true,
@@ -400,13 +416,13 @@ export class ClickHouseHealthIndicator extends HealthIndicator {
       const result = await this.clickhouse.getClient().ping();
 
       if (result.success) {
-        return this.getStatus(key, true, { message: 'ClickHouse is up' });
+        return this.getStatus(key, true, { message: "ClickHouse is up" });
       }
 
-      return this.getStatus(key, false, { message: 'ClickHouse ping failed' });
+      return this.getStatus(key, false, { message: "ClickHouse ping failed" });
     } catch (error) {
       return this.getStatus(key, false, {
-        message: `ClickHouse is down: ${error.message}`
+        message: `ClickHouse is down: ${error.message}`,
       });
     }
   }
@@ -436,14 +452,14 @@ async safeQuery<T>(query: string, params?: Record<string, any>): Promise<T[] | n
 
 ```typescript
 // Track ClickHouse performance
-- clickhouse.queries.total (counter)
-- clickhouse.queries.duration (histogram)
-- clickhouse.queries.errors (counter)
-- clickhouse.inserts.total (counter)
-- clickhouse.inserts.rows (counter)
-- clickhouse.inserts.duration (histogram)
-- clickhouse.connection.active (gauge)
-- clickhouse.connection.errors (counter)
+-clickhouse.queries.total(counter) -
+  clickhouse.queries.duration(histogram) -
+  clickhouse.queries.errors(counter) -
+  clickhouse.inserts.total(counter) -
+  clickhouse.inserts.rows(counter) -
+  clickhouse.inserts.duration(histogram) -
+  clickhouse.connection.active(gauge) -
+  clickhouse.connection.errors(counter);
 ```
 
 ---
@@ -456,5 +472,5 @@ async safeQuery<T>(query: string, params?: Record<string, any>): Promise<T[] | n
 
 ---
 
-**Last Updated**: January 01st, 2026
+**Last Updated**: May 14th, 2026
 **Maintained By**: DevOpsCorner Indonesia

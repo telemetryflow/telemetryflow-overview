@@ -7,7 +7,7 @@
 
   <h3>TelemetryFlow Platform - Overview Documentation</h3>
 
-[![Version](https://img.shields.io/badge/version-1.1.2--CE-orange.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.4.0-blue.svg)](CHANGELOG.md)
 [![License](https://img.shields.io/badge/license-Apache--2.0-green.svg)](LICENSE)
 [![NestJS](https://img.shields.io/badge/NestJS-11.x-E0234E?logo=nestjs)](https://nestjs.com/)
 [![Vue](https://img.shields.io/badge/Vue-3.5.24-4FC08D?logo=vue.js)](https://vuejs.org/)
@@ -33,6 +33,85 @@ All notable changes to **TelemetryFlow Platform Overview Documentation** will be
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [1.4.0] - 2026-05-14
+
+### Summary
+
+**Database Monitoring, Enhanced Agent & Collector, Component Registry** - Major feature release adding database monitoring with Query Analytics (QAN), 15+ agent collectors with 39+ integrations, enhanced OTEL Collector, component registry system, TFQL query language, and dual API key authentication.
+
+**Key Highlights:**
+
+- Database Monitoring (DBMON) with QAN: AWS RDS, MongoDB, CockroachDB, MySQL, MSSQL, Aurora (9 DB collectors)
+- TFO-Agent v1.2.0: Go 1.26, OTEL SDK v1.43.0, 15+ collectors, 39+ integrations, eBPF, Docker/cAdvisor
+- TFO-Collector v1.2.1: OCB-native build, OTEL Core v1.58.0, Contrib v0.152.0
+- Component Registry: 3 registries (graph 260+, stat-panel 158, datatable 41) with 23 module codes
+- TFQL Query Language: Unified query language for PromQL, ClickHouse SQL, Elasticsearch DSL
+- 5-Tier RBAC: Super Admin, Admin, Developer, Viewer, Demo with 22+ granular permissions
+- Dual API Key Authentication: `tfk-live-*` (key ID) + `tfs-secret-*` (key secret) with Argon2id hashing
+- Dual v1/v2 API Endpoints: `/api/v2/` for platform APIs, `/v1/` for OTLP compatibility
+- Custom OTEL Extensions: tfootlp, tfo, tfoauth, tfoidentity components
+
+### Added
+
+#### Database Monitoring
+
+- AWS RDS collector with performance insights integration
+- MongoDB collector with server status and replica set metrics
+- CockroachDB collector with distributed SQL metrics
+- MySQL collector with InnoDB and replication metrics
+- MSSQL collector with SQL Server performance counters
+- Aurora collector with cluster-specific metrics
+- QAN (Query Analytics) dashboard with top-N queries, latency histograms, and execution statistics
+- Database inventory management with auto-discovery
+
+#### Component Registry System
+
+- Graph Registry: 260+ graph definitions across 23 module codes
+- Stat Panel Registry: 158 stat panel definitions
+- DataTable Registry: 41 datatable definitions
+- Unified composables: `useGraphFromRegistry`, `useStatPanelsFromRegistry`, `useDataTableFromRegistry`
+- `RegistryGraphPanel.vue`: unified graph component with 3 variants (default/mini/panel), 13 chart types
+
+#### TFQL Query Language
+
+- Unified query language translating to PromQL, ClickHouse SQL, and Elasticsearch DSL
+- Support for `k8s.*` and `container.cadvisor.*` metric prefixes
+- Timezone-aware interval grouping
+- Step, groupBy, and timezone parameters
+
+#### Agent Enhancements (TFO-Agent v1.2.0)
+
+- Go 1.26 with OTEL SDK v1.43.0
+- 15+ collectors including eBPF, Docker/cAdvisor
+- 39+ integrations for infrastructure monitoring
+- Kubernetes: Services, Endpoints, Ingresses collection
+- Timezone-aware metric rollup cascade: raw -> 1m -> 1h -> 1d
+
+#### Collector Enhancements (TFO-Collector v1.2.1)
+
+- OCB-native build (no excessive customization)
+- OTEL Core v1.58.0, Contrib v0.152.0
+- Custom extensions: tfootlp (OTLP processor), tfo (platform connector), tfoauth (API key auth), tfoidentity (tenant identity)
+
+#### Security
+
+- Dual API Key format: `tfk-live-*` (key ID) + `tfs-secret-*` (key secret)
+- Argon2id hashing for API key secrets (replacing bcrypt)
+- tfoauth extension for API key management and validation
+- tfoidentity extension for tenant identity resolution
+
+### Changed
+
+- ClickHouse database name: `telemetry` -> `telemetryflow_db`
+- Backend port: 3100 -> 3000
+- NestJS version: 10.x -> 11.x
+- Cache strategy: Redis DB 0, prefix `tf:cache:`, L1 In-Memory (60s) + L2 Redis (1800s)
+- BullMQ queues on Redis DB 1: otlp-ingestion(10), domain-events(5), telemetry-processing(10), alerts(5), notifications(3), reports(3)
+- Repository name: `telemetryflow-platform` -> `telemetryflow-platform-monolith`
+- Security contact emails: `security@telemetryflow.id`, `support@telemetryflow.id`
+
+---
 
 ## [1.1.2] - 2026-01-09
 
@@ -243,6 +322,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Versioning
 
 This documentation repository follows semantic versioning:
+
 - **Major (X.0.0)**: Significant restructuring or new major sections
 - **Minor (0.X.0)**: New documentation files or substantial updates
 - **Patch (0.0.X)**: Corrections, clarifications, and minor updates
@@ -259,20 +339,20 @@ See [SECURITY.md](SECURITY.md) for security policy and vulnerability reporting.
 
 ## Release Information
 
-- **Current Version**: 1.1.2-CE
-- **Release Date**: January 9th, 2026
+- **Current Version**: 1.4.0
+- **Release Date**: May 14th, 2026
 - **Status**: Production Documentation
 - **License**: Apache-2.0
 
 ## Related Repositories
 
-| Repository                                                                          | Description                    |
-| ----------------------------------------------------------------------------------- | ------------------------------ |
-| [telemetryflow-platform](https://github.com/telemetryflow/telemetryflow-platform)   | Main platform implementation   |
-| [telemetryflow-collector](https://github.com/telemetryflow/telemetryflow-collector) | OpenTelemetry collector (Go)   |
-| [telemetryflow-agent](https://github.com/telemetryflow/telemetryflow-agent)         | Telemetry agent (Go)           |
-| [telemetryflow-go-sdk](https://github.com/telemetryflow/telemetryflow-go-sdk)       | Go SDK for telemetry           |
-| [order-service](https://github.com/telemetryflow/order-service)                     | Example microservice           |
+| Repository                                                                                          | Description                  |
+| --------------------------------------------------------------------------------------------------- | ---------------------------- |
+| [telemetryflow-platform-monolith](https://github.com/telemetryflow/telemetryflow-platform-monolith) | Main platform implementation |
+| [telemetryflow-collector](https://github.com/telemetryflow/telemetryflow-collector)                 | OpenTelemetry collector (Go) |
+| [telemetryflow-agent](https://github.com/telemetryflow/telemetryflow-agent)                         | Telemetry agent (Go)         |
+| [telemetryflow-go-sdk](https://github.com/telemetryflow/telemetryflow-go-sdk)                       | Go SDK for telemetry         |
+| [order-service](https://github.com/telemetryflow/order-service)                                     | Example microservice         |
 
 ## Contributors
 
@@ -280,8 +360,8 @@ See [SECURITY.md](SECURITY.md) for security policy and vulnerability reporting.
 
 ## Acknowledgments
 
-Documentation for [TelemetryFlow Platform](https://github.com/telemetryflow/telemetryflow-platform) - Enterprise Telemetry & Observability Platform.
+Documentation for [TelemetryFlow Platform](https://github.com/telemetryflow/telemetryflow-platform-monolith) - Enterprise Telemetry & Observability Platform.
 
 ---
 
-Built with love by DevOpsCorner Indonesia
+Built with love by the TelemetryFlow Team

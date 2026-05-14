@@ -1,6 +1,6 @@
 # Production Deployment Checklist
 
-- **Version**: 1.1.2-CE
+- **Version**: 1.4.0
 - **Target**: Production Environment
 - **Status**: ✅ Ready for Production
 
@@ -124,9 +124,10 @@ NATS Server:
 External (Public):
   443: HTTPS API/Frontend
   4317: OTLP gRPC (telemetry ingestion)
+  4318: OTLP HTTP (telemetry ingestion, v1/v2 dual)
 
 Internal (Private Network Only):
-  3100: Backend API
+  3000: Backend API
   3101: Frontend (Nginx)
   5432: PostgreSQL
   8123: ClickHouse HTTP
@@ -171,6 +172,7 @@ Internal (Private Network Only):
 ### Database Security
 
 **PostgreSQL:**
+
 - [ ] Password authentication required
 - [ ] SSL/TLS encryption enabled
 - [ ] Row-level security (RLS) enabled for multi-tenancy
@@ -180,6 +182,7 @@ Internal (Private Network Only):
 - [ ] Regular security patches applied
 
 **ClickHouse:**
+
 - [ ] User authentication configured (not default user)
 - [ ] Network access restricted to private network
 - [ ] SSL/TLS encryption enabled
@@ -188,6 +191,7 @@ Internal (Private Network Only):
 - [ ] Backup encryption enabled
 
 **Redis:**
+
 - [ ] Password authentication required (requirepass)
 - [ ] Rename dangerous commands (FLUSHALL, FLUSHDB, CONFIG)
 - [ ] Network access restricted to private network
@@ -218,6 +222,7 @@ echo ".env.production" >> .gitignore
 ```
 
 **Recommended Secrets Management Tools:**
+
 - [ ] HashiCorp Vault (recommended for enterprise)
 - [ ] AWS Secrets Manager
 - [ ] Azure Key Vault
@@ -324,6 +329,7 @@ CREATE POLICY tenant_isolation ON dashboard_templates
 ```
 
 **PostgreSQL Checklist:**
+
 - [ ] PostgreSQL 15+ installed
 - [ ] Database created
 - [ ] User created with secure password
@@ -380,10 +386,10 @@ sudo service clickhouse-server start
 
 ```sql
 -- Create database
-CREATE DATABASE telemetryflow;
+CREATE DATABASE telemetryflow_db;
 
 -- Metrics table
-CREATE TABLE telemetryflow.telemetry_metrics (
+CREATE TABLE telemetryflow_db.telemetry_metrics (
   timestamp DateTime64(3) CODEC(Delta, ZSTD),
   metric_name LowCardinality(String),
   metric_id UUID,
@@ -406,7 +412,7 @@ TTL timestamp + INTERVAL 90 DAY
 SETTINGS index_granularity = 8192;
 
 -- Logs table
-CREATE TABLE telemetryflow.telemetry_logs (
+CREATE TABLE telemetryflow_db.telemetry_logs (
   timestamp DateTime64(3) CODEC(Delta, ZSTD),
   trace_id String,
   span_id String,
@@ -425,7 +431,7 @@ TTL timestamp + INTERVAL 90 DAY
 SETTINGS index_granularity = 8192;
 
 -- Traces table
-CREATE TABLE telemetryflow.telemetry_traces (
+CREATE TABLE telemetryflow_db.telemetry_traces (
   timestamp DateTime64(3) CODEC(Delta, ZSTD),
   trace_id String,
   span_id String,
@@ -451,7 +457,7 @@ SETTINGS index_granularity = 8192;
 
 ```sql
 -- Metrics aggregation (1-minute granularity)
-CREATE MATERIALIZED VIEW telemetryflow.metrics_1m
+CREATE MATERIALIZED VIEW telemetryflow_db.metrics_1m
 ENGINE = SummingMergeTree()
 PARTITION BY toYYYYMM(timestamp)
 ORDER BY (tenant_id, metric_name, toStartOfMinute(timestamp))
@@ -463,11 +469,11 @@ AS SELECT
   max(value) as value_max,
   min(value) as value_min,
   count() as count
-FROM telemetryflow.telemetry_metrics
+FROM telemetryflow_db.telemetry_metrics
 GROUP BY tenant_id, metric_name, toStartOfMinute(timestamp);
 
 -- Metrics aggregation (1-hour granularity)
-CREATE MATERIALIZED VIEW telemetryflow.metrics_1h
+CREATE MATERIALIZED VIEW telemetryflow_db.metrics_1h
 ENGINE = SummingMergeTree()
 PARTITION BY toYYYYMM(timestamp)
 ORDER BY (tenant_id, metric_name, toStartOfHour(timestamp))
@@ -479,11 +485,12 @@ AS SELECT
   max(value) as value_max,
   min(value) as value_min,
   count() as count
-FROM telemetryflow.telemetry_metrics
+FROM telemetryflow_db.telemetry_metrics
 GROUP BY tenant_id, metric_name, toStartOfHour(timestamp);
 ```
 
 **ClickHouse Checklist:**
+
 - [ ] ClickHouse 23+ installed
 - [ ] Database created
 - [ ] Tables created with proper codecs
@@ -509,12 +516,12 @@ GROUP BY tenant_id, metric_name, toStartOfHour(timestamp);
 # Application
 NODE_ENV=production
 APP_NAME=TelemetryFlow
-APP_VERSION=1.1.2-CE
+APP_VERSION=1.4.0
 API_BASE_URL=https://api.telemetryflow.id
 FRONTEND_URL=https://app.telemetryflow.id
 
 # Server
-BACKEND_PORT=3100
+BACKEND_PORT=3000
 FRONTEND_PORT=80
 
 # Security (CRITICAL: Generate new secrets!)
@@ -544,7 +551,7 @@ POSTGRES_POOL_MAX=50
 CLICKHOUSE_HOST=http://clickhouse.internal.telemetryflow.id:8123
 CLICKHOUSE_USER=telemetryflow_user
 CLICKHOUSE_PASSWORD=<secure-clickhouse-password>
-CLICKHOUSE_DATABASE=telemetryflow
+CLICKHOUSE_DATABASE=telemetryflow_db
 CLICKHOUSE_MAX_INSERT_BLOCK_SIZE=1048576
 CLICKHOUSE_ASYNC_INSERT=1
 CLICKHOUSE_WAIT_FOR_ASYNC_INSERT=0
@@ -612,6 +619,7 @@ BACKUP_S3_SECRET_KEY=<aws-secret-key>
 ```
 
 **Configuration Checklist:**
+
 - [ ] All environment variables set
 - [ ] All secrets generated and secured
 - [ ] Database credentials configured
@@ -689,6 +697,7 @@ curl https://api.telemetryflow.id/health
 ### Database Monitoring
 
 **PostgreSQL:**
+
 - [ ] Connection pool monitoring
 - [ ] Query performance tracking (pg_stat_statements)
 - [ ] Slow query logging enabled
@@ -697,6 +706,7 @@ curl https://api.telemetryflow.id/health
 - [ ] Backup success monitoring
 
 **ClickHouse:**
+
 - [ ] Query execution time monitoring
 - [ ] Insert rate monitoring
 - [ ] Disk usage per table
@@ -705,6 +715,7 @@ curl https://api.telemetryflow.id/health
 - [ ] Part count monitoring
 
 **Redis:**
+
 - [ ] Memory usage monitoring
 - [ ] Cache hit ratio tracking
 - [ ] Connection count monitoring
@@ -768,6 +779,7 @@ archive_command = 'test ! -f /backups/wal_archive/%f && cp %p /backups/wal_archi
 ```
 
 **PostgreSQL Backup Checklist:**
+
 - [ ] Daily full backups scheduled
 - [ ] WAL archiving enabled
 - [ ] Backups stored off-site (S3/Azure/GCS)
@@ -788,9 +800,9 @@ BACKUP_DIR="/backups/clickhouse"
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 
 # Freeze tables (creates hardlinks)
-clickhouse-client -q "ALTER TABLE telemetryflow.telemetry_metrics FREEZE"
-clickhouse-client -q "ALTER TABLE telemetryflow.telemetry_logs FREEZE"
-clickhouse-client -q "ALTER TABLE telemetryflow.telemetry_traces FREEZE"
+clickhouse-client -q "ALTER TABLE telemetryflow_db.telemetry_metrics FREEZE"
+clickhouse-client -q "ALTER TABLE telemetryflow_db.telemetry_logs FREEZE"
+clickhouse-client -q "ALTER TABLE telemetryflow_db.telemetry_traces FREEZE"
 
 # Copy frozen data
 tar -czf $BACKUP_DIR/clickhouse_$TIMESTAMP.tar.gz \
@@ -808,6 +820,7 @@ find $BACKUP_DIR -type f -mtime +30 -delete
 ```
 
 **ClickHouse Backup Checklist:**
+
 - [ ] Daily backups scheduled
 - [ ] Backups stored off-site
 - [ ] Backup encryption enabled
@@ -820,6 +833,7 @@ find $BACKUP_DIR -type f -mtime +30 -delete
 **Recovery Point Objective (RPO):** 24 hours
 
 **DR Checklist:**
+
 - [ ] DR site identified and configured
 - [ ] Database replication configured (optional)
 - [ ] Backup restore procedures documented
@@ -872,6 +886,7 @@ PM2_INSTANCES=4
 - [ ] Cache monitoring (hit ratio > 80%)
 
 **Backend Optimization Checklist:**
+
 - [ ] Cluster mode enabled (multiple workers)
 - [ ] Connection pooling optimized
 - [ ] Multi-level caching implemented
@@ -882,6 +897,7 @@ PM2_INSTANCES=4
 ### Database Optimization
 
 **PostgreSQL:**
+
 - [ ] Indexes created on frequently queried columns
 - [ ] Query optimization (EXPLAIN ANALYZE)
 - [ ] Vacuum and analyze scheduled
@@ -890,6 +906,7 @@ PM2_INSTANCES=4
 - [ ] Pagination implemented for large result sets
 
 **ClickHouse:**
+
 - [ ] Partitioning by time (monthly)
 - [ ] Proper ordering key (tenant_id, metric_name, timestamp)
 - [ ] Compression codecs (Delta, ZSTD, Gorilla)
@@ -899,6 +916,7 @@ PM2_INSTANCES=4
 - [ ] Batch inserts (10,000+ rows)
 
 **Redis:**
+
 - [ ] Memory eviction policy configured (allkeys-lru)
 - [ ] Maximum memory limit set
 - [ ] Persistence configured (AOF + RDB)
@@ -920,7 +938,7 @@ PM2_INSTANCES=4
 
 ```bash
 # Test API endpoint (100 concurrent, 10000 requests)
-ab -n 10000 -c 100 https://api.telemetryflow.id/api/v1/metrics
+ab -n 10000 -c 100 https://api.telemetryflow.id/api/v2/metrics
 
 # Expected results:
 # - Requests per second: > 1000
@@ -929,6 +947,7 @@ ab -n 10000 -c 100 https://api.telemetryflow.id/api/v1/metrics
 ```
 
 **Load Testing Checklist:**
+
 - [ ] API load testing completed
 - [ ] OTLP ingestion load testing completed
 - [ ] Database query performance tested
@@ -1011,6 +1030,7 @@ kubectl logs -f deployment/backend
 ```
 
 **Deployment Checklist:**
+
 - [ ] Code pulled from version control
 - [ ] Docker images pulled
 - [ ] Database migrations run
@@ -1039,6 +1059,7 @@ services:
 ```
 
 **Zero-Downtime Checklist:**
+
 - [ ] Multiple replicas running (min 2)
 - [ ] Load balancer configured
 - [ ] Health checks configured
@@ -1063,8 +1084,8 @@ curl https://api.telemetryflow.id/health
 curl https://app.telemetryflow.id
 # Expected: 200 OK
 
-# OTLP ingestion
-curl https://api.telemetryflow.id:4317
+# OTLP ingestion (TFO Collector - dual v1/v2 endpoints)
+curl https://api.telemetryflow.id:4318
 # Expected: Connection accepted
 ```
 
@@ -1072,7 +1093,7 @@ curl https://api.telemetryflow.id:4317
 
 ```bash
 # Test authentication
-curl -X POST https://api.telemetryflow.id/api/v1/auth/login \
+curl -X POST https://api.telemetryflow.id/api/v2/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email":"admin@telemetryflow.id","password":"password"}'
 
@@ -1083,7 +1104,7 @@ curl -X POST https://api.telemetryflow.id/v1/metrics \
   -d '{"resourceMetrics":[...]}'
 
 # Test metrics query
-curl https://api.telemetryflow.id/api/v1/metrics?metric_name=cpu_usage \
+curl https://api.telemetryflow.id/api/v2/metrics?metric_name=cpu_usage \
   -H "Authorization: Bearer <token>"
 ```
 
@@ -1091,7 +1112,7 @@ curl https://api.telemetryflow.id/api/v1/metrics?metric_name=cpu_usage \
 
 ```bash
 # Check response times
-ab -n 100 -c 10 https://api.telemetryflow.id/api/v1/metrics
+ab -n 100 -c 10 https://api.telemetryflow.id/api/v2/metrics
 
 # Expected:
 # - Mean time per request: < 200ms
@@ -1112,13 +1133,14 @@ SELECT 'api_keys', COUNT(*) FROM api_keys;
 SELECT
   toStartOfHour(timestamp) as hour,
   COUNT(*) as metric_count
-FROM telemetry_metrics
+FROM telemetryflow_db.telemetry_metrics
 WHERE timestamp > now() - INTERVAL 1 HOUR
 GROUP BY hour
 ORDER BY hour DESC;
 ```
 
 **Post-Deployment Checklist:**
+
 - [ ] All health checks passing
 - [ ] Authentication working
 - [ ] OTLP ingestion working
@@ -1158,6 +1180,7 @@ ORDER BY hour DESC;
 ### When to Rollback
 
 Initiate rollback if:
+
 - Critical bugs discovered affecting core functionality
 - Data corruption detected
 - Performance degradation > 50%
@@ -1222,6 +1245,7 @@ tar -xzf /backups/clickhouse/clickhouse_20251212_100000.tar.gz \
 ```
 
 **Rollback Checklist:**
+
 - [ ] Rollback decision made by authorized person
 - [ ] Users notified of rollback
 - [ ] Services rolled back to previous version
@@ -1238,6 +1262,7 @@ tar -xzf /backups/clickhouse/clickhouse_20251212_100000.tar.gz \
 ### Daily Operations
 
 **Morning Checklist:**
+
 - [ ] Check health dashboard
 - [ ] Review error logs
 - [ ] Check disk space
@@ -1246,6 +1271,7 @@ tar -xzf /backups/clickhouse/clickhouse_20251212_100000.tar.gz \
 - [ ] Check for security alerts
 
 **Weekly Operations:**
+
 - [ ] Review slow query logs
 - [ ] Analyze application performance trends
 - [ ] Check SSL certificate expiration
@@ -1254,6 +1280,7 @@ tar -xzf /backups/clickhouse/clickhouse_20251212_100000.tar.gz \
 - [ ] Review and rotate access logs
 
 **Monthly Operations:**
+
 - [ ] Database vacuum and analyze (PostgreSQL)
 - [ ] Review and optimize ClickHouse partitions
 - [ ] Test disaster recovery procedures
@@ -1282,10 +1309,10 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '4'
+          cpus: "4"
           memory: 16G
         reservations:
-          cpus: '2'
+          cpus: "2"
           memory: 8G
 ```
 
@@ -1304,6 +1331,7 @@ SELECT pg_reload_conf();
 ### Troubleshooting
 
 **High CPU Usage:**
+
 ```bash
 # Check processes
 docker-compose top
@@ -1323,6 +1351,7 @@ ORDER BY elapsed DESC;
 ```
 
 **High Memory Usage:**
+
 ```bash
 # Check memory usage
 docker stats
@@ -1333,6 +1362,7 @@ redis-cli FLUSHDB
 ```
 
 **Connection Issues:**
+
 ```bash
 # Test database connectivity
 docker-compose exec backend npx typeorm query "SELECT 1"
@@ -1345,6 +1375,7 @@ docker-compose exec backend curl http://clickhouse:8123/ping
 ```
 
 **Disk Space Issues:**
+
 ```bash
 # Check disk usage
 df -h
@@ -1363,14 +1394,15 @@ find /var/log/telemetryflow -type f -mtime +7 -delete
 
 **Incident Severity Levels:**
 
-| Severity | Description | Response Time | Example |
-|----------|-------------|---------------|---------|
-| **P0 - Critical** | Complete outage | < 15 minutes | Database down |
-| **P1 - High** | Major feature broken | < 1 hour | OTLP ingestion failing |
-| **P2 - Medium** | Degraded performance | < 4 hours | Slow API responses |
-| **P3 - Low** | Minor issue | < 24 hours | UI bug |
+| Severity          | Description          | Response Time | Example                |
+| ----------------- | -------------------- | ------------- | ---------------------- |
+| **P0 - Critical** | Complete outage      | < 15 minutes  | Database down          |
+| **P1 - High**     | Major feature broken | < 1 hour      | OTLP ingestion failing |
+| **P2 - Medium**   | Degraded performance | < 4 hours     | Slow API responses     |
+| **P3 - Low**      | Minor issue          | < 24 hours    | UI bug                 |
 
 **Incident Response Checklist:**
+
 - [ ] Incident detected and classified
 - [ ] On-call engineer notified
 - [ ] Incident channel created (Slack/Teams)
@@ -1454,18 +1486,21 @@ docker volume prune
 ### Compliance Requirements
 
 **SOC 2:**
+
 - [ ] Audit logging enabled for all access
 - [ ] Data encryption at rest and in transit
 - [ ] Access controls implemented
 - [ ] Incident response procedures documented
 
 **ISO 27001:**
+
 - [ ] Information security policy documented
 - [ ] Risk assessment completed
 - [ ] Security controls implemented
 - [ ] Regular security audits conducted
 
 **GDPR:**
+
 - [ ] Data processing agreements in place
 - [ ] User consent management implemented
 - [ ] Data retention policies configured
@@ -1475,6 +1510,7 @@ docker volume prune
 ### Audit Logging
 
 **Events to Log:**
+
 - Authentication attempts (success/failure)
 - Authorization failures
 - Data access (sensitive data)
@@ -1484,6 +1520,7 @@ docker volume prune
 - Data exports
 
 **Audit Log Retention:**
+
 - Authentication logs: 90 days
 - Access logs: 90 days
 - Audit logs: 365 days
@@ -1494,6 +1531,7 @@ docker volume prune
 ## Final Production Checklist
 
 ### Infrastructure ✅
+
 - [ ] Servers provisioned and secured
 - [ ] Firewall configured
 - [ ] SSL/TLS certificates installed
@@ -1502,6 +1540,7 @@ docker volume prune
 - [ ] Backup storage configured
 
 ### Security ✅
+
 - [ ] All secrets generated and secured
 - [ ] SSH key-based authentication only
 - [ ] Fail2ban configured
@@ -1511,6 +1550,7 @@ docker volume prune
 - [ ] CORS configured
 
 ### Database ✅
+
 - [ ] PostgreSQL 15+ installed and configured
 - [ ] ClickHouse 23+ installed and configured
 - [ ] Redis 7+ installed and configured
@@ -1519,6 +1559,7 @@ docker volume prune
 - [ ] Backups configured and tested
 
 ### Application ✅
+
 - [ ] Backend deployed and running
 - [ ] Frontend deployed and running
 - [ ] Environment variables configured
@@ -1527,6 +1568,7 @@ docker volume prune
 - [ ] OTLP ingestion working
 
 ### Monitoring ✅
+
 - [ ] Prometheus scraping metrics
 - [ ] Grafana dashboards configured
 - [ ] Alerts configured
@@ -1535,12 +1577,14 @@ docker volume prune
 - [ ] APM configured
 
 ### Backup & DR ✅
+
 - [ ] Automated backups configured
 - [ ] Backups tested and verified
 - [ ] DR plan documented
 - [ ] DR drills conducted
 
 ### Documentation ✅
+
 - [ ] Deployment procedures documented
 - [ ] Runbooks created
 - [ ] Architecture documented
@@ -1548,6 +1592,7 @@ docker volume prune
 - [ ] User guides available
 
 ### Compliance ✅
+
 - [ ] Audit logging enabled
 - [ ] Data retention policies configured
 - [ ] Privacy policy published
@@ -1559,12 +1604,12 @@ docker volume prune
 
 ### Emergency Contacts
 
-| Role | Contact | Phone | Email |
-|------|---------|-------|-------|
-| **DevOps Lead** | John Doe | +1-555-0001 | john@telemetryflow.id |
-| **Backend Lead** | Jane Smith | +1-555-0002 | jane@telemetryflow.id |
-| **Database Admin** | Bob Johnson | +1-555-0003 | bob@telemetryflow.id |
-| **Security Lead** | Alice Brown | +1-555-0004 | alice@telemetryflow.id |
+| Role               | Contact     | Phone       | Email                  |
+| ------------------ | ----------- | ----------- | ---------------------- |
+| **DevOps Lead**    | John Doe    | +1-555-0001 | john@telemetryflow.id  |
+| **Backend Lead**   | Jane Smith  | +1-555-0002 | jane@telemetryflow.id  |
+| **Database Admin** | Bob Johnson | +1-555-0003 | bob@telemetryflow.id   |
+| **Security Lead**  | Alice Brown | +1-555-0004 | alice@telemetryflow.id |
 
 ### Escalation Path
 
@@ -1594,13 +1639,14 @@ docker volume prune
 
 ## Changelog
 
-| Date | Version | Changes |
-|------|---------|---------|
-| 2025-12-12 | 1.1.2-CE | Initial production checklist |
+| Date       | Version | Changes                                                                                       |
+| ---------- | ------- | --------------------------------------------------------------------------------------------- |
+| 2025-12-12 | 1.4.0   | Initial production checklist                                                                  |
+| 2026-05-14 | 1.4.0   | Updated for v1.4.0: DB monitoring, QAN, TFO collector, port 3000, ClickHouse telemetryflow_db |
 
 ---
 
 **Document Status:** ✅ Production Ready
-**Last Updated:** January 01st, 2026
+**Last Updated:** May 14, 2026
 **Maintained By:** DevOpsCorner Indonesia
 **Review Cycle:** Quarterly

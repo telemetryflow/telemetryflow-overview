@@ -1,8 +1,8 @@
 # Database Schema Documentation
 
-- **Version:** 1.1.2-CE
-- **Last Updated:** January 01st, 2026
-- **Status:** ✅ Production Ready
+- **Version:** 1.4.0
+- **Last Updated:** May 2026
+- **Status:** Production Ready
 
 ---
 
@@ -20,10 +20,14 @@
 ## Overview
 
 TelemetryFlow uses a **dual-database architecture**:
-- **PostgreSQL**: ACID-compliant relational data (metadata, configuration)
-- **ClickHouse**: Columnar time-series data (metrics, logs, traces)
+
+- **PostgreSQL**: ACID-compliant relational data (metadata, configuration, IAM, subscriptions)
+- **ClickHouse**: Columnar time-series data (metrics, logs, traces, audit) — database: `telemetryflow_db`
+
+All ClickHouse tables MUST use `${database}.tablename` prefix in migrations.
 
 **Total Tables:**
+
 - PostgreSQL: 30+ tables
 - ClickHouse: 10+ tables
 
@@ -474,10 +478,14 @@ erDiagram
 
 ### Metrics Storage (400-telemetry)
 
+> All ClickHouse tables use the `${database}.tablename` prefix (database: `telemetryflow_db`).
+> Rollup cascade: raw -> 1m -> 1h -> 1d. TTL: 90d (metrics), 7d (exemplars).
+
 ```mermaid
 erDiagram
-    METRICS_V3 ||--o{ METRICS_V3_HOURLY : aggregates_to
-    METRICS_V3_HOURLY ||--o{ METRICS_V3_DAILY : aggregates_to
+    METRICS_V3 ||--o{ METRICS_V3_1M : aggregates_to
+    METRICS_V3_1M ||--o{ METRICS_V3_1H : aggregates_to
+    METRICS_V3_1H ||--o{ METRICS_V3_1D : aggregates_to
     METRICS_V3 ||--o{ EXEMPLARS_V3 : correlates_with
 
     METRICS_V3 {
@@ -503,7 +511,20 @@ erDiagram
         Map_String_String exemplar_attributes
     }
 
-    METRICS_V3_HOURLY {
+    METRICS_V3_1M {
+        DateTime minute
+        String metric_name
+        String service_name
+        String workspace_id
+        String tenant_id
+        Float64 sum_value
+        Float64 avg_value
+        Float64 min_value
+        Float64 max_value
+        UInt64 count
+    }
+
+    METRICS_V3_1H {
         DateTime hour
         String metric_name
         String service_name
@@ -516,7 +537,7 @@ erDiagram
         UInt64 count
     }
 
-    METRICS_V3_DAILY {
+    METRICS_V3_1D {
         Date date
         String metric_name
         String service_name
@@ -777,6 +798,7 @@ graph TD
 ```
 
 **Key Indexes:**
+
 - `users(email)` - Unique, for login
 - `users(organization_id, is_active)` - Composite, for org users
 - `users(tenant_id, deleted_at)` - Partial, for active tenant users
@@ -804,17 +826,20 @@ graph TD
 **Key Indexes:**
 
 **metrics_v3:**
+
 - Bloom Filter: `tenant_id`, `workspace_id`, `organization_id`, `service_name`, `metric_name`
 - MinMax: `timestamp`, `value`
 - Set: `metric_type`, `temporality`
 - Materialized: `date = toDate(timestamp)`, `hour = toStartOfHour(timestamp)`
 
 **logs_v3:**
+
 - Bloom Filter: `tenant_id`, `workspace_id`, `service_name`, `trace_id`, `body`
 - MinMax: `timestamp`, `severity_number`
 - Set: `severity_text`
 
 **traces_v3:**
+
 - Bloom Filter: `tenant_id`, `workspace_id`, `service_name`, `trace_id`, `span_id`, `parent_span_id`
 - MinMax: `timestamp`, `duration_nano`
 - Set: `span_kind`, `status_code`
@@ -847,11 +872,32 @@ sequenceDiagram
 ```
 
 **Migration Files:**
+
 - Location: `backend/src/database/postgres/migrations/`
 - Naming: `{timestamp}-{description}.ts`
 - Example: `1704240000106-create-users-table.ts`
 
+**Migration ID Ranges (by module):**
+
+| Module                  | ID Range | Examples                           |
+| ----------------------- | -------- | ---------------------------------- |
+| IAM                     | `1700*`  | Core users, roles, permissions     |
+| Auth                    | `1706*`  | Sessions, MFA, tokens              |
+| Notification            | `1707*`  | Notification groups, channels      |
+| API-Keys                | `1708*`  | API keys, permissions, usage logs  |
+| Audit/SSO               | `1709*`  | Audit logs, SSO providers          |
+| Dashboard/Alerting      | `1710*`  | Dashboards, widgets, alert rules   |
+| Monitoring              | `1711*`  | Agents, uptime monitors            |
+| Tenancy                 | `1715*`  | Regions, organizations, workspaces |
+| Retention               | `1717*`  | Retention policies                 |
+| Subscription            | `1718*`  | Plans, billing                     |
+| Uptime                  | `1719*`  | Uptime checks, status              |
+| Status-Page/Service-Map | `1720*`  | Status pages, service map          |
+| LLM/Network-Map         | `1721*`  | LLM integration, network map       |
+| Reporting               | `1722*`  | Reports, scheduled reports         |
+
 **Best Practices:**
+
 - Always test migrations on dev environment first
 - Use transactions for atomicity
 - Include both `up()` and `down()` methods
@@ -881,16 +927,21 @@ sequenceDiagram
 ```
 
 **Migration Files:**
+
 - Location: `backend/src/modules/400-telemetry/infrastructure/persistence/clickhouse/migrations/`
 - Naming: `{sequence}-{description}.ts`
 - Example: `001-create-metrics-table.ts`, `002-query-optimization.ts`
 
 **Best Practices:**
+
+- **CRITICAL**: All migrations MUST use `${database}.tablename` prefix (e.g., `CREATE TABLE ${database}.metrics_v3`)
 - ClickHouse doesn't support transactions - migrations are not atomic
 - Use `IF NOT EXISTS` for idempotency
 - Test with EXPLAIN for performance
 - Add indexes incrementally (don't block writes)
 - Use materialized views for pre-aggregation
+- Rollup cascade: raw -> 1m -> 1h -> 1d (metrics), raw -> 1h -> daily (logs/traces/uptime)
+- TTL: 7d (exemplars) -> 30d (logs/traces) -> 90d (metrics/audit/uptime)
 
 ---
 
@@ -917,26 +968,32 @@ stateDiagram-v2
     [*] --> Ingested: INSERT
     Ingested --> Buffered: Async Insert Buffer
     Buffered --> Stored: Merge (every 15s)
-    Stored --> Aggregated: Hourly Job
-    Aggregated --> Aggregated: Daily Job
-    Stored --> Expired: TTL (30-90 days)
-    Expired --> [*]: ALTER TABLE DELETE
+    Stored --> Aggregated_1m: 1-minute MV (metrics only)
+    Aggregated_1m --> Aggregated_1h: Hourly MV (metrics)
+    Stored --> Aggregated_1h_alt: Hourly MV (logs/traces/uptime)
+    Aggregated_1h --> Aggregated_1d: Daily MV
+    Aggregated_1h_alt --> Aggregated_1d
+    Stored --> Expired: TTL
+    Aggregated_1d --> Expired: TTL
+
+    note right of Stored: TTL: 7d (exemplars), 30d (logs/traces), 90d (metrics/audit/uptime)
+    Expired --> [*]: Automatic cleanup
 ```
 
 ---
 
 ## Performance Characteristics
 
-| Database | Operation | Latency | Throughput |
-|----------|-----------|---------|------------|
-| **PostgreSQL** | Single INSERT | 1-5ms | 10k/sec |
-| **PostgreSQL** | Batch INSERT (100) | 10-20ms | 50k/sec |
-| **PostgreSQL** | Simple SELECT | 1-10ms | 100k/sec |
-| **PostgreSQL** | JOIN SELECT | 10-100ms | 10k/sec |
-| **ClickHouse** | Single INSERT | 1ms | 1M/sec |
-| **ClickHouse** | Batch INSERT (10k) | 50-100ms | 10M/sec |
-| **ClickHouse** | Time-range SELECT | 10-50ms | 1GB/sec |
-| **ClickHouse** | Aggregation Query | 50-500ms | 500MB/sec |
+| Database       | Operation          | Latency  | Throughput |
+| -------------- | ------------------ | -------- | ---------- |
+| **PostgreSQL** | Single INSERT      | 1-5ms    | 10k/sec    |
+| **PostgreSQL** | Batch INSERT (100) | 10-20ms  | 50k/sec    |
+| **PostgreSQL** | Simple SELECT      | 1-10ms   | 100k/sec   |
+| **PostgreSQL** | JOIN SELECT        | 10-100ms | 10k/sec    |
+| **ClickHouse** | Single INSERT      | 1ms      | 1M/sec     |
+| **ClickHouse** | Batch INSERT (10k) | 50-100ms | 10M/sec    |
+| **ClickHouse** | Time-range SELECT  | 10-50ms  | 1GB/sec    |
+| **ClickHouse** | Aggregation Query  | 50-500ms | 500MB/sec  |
 
 ---
 
@@ -981,5 +1038,5 @@ graph LR
 
 ---
 
-- **Last Updated:** January 01st, 2026
+- **Last Updated:** May 2026
 - **Maintained By:** DevOpsCorner Indonesia

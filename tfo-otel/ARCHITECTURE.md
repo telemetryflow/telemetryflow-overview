@@ -1,8 +1,8 @@
 # TFO-OTEL Architecture
 
-- **Version:** 1.1.2-CE
-- **Last Updated:** December 13, 2025
-- **Status:** ✅ Production Ready
+- **Version:** 1.4.0
+- **Last Updated:** May 2026
+- **Status:** Production Ready
 
 ---
 
@@ -26,7 +26,7 @@ The TelemetryFlow OTEL Architecture provides a robust, scalable, and multi-tenan
 ### Design Principles
 
 1. **Standard Compliance:** 100% OpenTelemetry Protocol (OTLP) compatibility
-2. **Multi-Tenancy:** Built-in workspace and tenant isolation
+2. **Multi-Tenancy:** Built-in workspace and tenant isolation via tfoauth
 3. **High Availability:** Stateless, horizontally scalable design
 4. **Performance:** Optimized for high-throughput, low-latency operation
 5. **Flexibility:** Pluggable receivers, processors, and exporters
@@ -46,52 +46,48 @@ graph TB
             APP3[Python App<br/>OTEL SDK]
         end
 
-        subgraph "Infrastructure"
-            NODE[node-exporter<br/>Prometheus]
-            K8S[kube-state-metrics<br/>Prometheus]
-            DB[postgres-exporter<br/>Prometheus]
+        subgraph "Infrastructure (TFO-Agent)"
+            NODE[Node Exporter<br/>CPU, Memory, Disk, Network]
+            K8S[Kubernetes<br/>Pods, Services, HPA]
+            CAD[cAdvisor / Docker<br/>32 per-container metrics]
+            DB[Databases<br/>9 Collectors]
+            EBPF[eBPF<br/>28 Kernel Metrics]
         end
 
-        subgraph "Logs"
-            SYSLOG[Syslog]
-            FLUENT[Fluentd/Fluent Bit]
-            WINSTON[Winston Logger]
+        subgraph "Integrations"
+            CLOUD[AWS / GCP / Azure]
+            APM[Datadog / Splunk]
+            NET[Cisco / SNMP / MQTT]
         end
     end
 
-    subgraph "Tier 2: Edge Collection (TFO-OTEL-Agent)"
+    subgraph "Tier 2: Edge Collection (TFO-Agent v1.2.0)"
         AGENT1[Agent - Host 1<br/>:4317, :4318]
         AGENT2[Agent - Host 2<br/>:4317, :4318]
         AGENT3[Agent - Host N<br/>:4317, :4318]
     end
 
-    subgraph "Tier 3: Aggregation (TFO-OTEL-Collector)"
+    subgraph "Tier 3: Aggregation (TFO-Collector v1.2.1)"
         LB[Load Balancer]
-        COLL1[Collector 1<br/>:4317, :4318]
-        COLL2[Collector 2<br/>:4317, :4318]
-        COLL3[Collector 3<br/>:4317, :4318]
+        COLL1[Collector 1<br/>tfootlp + tfo + tfoauth]
+        COLL2[Collector 2<br/>tfootlp + tfo + tfoauth]
+        COLL3[Collector 3<br/>tfootlp + tfo + tfoauth]
     end
 
-    subgraph "Tier 4: Backends"
-        TFO[TelemetryFlow Platform<br/>ClickHouse + PostgreSQL]
-        PROM[Prometheus<br/>Time Series DB]
-        LOKI[Grafana Loki<br/>Log Aggregation]
-        OS[OpenSearch<br/>Full-Text Search]
+    subgraph "Tier 4: Backend"
+        TFO[TelemetryFlow Platform v1.4.0<br/>NestJS + Vue 3<br/>:3000<br/>ClickHouse + PostgreSQL]
     end
 
     APP1 & APP2 & APP3 -->|OTLP| AGENT1
-    NODE & K8S & DB -->|Prometheus| AGENT2
-    SYSLOG & FLUENT & WINSTON -->|OTLP Logs| AGENT3
+    NODE & K8S & CAD & DB & EBPF -->|Native Collectors| AGENT2
+    CLOUD & APM & NET -->|Integrations| AGENT3
 
     AGENT1 & AGENT2 & AGENT3 -->|OTLP HTTP| LB
     LB --> COLL1
     LB --> COLL2
     LB --> COLL3
 
-    COLL1 & COLL2 & COLL3 -->|OTLP HTTP| TFO
-    COLL1 & COLL2 & COLL3 -->|Remote Write| PROM
-    COLL1 & COLL2 & COLL3 -->|Push API| LOKI
-    COLL1 & COLL2 & COLL3 -->|Bulk API| OS
+    COLL1 & COLL2 & COLL3 -->|tfo Exporter| TFO
 
     style AGENT1 fill:#FFE082,stroke:#F57C00,color:#000
     style AGENT2 fill:#FFE082,stroke:#F57C00,color:#000
@@ -106,117 +102,103 @@ graph TB
 
 ## Component Architecture
 
-### TFO-OTEL-Agent Architecture
+### TFO-Agent Architecture
 
 ```mermaid
 graph TB
-    subgraph "TFO-OTEL-Agent"
+    subgraph "TFO-Agent v1.2.0 (Go 1.26, OTEL SDK v1.43.0)"
+        subgraph "Native Collectors"
+            RC_SYS[System<br/>CPU, Memory, Disk, Network]
+            RC_NODE[Node Exporter<br/>130+ Metrics]
+            RC_K8S[Kubernetes<br/>Pods, Nodes, Services]
+            RC_CAD[cAdvisor<br/>32 Container Metrics]
+            RC_DOCKER[Docker<br/>Per-Container Stats]
+            RC_DB[Databases<br/>MySQL, PostgreSQL, MongoDB<br/>MSSQL, ClickHouse, etc.]
+            RC_EBPF[eBPF<br/>28 Kernel Metrics]
+        end
+
         subgraph "Receivers"
             R_OTLP[OTLP Receiver<br/>:4317, :4318]
-            R_PROM[Prometheus Receiver<br/>Scraper]
-            R_HOST[Host Metrics Receiver<br/>CPU, Memory, Disk]
         end
 
         subgraph "Processors"
-            P_BATCH[Batch Processor<br/>1000 items, 10s]
-            P_MEM[Memory Limiter<br/>512MB]
-            P_ATTR[Attributes Processor<br/>Add Context]
+            P_BATCH[Batch Processor<br/>8192 items, 200ms]
+            P_MEM[Memory Limiter<br/>80 Percent]
             P_RES[Resource Detection<br/>Host, Docker, K8s]
         end
 
-        subgraph "Exporters"
-            E_COLL[OTLP Exporter<br/>to Collector]
-            E_FILE[File Exporter<br/>Backup]
-            E_LOG[Logging Exporter<br/>Debug]
+        subgraph "Exporter"
+            E_OTLP[OTLP Exporter<br/>to Collector]
         end
 
-        subgraph "Extensions"
-            EXT_HEALTH[Health Check<br/>:13133]
-            EXT_PPROF[pprof<br/>:1777]
-            EXT_ZPAGE[zPages<br/>:55679]
+        subgraph "Buffer"
+            BUF[Disk-Backed Buffer<br/>Offline Resilience]
         end
     end
 
-    R_OTLP & R_PROM & R_HOST --> P_MEM
-    P_MEM --> P_RES
-    P_RES --> P_ATTR
-    P_ATTR --> P_BATCH
-    P_BATCH --> E_COLL
-    P_BATCH -.->|Fallback| E_FILE
-    P_BATCH -.->|Debug| E_LOG
+    RC_SYS & RC_NODE & RC_K8S & RC_CAD & RC_DOCKER & RC_DB & RC_EBPF --> P_MEM
+    R_OTLP --> P_MEM
+    P_MEM --> P_RES --> P_BATCH
+    P_BATCH --> E_OTLP
+    P_BATCH -.->|Fallback| BUF
 
     style R_OTLP fill:#E1F5FE
     style P_BATCH fill:#FFF9C4
-    style E_COLL fill:#C8E6C9
+    style E_OTLP fill:#C8E6C9
 ```
 
-### TFO-OTEL-Collector Architecture
+### TFO-Collector Architecture (OCB Native)
 
 ```mermaid
 graph TB
-    subgraph "TFO-OTEL-Collector"
-        subgraph "Receivers"
-            RC_OTLP[OTLP Receiver<br/>:4317, :4318]
-            RC_PROM[Prometheus Receiver<br/>Scraper]
-            RC_FLUENT[FluentForward Receiver<br/>:8006]
+    subgraph "TFO-Collector v1.2.1 (OCB Native, Core v1.58.0, Contrib v0.152.0)"
+        subgraph "TFO Receivers"
+            RC_TFOOTLP[tfootlp Receiver<br/>v1 + v2 :4318]
+            RC_GRPC[OTLP gRPC<br/>:4317]
+        end
+
+        subgraph "Processors - All Pipelines"
+            P_K8S[k8sattributes<br/>Pod, Namespace, Node]
+            P_BATCH[Batch Processor]
+            P_MEM[Memory Limiter<br/>2GB]
         end
 
         subgraph "Processors - Metrics Pipeline"
-            PM_BATCH[Batch Processor]
-            PM_MEM[Memory Limiter<br/>2GB]
-            PM_ATTR[Attributes Processor<br/>Workspace/Tenant]
-            PM_FILTER[Filter Processor<br/>Drop Internal]
-            PM_TRANS[Transform Processor<br/>Metric Rename]
+            PM_TRANSFORM[Transform<br/>OTTL Metric Rename]
         end
 
-        subgraph "Processors - Logs Pipeline"
-            PL_BATCH[Batch Processor]
-            PL_MEM[Memory Limiter]
-            PL_ATTR[Attributes Processor]
-            PL_PARSE[Log Parser<br/>JSON, Regex]
+        subgraph "TFO Extensions"
+            EXT_AUTH[tfoauth<br/>API Key Mgmt<br/>tfk-*/tfs-*]
+            EXT_ID[tfoidentity<br/>Collector Identity<br/>Resource Enrichment]
+            EXT_HEALTH[Health Check<br/>:13133]
         end
 
-        subgraph "Processors - Traces Pipeline"
-            PT_BATCH[Batch Processor]
-            PT_MEM[Memory Limiter]
-            PT_ATTR[Attributes Processor]
-            PT_SAMPLE[Tail Sampling<br/>10% rate]
-        end
-
-        subgraph "Exporters"
-            EM_TFO[OTLP/HTTP<br/>TelemetryFlow]
+        subgraph "TFO Exporters"
+            EM_TFO[tfo Exporter<br/>Auto Auth Injection]
             EM_PROM[Prometheus<br/>:8889]
-            EM_LOKI[Loki<br/>Push API]
-            EM_OS[OpenSearch<br/>Bulk API]
-            EM_LOG[Logging]
+        end
+
+        subgraph "Connectors"
+            CONN_SM[spanmetrics<br/>Exemplars]
+            CONN_SG[servicegraph<br/>Service Dependency]
         end
     end
 
-    RC_OTLP --> PM_BATCH
-    RC_PROM --> PM_BATCH
-    PM_BATCH --> PM_MEM --> PM_ATTR --> PM_FILTER --> PM_TRANS
-    PM_TRANS --> EM_TFO
-    PM_TRANS --> EM_PROM
-    PM_TRANS --> EM_LOG
+    RC_TFOOTLP --> P_K8S
+    RC_GRPC --> P_K8S
+    P_K8S --> PM_TRANSFORM
+    PM_TRANSFORM --> P_BATCH
+    P_BATCH --> EM_TFO
+    P_BATCH --> EM_PROM
+    P_BATCH --> CONN_SM
+    P_BATCH --> CONN_SG
 
-    RC_OTLP --> PL_BATCH
-    RC_FLUENT --> PL_BATCH
-    PL_BATCH --> PL_MEM --> PL_ATTR --> PL_PARSE
-    PL_PARSE --> EM_TFO
-    PL_PARSE --> EM_LOKI
-    PL_PARSE --> EM_OS
-    PL_PARSE --> EM_LOG
+    EXT_AUTH -.-> EM_TFO
+    EXT_ID -.-> P_K8S
 
-    RC_OTLP --> PT_BATCH
-    PT_BATCH --> PT_MEM --> PT_ATTR --> PT_SAMPLE
-    PT_SAMPLE --> EM_TFO
-    PT_SAMPLE --> EM_LOG
-
-    style RC_OTLP fill:#E1F5FE
-    style PM_BATCH fill:#FFF9C4
-    style PL_BATCH fill:#FFF9C4
-    style PT_BATCH fill:#FFF9C4
-    style EM_TFO fill:#C8E6C9
+    style RC_TFOOTLP fill:#FFE082
+    style EXT_AUTH fill:#CE93D8
+    style EM_TFO fill:#81C784
 ```
 
 ---
@@ -228,9 +210,9 @@ graph TB
 ```mermaid
 sequenceDiagram
     participant App as Application<br/>(OTEL SDK)
-    participant Agent as TFO-OTEL-Agent
-    participant Collector as TFO-OTEL-Collector
-    participant TFO as TelemetryFlow API
+    participant Agent as TFO-Agent v1.2.0
+    participant Collector as TFO-Collector v1.2.1
+    participant TFO as TelemetryFlow API<br/>:3000
     participant CH as ClickHouse
 
     Note over App: Generate Metrics
@@ -238,23 +220,25 @@ sequenceDiagram
     App->>App: Add Resource Attributes
 
     App->>Agent: OTLP/gRPC ExportMetricsServiceRequest
-    Note over Agent: Batch Processing (10s or 1000 items)
+    Note over Agent: Batch Processing (200ms or 8192 items)
     Agent->>Agent: Add Host Metadata
     Agent->>Agent: Add Workspace/Tenant IDs
 
     Agent->>Collector: OTLP/HTTP POST /v1/metrics
-    Note over Collector: Process & Enrich
-    Collector->>Collector: Filter Internal Metrics
-    Collector->>Collector: Transform Metric Names
-    Collector->>Collector: Validate Multi-Tenant Context
+    Note over Collector: tfootlp receives on v1/v2
+    Collector->>Collector: tfoauth: Resolve API Key
+    Collector->>Collector: tfoidentity: Enrich Resource
+    Collector->>Collector: k8sattributes: Add K8s Metadata
+    Collector->>Collector: transform: Rename Metrics
+    Collector->>Collector: batch: Batch for export
 
-    Collector->>TFO: OTLP/HTTP POST /api/v1/metrics<br/>Headers: X-Workspace-Id, X-Tenant-Id
+    Collector->>TFO: tfo Exporter: POST /api/v2/otlp/metrics<br/>Auto-injected auth headers
     TFO->>TFO: Validate Request
     TFO->>TFO: Extract Tenant Context
     TFO->>TFO: Transform OTLP → Internal Format
     TFO->>CH: INSERT INTO metrics_v3
     CH-->>TFO: Success
-    TFO-->>Collector: 200 OK
+    TFO-->>Collector: 202 Accepted
     Collector-->>Agent: 200 OK
     Agent-->>App: ExportMetricsServiceResponse
 ```
@@ -263,34 +247,28 @@ sequenceDiagram
 
 ```mermaid
 sequenceDiagram
-    participant Winston as Winston Logger
-    participant Agent as TFO-OTEL-Agent
-    participant Collector as TFO-OTEL-Collector
-    participant Loki as Grafana Loki
-    participant TFO as TelemetryFlow API
+    participant Logger as Application Logger
+    participant Agent as TFO-Agent v1.2.0
+    participant Collector as TFO-Collector v1.2.1
+    participant TFO as TelemetryFlow API<br/>:3000
+    participant CH as ClickHouse
 
-    Winston->>Winston: logger.info(message, context)
-    Winston->>Winston: Format as OTLP LogRecord
-
-    Winston->>Agent: OTLP/gRPC ExportLogsServiceRequest
-    Agent->>Agent: Batch Logs (10s or 1000 items)
-    Agent->>Agent: Add Trace Context (if available)
+    Logger->>Logger: Format as OTLP LogRecord
+    Logger->>Agent: OTLP/gRPC ExportLogsServiceRequest
+    Agent->>Agent: Batch Logs (200ms or 8192 items)
+    Agent->>Agent: Add Trace Context
 
     Agent->>Collector: OTLP/HTTP POST /v1/logs
-    Collector->>Collector: Parse Log Body (JSON/Text)
-    Collector->>Collector: Extract Structured Fields
-    Collector->>Collector: Add Loki Labels
+    Collector->>Collector: tfoauth: Resolve API Key
+    Collector->>Collector: k8sattributes: Enrich Metadata
 
-    par Parallel Export
-        Collector->>Loki: POST /loki/api/v1/push
-        Loki-->>Collector: 204 No Content
-    and
-        Collector->>TFO: OTLP/HTTP POST /api/v1/logs
-        TFO-->>Collector: 200 OK
-    end
-
+    Collector->>TFO: tfo Exporter: POST /api/v2/otlp/logs
+    TFO->>TFO: Validate & Transform
+    TFO->>CH: INSERT INTO logs_v3
+    CH-->>TFO: Success
+    TFO-->>Collector: 202 Accepted
     Collector-->>Agent: 200 OK
-    Agent-->>Winston: ExportLogsServiceResponse
+    Agent-->>Logger: ExportLogsServiceResponse
 ```
 
 ### Traces Data Flow
@@ -298,30 +276,26 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     participant App as Application<br/>(Instrumented)
-    participant Agent as TFO-OTEL-Agent
-    participant Collector as TFO-OTEL-Collector
-    participant TFO as TelemetryFlow API
+    participant Agent as TFO-Agent v1.2.0
+    participant Collector as TFO-Collector v1.2.1
+    participant TFO as TelemetryFlow API<br/>:3000
     participant CH as ClickHouse
 
-    App->>App: Start Span
-    App->>App: Add Span Attributes
-    App->>App: End Span
-
+    App->>App: Start Span → Add Attributes → End Span
     App->>Agent: OTLP/gRPC ExportTraceServiceRequest
-    Agent->>Agent: Batch Spans (10s or 1000 items)
+    Agent->>Agent: Batch Spans (200ms or 8192 items)
 
     Agent->>Collector: OTLP/HTTP POST /v1/traces
-    Note over Collector: Tail Sampling Decision
-    Collector->>Collector: Check Sampling Policy:<br/>- Error traces: 100%<br/>- Slow traces (>1s): 100%<br/>- Normal traces: 10%
+    Collector->>Collector: tfoauth: Resolve API Key
+    Collector->>Collector: k8sattributes: Enrich Metadata
 
-    alt Span Selected for Sampling
-        Collector->>TFO: OTLP/HTTP POST /api/v1/traces
-        TFO->>TFO: Validate & Transform
+    par Export to Platform
+        Collector->>TFO: tfo Exporter: POST /api/v2/otlp/traces
         TFO->>CH: INSERT INTO traces_v3
-        CH-->>TFO: Success
-        TFO-->>Collector: 200 OK
-    else Span Dropped
-        Note over Collector: Drop span (not sampled)
+        TFO-->>Collector: 202 Accepted
+    and Generate Derived Telemetry
+        Collector->>Collector: spanmetrics → Metrics Pipeline
+        Collector->>Collector: servicegraph → Service Map
     end
 
     Collector-->>Agent: 200 OK
@@ -337,73 +311,59 @@ sequenceDiagram
 ```yaml
 service:
   pipelines:
-    # Metrics Pipeline
     metrics:
-      receivers: [otlp, prometheus, hostmetrics]
+      receivers: [otlp, system, nodeexporter, kubernetes, cadvisor, docker]
       processors:
         - memory_limiter
         - resourcedetection
-        - attributes        # Add workspace/tenant IDs
         - batch
       exporters: [otlphttp/collector]
 
-    # Logs Pipeline
     logs:
       receivers: [otlp]
       processors:
         - memory_limiter
         - resourcedetection
-        - attributes
         - batch
       exporters: [otlphttp/collector]
 
-    # Traces Pipeline
     traces:
       receivers: [otlp]
       processors:
         - memory_limiter
         - resourcedetection
-        - attributes
         - batch
       exporters: [otlphttp/collector]
 ```
 
-### Collector Pipeline Configuration
+### Collector Pipeline Configuration (OCB Native)
 
 ```yaml
 service:
+  extensions: [tfoauth, tfoidentity, health_check]
+
   pipelines:
-    # Metrics Pipeline
-    metrics:
-      receivers: [otlp, prometheus]
-      processors:
-        - memory_limiter
-        - resourcedetection
-        - attributes
-        - filter              # Drop internal metrics
-        - transform           # Rename metrics
-        - batch
-      exporters: [otlphttp/telemetryflow, prometheus, logging]
-
-    # Logs Pipeline
-    logs:
-      receivers: [otlp, fluentforward]
-      processors:
-        - memory_limiter
-        - attributes
-        - logstransform       # Parse JSON logs
-        - batch
-      exporters: [otlphttp/telemetryflow, loki, opensearch, logging]
-
-    # Traces Pipeline
     traces:
-      receivers: [otlp]
+      receivers: [tfootlp]
       processors:
-        - memory_limiter
-        - attributes
-        - tail_sampling       # 10% sampling
+        - k8sattributes
         - batch
-      exporters: [otlphttp/telemetryflow, logging]
+      exporters: [tfo, spanmetrics, servicegraph]
+
+    metrics:
+      receivers: [tfootlp]
+      processors:
+        - k8sattributes
+        - transform
+        - batch
+      exporters: [tfo, prometheus]
+
+    logs:
+      receivers: [tfootlp]
+      processors:
+        - k8sattributes
+        - batch
+      exporters: [tfo]
 ```
 
 ---
@@ -418,28 +378,26 @@ graph LR
         APP[Application] -->|1. Set Context| SDK[OTEL SDK]
     end
 
-    subgraph "Resource Attributes"
-        SDK -->|2. Add Attributes| RESOURCE[Resource:<br/>telemetryflow.workspace.id<br/>telemetryflow.tenant.id]
-    end
-
     subgraph "Agent Level"
-        RESOURCE -->|3. Forward| AGENT[TFO-OTEL-Agent]
-        AGENT -->|4. Validate| AGENT
+        SDK -->|2. Forward| AGENT[TFO-Agent v1.2.0]
+        AGENT -->|3. Batch| AGENT
     end
 
-    subgraph "Collector Level"
-        AGENT -->|5. Enrich| COLLECTOR[TFO-OTEL-Collector]
-        COLLECTOR -->|6. Add Headers| HEADERS[HTTP Headers:<br/>X-Workspace-Id<br/>X-Tenant-Id]
+    subgraph "Collector Level (tfoauth)"
+        AGENT -->|4. v2 Request| COLLECTOR[TFO-Collector v1.2.1]
+        COLLECTOR -->|5. tfoauth resolves| AUTH[tfoauth Extension<br/>API Key → Tenant Mapping]
+        AUTH -->|6. tfo exporter| EXPORT[tfo Exporter<br/>Auto-inject headers]
     end
 
     subgraph "Platform Level"
-        HEADERS -->|7. Validate| TFO[TelemetryFlow API]
+        EXPORT -->|7. Authenticated| TFO[TelemetryFlow API<br/>:3000]
         TFO -->|8. Isolate| DB[(ClickHouse<br/>tenant_id column)]
     end
 
     style APP fill:#E1F5FE
     style AGENT fill:#FFE082
     style COLLECTOR fill:#81C784
+    style AUTH fill:#CE93D8
     style TFO fill:#64B5F6,color:#fff
 ```
 
@@ -447,14 +405,14 @@ graph LR
 
 ```mermaid
 graph TB
-    subgraph "OTEL Collector"
-        RECV[OTLP Receiver]
-        ATTR[Attributes Processor]
-        EXPORT[OTLP Exporter]
+    subgraph "TFO-Collector (tfoauth)"
+        RECV[tfootlp Receiver<br/>v1 + v2]
+        AUTH[tfoauth Extension<br/>Resolve API Key → Tenant]
+        EXPORT[tfo Exporter<br/>Auto-inject auth]
     end
 
-    subgraph "TelemetryFlow API"
-        GUARD[Tenant Context Guard]
+    subgraph "TelemetryFlow API (:3000)"
+        GUARD[ApiKeyAuthGuard]
         VALIDATE[Validate Workspace/Tenant]
         TRANSFORM[Transform to Internal Format]
     end
@@ -466,9 +424,9 @@ graph TB
         PART3[Partition: tenant_id=C<br/>workspace_id=W3]
     end
 
-    RECV --> ATTR
-    ATTR -->|Add tenant_id| EXPORT
-    EXPORT -->|X-Tenant-Id: A| GUARD
+    RECV --> AUTH
+    AUTH --> EXPORT
+    EXPORT -->|Authenticated| GUARD
     GUARD --> VALIDATE
     VALIDATE -->|Valid| TRANSFORM
     TRANSFORM --> TABLE
@@ -477,6 +435,7 @@ graph TB
     TABLE --> PART3
 
     style GUARD fill:#F44336,color:#fff
+    style AUTH fill:#CE93D8
     style PART1 fill:#4CAF50,color:#fff
     style PART2 fill:#2196F3,color:#fff
     style PART3 fill:#FF9800,color:#fff
@@ -494,39 +453,29 @@ graph TB
         AGENT1[Agent - Host 1]
         AGENT2[Agent - Host 2]
         AGENT3[Agent - Host 3]
-        COLL_EAST[Collector<br/>us-east-1<br/>3 replicas]
+        COLL_EAST[Collector v1.2.1<br/>us-east-1<br/>3 replicas + tfoauth]
     end
 
     subgraph "Region: eu-west-1"
         AGENT4[Agent - Host 4]
         AGENT5[Agent - Host 5]
-        COLL_EU[Collector<br/>eu-west-1<br/>3 replicas]
+        COLL_EU[Collector v1.2.1<br/>eu-west-1<br/>3 replicas + tfoauth]
     end
 
     subgraph "Central"
-        TFO[TelemetryFlow Platform<br/>Multi-Region]
+        TFO[TelemetryFlow Platform v1.4.0<br/>Multi-Region]
     end
 
     AGENT1 & AGENT2 & AGENT3 --> COLL_EAST
     AGENT4 & AGENT5 --> COLL_EU
-    COLL_EAST --> TFO
-    COLL_EU --> TFO
+    COLL_EAST -->|tfo exporter| TFO
+    COLL_EU -->|tfo exporter| TFO
 
     style AGENT1 fill:#FFE082
     style COLL_EAST fill:#81C784
     style COLL_EU fill:#81C784
     style TFO fill:#64B5F6,color:#fff
 ```
-
-**Use When:**
-- Multiple regions/datacenters
-- Need centralized aggregation
-- Want to optimize bandwidth
-
-**Benefits:**
-- Reduced backend connections
-- Regional data aggregation
-- Better resilience
 
 ### Pattern 2: Direct-to-Platform
 
@@ -535,7 +484,7 @@ graph TB
     AGENT1[Agent - Host 1]
     AGENT2[Agent - Host 2]
     AGENT3[Agent - Host 3]
-    TFO[TelemetryFlow Platform]
+    TFO[TelemetryFlow Platform :3000]
 
     AGENT1 --> TFO
     AGENT2 --> TFO
@@ -545,48 +494,28 @@ graph TB
     style TFO fill:#64B5F6,color:#fff
 ```
 
-**Use When:**
-- Small deployments (<50 hosts)
-- Simple network topology
-- Low data volume
-
-**Benefits:**
-- Simpler architecture
-- Fewer components to manage
-- Lower latency
-
 ### Pattern 3: Edge Buffering
 
 ```mermaid
 graph TB
-    subgraph "Edge Location (Intermittent Connectivity)"
+    subgraph "Edge Location"
         APP[Applications]
-        AGENT[Agent with<br/>Persistent Queue<br/>10GB buffer]
+        AGENT[TFO-Agent v1.2.0<br/>Disk-Backed Buffer<br/>500MB]
     end
 
     subgraph "Cloud"
-        COLLECTOR[Collector]
-        TFO[TelemetryFlow]
+        COLLECTOR[TFO-Collector v1.2.1]
+        TFO[TelemetryFlow :3000]
     end
 
     APP -->|Always Available| AGENT
     AGENT -.->|When Connected| COLLECTOR
-    COLLECTOR --> TFO
+    COLLECTOR -->|tfo exporter| TFO
 
     style AGENT fill:#FFE082
     style COLLECTOR fill:#81C784
     style TFO fill:#64B5F6,color:#fff
 ```
-
-**Use When:**
-- Edge/IoT deployments
-- Unreliable network
-- Need data persistence
-
-**Benefits:**
-- Resilient to outages
-- No data loss
-- Automatic retry
 
 ---
 
@@ -628,14 +557,12 @@ Example:
 
 ### Vertical Scaling
 
-#### Resource Sizing
-
-| Workload | Agent RAM | Agent CPU | Collector RAM | Collector CPU |
-|----------|-----------|-----------|---------------|---------------|
-| **Small** (<1K dps) | 50MB | 0.1 core | 256MB | 0.5 core |
-| **Medium** (1K-10K dps) | 128MB | 0.5 core | 512MB | 1 core |
-| **Large** (10K-100K dps) | 256MB | 1 core | 1GB | 2 cores |
-| **Very Large** (>100K dps) | 512MB | 2 cores | 2GB | 4 cores |
+| Workload                   | Agent RAM | Agent CPU | Collector RAM | Collector CPU |
+| -------------------------- | --------- | --------- | ------------- | ------------- |
+| **Small** (<1K dps)        | 50MB      | 0.1 core  | 256MB         | 0.5 core      |
+| **Medium** (1K-10K dps)    | 128MB     | 0.5 core  | 512MB         | 1 core        |
+| **Large** (10K-100K dps)   | 256MB     | 1 core    | 1GB           | 2 cores       |
+| **Very Large** (>100K dps) | 512MB     | 2 cores   | 2GB           | 4 cores       |
 
 ```mermaid
 graph LR
@@ -661,4 +588,4 @@ graph LR
 
 ---
 
-**Version:** 1.1.2-CE | **Maintained By:** DevOpsCorner Indonesia
+**Version:** 1.4.0 | **Maintained By:** DevOpsCorner Indonesia

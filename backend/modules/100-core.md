@@ -4,7 +4,7 @@
 - **Category**: Backend / Business Modules
 - **Status**: Production Ready
 - **Priority:** 🔥 CRITICAL - Platform Foundation
-- **Version**: 1.1.2-CE
+- **Version**: 1.4.0
 
 ---
 
@@ -71,12 +71,12 @@ graph TD
 
 **Hierarchy Levels:**
 
-| Level | Purpose | Scope | Example |
-|-------|---------|-------|---------|
-| **Region** | Geographic/regulatory isolation | Infrastructure | `us-east-1`, `eu-central-1` |
-| **Organization** | Company/legal entity | Billing, SSO config | `acme-corp`, `devopscorner` |
-| **Workspace** | Project/team grouping | Collaboration | `production-ops`, `dev-team` |
-| **Tenant** | Environment isolation | Data segregation | `prod`, `staging`, `dev` |
+| Level            | Purpose                         | Scope               | Example                      |
+| ---------------- | ------------------------------- | ------------------- | ---------------------------- |
+| **Region**       | Geographic/regulatory isolation | Infrastructure      | `us-east-1`, `eu-central-1`  |
+| **Organization** | Company/legal entity            | Billing, SSO config | `acme-corp`, `devopscorner`  |
+| **Workspace**    | Project/team grouping           | Collaboration       | `production-ops`, `dev-team` |
+| **Tenant**       | Environment isolation           | Data segregation    | `prod`, `staging`, `dev`     |
 
 ---
 
@@ -171,7 +171,7 @@ erDiagram
 // domain/aggregates/User.aggregate.ts
 export class User extends AggregateRoot {
   private readonly _id: UserId;
-  private readonly _email: Email;        // Value Object with validation
+  private readonly _email: Email; // Value Object with validation
   private _passwordHash: PasswordHash;
   private _isActive: boolean;
   private readonly _roles: Role[];
@@ -182,10 +182,10 @@ export class User extends AggregateRoot {
     const email = Email.create(props.email);
 
     // Business Rule: Password must meet security requirements
-    const passwordHash = PasswordHash.fromPlaintext(
-      props.password,
-      { minLength: 12, requireSpecialChar: true }
-    );
+    const passwordHash = PasswordHash.fromPlaintext(props.password, {
+      minLength: 12,
+      requireSpecialChar: true,
+    });
 
     const user = new User({ email, passwordHash, ...props });
     user.apply(new UserCreated(user));
@@ -194,8 +194,8 @@ export class User extends AggregateRoot {
 
   assignRole(role: Role): void {
     // Business Rule: Cannot assign duplicate roles
-    if (this._roles.some(r => r.id.equals(role.id))) {
-      throw new DomainError('User already has this role');
+    if (this._roles.some((r) => r.id.equals(role.id))) {
+      throw new DomainError("User already has this role");
     }
     this._roles.push(role);
     this.apply(new RoleAssignedToUser(this._id, role.id));
@@ -203,11 +203,11 @@ export class User extends AggregateRoot {
 
   hasPermission(permission: Permission): boolean {
     // Check direct permissions
-    if (this._permissions.some(p => p.equals(permission))) {
+    if (this._permissions.some((p) => p.equals(permission))) {
       return true;
     }
     // Check role-based permissions
-    return this._roles.some(role => role.hasPermission(permission));
+    return this._roles.some((role) => role.hasPermission(permission));
   }
 }
 ```
@@ -252,13 +252,13 @@ graph TB
 
 **Role Hierarchy:**
 
-| Role | Level | Permissions | Use Case |
-|------|-------|-------------|----------|
-| **Super Admin** | 1 | All (`*:*:*`) | Platform administrators |
-| **Administrator** | 2 | Organization management | Org owners, billing admins |
-| **Developer** | 3 | Data read/write, dashboard create | Engineers, DevOps |
-| **Viewer** | 4 | Read-only access | Stakeholders, managers |
-| **Demo** | 5 | Limited read (sample data only) | Trial users, demos |
+| Role              | Level | Permissions                       | Use Case                   |
+| ----------------- | ----- | --------------------------------- | -------------------------- |
+| **Super Admin**   | 1     | All (`*:*:*`)                     | Platform administrators    |
+| **Administrator** | 2     | Organization management           | Org owners, billing admins |
+| **Developer**     | 3     | Data read/write, dashboard create | Engineers, DevOps          |
+| **Viewer**        | 4     | Read-only access                  | Stakeholders, managers     |
+| **Demo**          | 5     | Limited read (sample data only)   | Trial users, demos         |
 
 ---
 
@@ -311,6 +311,7 @@ sequenceDiagram
 ```
 
 **Performance:**
+
 - Cache Hit: ~1ms
 - Cache Miss: ~50ms (includes DB query)
 - Cache TTL: 5 minutes
@@ -412,24 +413,24 @@ graph LR
 
 ### Role Management
 
-| Endpoint | Method | Permission | Description |
-|----------|--------|------------|-------------|
-| `/api/v2/roles` | POST | `role:write` | Create new role |
-| `/api/v2/roles` | GET | `role:read` | List all roles |
-| `/api/v2/roles/:id` | GET | `role:read` | Get role details |
-| `/api/v2/roles/:id` | PUT | `role:write` | Update role |
-| `/api/v2/roles/:id` | DELETE | `role:delete` | Delete role |
-| `/api/v2/users/:id/roles` | POST | `user:write` | Assign role to user |
-| `/api/v2/users/:id/roles/:roleId` | DELETE | `user:write` | Revoke role from user |
+| Endpoint                          | Method | Permission    | Description           |
+| --------------------------------- | ------ | ------------- | --------------------- |
+| `/api/v2/roles`                   | POST   | `role:write`  | Create new role       |
+| `/api/v2/roles`                   | GET    | `role:read`   | List all roles        |
+| `/api/v2/roles/:id`               | GET    | `role:read`   | Get role details      |
+| `/api/v2/roles/:id`               | PUT    | `role:write`  | Update role           |
+| `/api/v2/roles/:id`               | DELETE | `role:delete` | Delete role           |
+| `/api/v2/users/:id/roles`         | POST   | `user:write`  | Assign role to user   |
+| `/api/v2/users/:id/roles/:roleId` | DELETE | `user:write`  | Revoke role from user |
 
 ### Permission Management
 
-| Endpoint | Method | Permission | Description |
-|----------|--------|------------|-------------|
-| `/api/v2/permissions` | GET | `permission:read` | List all permissions |
-| `/api/v2/users/:id/permissions` | GET | `user:read` | Get user permissions |
-| `/api/v2/users/:id/permissions` | POST | `user:write` | Grant permission |
-| `/api/v2/users/:id/permissions/:permId` | DELETE | `user:write` | Revoke permission |
+| Endpoint                                | Method | Permission        | Description          |
+| --------------------------------------- | ------ | ----------------- | -------------------- |
+| `/api/v2/permissions`                   | GET    | `permission:read` | List all permissions |
+| `/api/v2/users/:id/permissions`         | GET    | `user:read`       | Get user permissions |
+| `/api/v2/users/:id/permissions`         | POST   | `user:write`      | Grant permission     |
+| `/api/v2/users/:id/permissions/:permId` | DELETE | `user:write`      | Revoke permission    |
 
 ---
 
@@ -521,6 +522,7 @@ sequenceDiagram
 ```
 
 **Domain Events:**
+
 - `UserCreated` - New user registered
 - `UserUpdated` - User profile updated
 - `UserDeleted` - User account deleted
@@ -544,15 +546,15 @@ export class PasswordHash {
   static async fromPlaintext(password: string): Promise<PasswordHash> {
     // Validate password strength
     if (password.length < 12) {
-      throw new Error('Password must be at least 12 characters');
+      throw new Error("Password must be at least 12 characters");
     }
 
     // Argon2id parameters (OWASP recommended)
     const hash = await argon2.hash(password, {
       type: argon2.argon2id,
-      memoryCost: 65536,  // 64 MB
-      timeCost: 3,        // 3 iterations
-      parallelism: 4,     // 4 threads
+      memoryCost: 65536, // 64 MB
+      timeCost: 3, // 3 iterations
+      parallelism: 4, // 4 threads
     });
 
     return new PasswordHash(hash);
@@ -614,6 +616,7 @@ graph LR
 ```
 
 **Results:**
+
 - Authorization check: 1ms (cached) vs 50ms (uncached)
 - 50x performance improvement
 - Minimal staleness (5min max)
@@ -623,11 +626,13 @@ graph LR
 ## Testing
 
 ### Unit Tests
+
 - `User.aggregate.spec.ts` - Business rule validation
 - `Email.vo.spec.ts` - Email validation
 - `PasswordHash.vo.spec.ts` - Password hashing
 
 ### Integration Tests
+
 - `user-management.spec.ts` - CRUD operations
 - `rbac.spec.ts` - Permission checking
 - `tenant-isolation.spec.ts` - Multi-tenancy enforcement

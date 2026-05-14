@@ -4,7 +4,7 @@
 - **Category**: Backend / Business Modules
 - **Status**: Production Ready
 - **Priority:** 🔥 HIGH - Core Platform Functionality
-- **Version**: 1.1.2-CE
+- **Version**: 1.4.0
 
 ---
 
@@ -31,7 +31,7 @@ sequenceDiagram
     participant CH as ClickHouse
     participant S3 as S3 Storage
 
-    U->>API: POST /api/v1/export
+    U->>API: POST /api/v2/export
     API->>QUEUE: Create Export Job
     API-->>U: 202 Accepted (job_id)
 
@@ -91,13 +91,13 @@ CREATE TABLE export_jobs (
 
 ## API Endpoints
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `POST` | `/api/v1/export` | Create export job |
-| `GET` | `/api/v1/export/:id` | Get export status |
-| `GET` | `/api/v1/export/:id/download` | Download export file |
+| Method | Endpoint                      | Description          |
+| ------ | ----------------------------- | -------------------- |
+| `POST` | `/api/v2/export`              | Create export job    |
+| `GET`  | `/api/v2/export/:id`          | Get export status    |
+| `GET`  | `/api/v2/export/:id/download` | Download export file |
 
 ---
 
-- **Last Updated**: January 01st, 2026
+- **Last Updated**: May 14th, 2026
 - **Maintained By**: DevOpsCorner Indonesia

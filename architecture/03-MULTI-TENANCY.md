@@ -1,7 +1,7 @@
 # Multi-Tenancy Architecture
 
-- **Version:** 1.1.2-CE
-- **Last Updated:** January 01st, 2026
+- **Version:** 1.4.0
+- **Last Updated:** May 14, 2026
 - **Status:** ✅ Production Ready
 
 ---
@@ -38,6 +38,7 @@ graph TD
 ```
 
 **Isolation Guarantees:**
+
 - ✅ Data never crosses tenant boundaries
 - ✅ Queries automatically scoped to tenant context
 - ✅ Database-level partitioning for performance
@@ -138,6 +139,7 @@ flowchart LR
 ### Hierarchy Examples
 
 **Example 1: E-commerce Platform**
+
 ```
 Region: US-East-1
 └─ Organization: ShopCo Inc
@@ -151,6 +153,7 @@ Region: US-East-1
 ```
 
 **Example 2: Multi-Customer MSP**
+
 ```
 Region: EU-West-1
 ├─ Organization: Customer-A (ACME Corp)
@@ -301,6 +304,7 @@ flowchart TD
 ```
 
 **Example Query Pattern:**
+
 ```typescript
 // UserRepository.findByTenant()
 async findByTenant(tenantContext: TenantContext): Promise<User[]> {
@@ -345,6 +349,7 @@ flowchart TD
 ```
 
 **Example ClickHouse Query:**
+
 ```sql
 SELECT
   service_name,
@@ -667,11 +672,11 @@ pie title Tenant Filter Performance
 
 ### Partition Pruning Impact
 
-| Query Type | Without Pruning | With Pruning | Improvement |
-|------------|----------------|--------------|-------------|
-| **Single Day** | 90 partitions | 1 partition | 90x faster |
-| **1 Week** | 90 partitions | 7 partitions | 12.8x faster |
-| **1 Month** | 90 partitions | 30 partitions | 3x faster |
+| Query Type     | Without Pruning | With Pruning  | Improvement  |
+| -------------- | --------------- | ------------- | ------------ |
+| **Single Day** | 90 partitions   | 1 partition   | 90x faster   |
+| **1 Week**     | 90 partitions   | 7 partitions  | 12.8x faster |
+| **1 Month**    | 90 partitions   | 30 partitions | 3x faster    |
 
 ### Cache Strategy per Tenant
 
@@ -756,13 +761,13 @@ async getMetrics(@CurrentTenantContext() context: TenantContext) {
 ```typescript
 // ✅ Always validate tenant context
 if (!tenantContext || !tenantContext.tenantId) {
-  throw new ForbiddenException('Tenant context required');
+  throw new ForbiddenException("Tenant context required");
 }
 
 // ✅ Validate entity belongs to tenant
 const dashboard = await this.findById(id);
 if (dashboard.tenant_id !== tenantContext.tenantId) {
-  throw new ForbiddenException('Access denied');
+  throw new ForbiddenException("Access denied");
 }
 ```
 
@@ -800,5 +805,5 @@ const cached = await this.cache.get(cacheKey);
 
 ---
 
-- **Last Updated:** January 01st, 2026
+- **Last Updated:** May 14, 2026
 - **Maintained By:** DevOpsCorner Indonesia

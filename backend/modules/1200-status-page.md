@@ -4,7 +4,7 @@
 - **Category**: Backend / Business Modules
 - **Status**: Production Ready
 - **Priority:** 🔥 HIGH - Core Monitoring Functionality
-- **Version**: 1.1.2-CE
+- **Version**: 1.4.0
 
 ---
 
@@ -48,7 +48,7 @@ export class StatusPage extends AggregateRoot<StatusPageId> {
       StatusPageId.create(),
       name,
       slug,
-      '',
+      "",
       [],
       true,
       null,
@@ -67,7 +67,7 @@ export class StatusPage extends AggregateRoot<StatusPageId> {
   }
 
   removeMonitor(monitorId: MonitorId): void {
-    this.monitors = this.monitors.filter(m => !m.equals(monitorId));
+    this.monitors = this.monitors.filter((m) => !m.equals(monitorId));
   }
 }
 ```
@@ -111,14 +111,14 @@ CREATE TABLE status_page_monitors (
 
 ## API Endpoints
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `POST` | `/api/v1/status-pages` | Create status page |
-| `GET` | `/api/v1/status-pages` | List status pages |
-| `GET` | `/api/v1/status-pages/:id` | Get status page |
-| `GET` | `/status/:slug` | Public status page |
+| Method | Endpoint                   | Description        |
+| ------ | -------------------------- | ------------------ |
+| `POST` | `/api/v2/status-pages`     | Create status page |
+| `GET`  | `/api/v2/status-pages`     | List status pages  |
+| `GET`  | `/api/v2/status-pages/:id` | Get status page    |
+| `GET`  | `/status/:slug`            | Public status page |
 
 ---
 
-**Last Updated**: January 01st, 2026
+**Last Updated**: May 14th, 2026
 **Maintained By**: DevOpsCorner Indonesia

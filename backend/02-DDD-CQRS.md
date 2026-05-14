@@ -1,7 +1,7 @@
 # Domain-Driven Design & CQRS Implementation
 
-- **Version:** 1.1.2-CE
-- **Last Updated:** January 01st, 2026
+- **Version:** 1.4.0
+- **Last Updated:** May 2026
 - **Status:** ✅ Complete
 
 ---
@@ -185,14 +185,14 @@ sequenceDiagram
 
 ### CQRS Benefits
 
-| Aspect | Traditional CRUD | CQRS |
-|--------|-----------------|------|
-| **Read/Write** | Same model | Separate models |
-| **Optimization** | Compromise | Optimized independently |
-| **Scalability** | Vertical | Horizontal (independent) |
-| **Complexity** | Simple | Higher (justified for complex domains) |
-| **Audit Trail** | Difficult | Built-in via events |
-| **Cache Strategy** | Basic | Advanced (read-optimized) |
+| Aspect             | Traditional CRUD | CQRS                                   |
+| ------------------ | ---------------- | -------------------------------------- |
+| **Read/Write**     | Same model       | Separate models                        |
+| **Optimization**   | Compromise       | Optimized independently                |
+| **Scalability**    | Vertical         | Horizontal (independent)               |
+| **Complexity**     | Simple           | Higher (justified for complex domains) |
+| **Audit Trail**    | Difficult        | Built-in via events                    |
+| **Cache Strategy** | Basic            | Advanced (read-optimized)              |
 
 ---
 
@@ -203,6 +203,7 @@ sequenceDiagram
 An **Aggregate** is a cluster of domain objects that can be treated as a single unit for data changes. Each aggregate has a **root entity** (Aggregate Root) and a boundary.
 
 **Rules:**
+
 1. ✅ External objects can only reference the Aggregate Root
 2. ✅ Aggregates enforce business invariants
 3. ✅ One transaction = One aggregate
@@ -212,15 +213,15 @@ An **Aggregate** is a cluster of domain objects that can be treated as a single 
 **File:** `backend/src/modules/400-telemetry/domain/aggregates/Metric.aggregate.ts`
 
 ```typescript
-import { AggregateRoot } from '@nestjs/cqrs';
-import { MetricId } from '../value-objects/MetricId.vo';
-import { MetricName } from '../value-objects/MetricName.vo';
-import { MetricType } from '../value-objects/MetricType.vo';
-import { MetricValue } from '../value-objects/MetricValue.vo';
-import { TenantContext } from '../value-objects/TenantContext.vo';
-import { ServiceName } from '../value-objects/ServiceName.vo';
-import { Timestamp } from '../value-objects/Timestamp.vo';
-import { MetricIngested } from '../events/MetricIngested.event';
+import { AggregateRoot } from "@nestjs/cqrs";
+import { MetricId } from "../value-objects/MetricId.vo";
+import { MetricName } from "../value-objects/MetricName.vo";
+import { MetricType } from "../value-objects/MetricType.vo";
+import { MetricValue } from "../value-objects/MetricValue.vo";
+import { TenantContext } from "../value-objects/TenantContext.vo";
+import { ServiceName } from "../value-objects/ServiceName.vo";
+import { Timestamp } from "../value-objects/Timestamp.vo";
+import { MetricIngested } from "../events/MetricIngested.event";
 
 export interface MetricProps {
   id: MetricId;
@@ -261,15 +262,15 @@ export class Metric extends AggregateRoot {
   /**
    * Factory method to create a new metric with business rule validation
    */
-  static create(props: Omit<MetricProps, 'id'>): Metric {
+  static create(props: Omit<MetricProps, "id">): Metric {
     // Business Rule: Counter metrics must be monotonic
     if (props.metricType.isCounter() && props.isMonotonic === false) {
-      throw new Error('Counter metrics must be monotonic');
+      throw new Error("Counter metrics must be monotonic");
     }
 
     // Business Rule: Counter metrics cannot have negative values
     if (props.metricType.isCounter() && props.value.isNegative()) {
-      throw new Error('Counter metrics cannot have negative values');
+      throw new Error("Counter metrics cannot have negative values");
     }
 
     const metric = new Metric({
@@ -284,14 +285,20 @@ export class Metric extends AggregateRoot {
   }
 
   // Getters for all properties
-  get id(): MetricId { return this._id; }
-  get metricName(): MetricName { return this._metricName; }
-  get value(): MetricValue { return this._value; }
+  get id(): MetricId {
+    return this._id;
+  }
+  get metricName(): MetricName {
+    return this._metricName;
+  }
+  get value(): MetricValue {
+    return this._value;
+  }
 
   // Business methods
   updateValue(newValue: MetricValue): void {
     if (this._metricType.isCounter() && newValue.isLessThan(this._value)) {
-      throw new Error('Counter values cannot decrease');
+      throw new Error("Counter values cannot decrease");
     }
     this._value = newValue;
   }
@@ -369,6 +376,7 @@ graph TB
 A **Value Object** is an immutable object that represents a descriptive aspect of the domain with no conceptual identity.
 
 **Characteristics:**
+
 1. ✅ **Immutable** - Cannot change after creation
 2. ✅ **Value Equality** - Two VOs with same values are equal
 3. ✅ **Self-Validating** - Validation in constructor/factory
@@ -388,18 +396,18 @@ export class MetricName {
 
   static create(name: string): MetricName {
     // Validation: Cannot be empty
-    if (!name || name.trim() === '') {
-      throw new Error('MetricName cannot be empty');
+    if (!name || name.trim() === "") {
+      throw new Error("MetricName cannot be empty");
     }
 
     // Validation: Max length
     if (name.length > 255) {
-      throw new Error('MetricName cannot exceed 255 characters');
+      throw new Error("MetricName cannot exceed 255 characters");
     }
 
     // Validation: OTEL metric naming convention
     if (!/^[a-zA-Z][a-zA-Z0-9._-]*$/.test(name)) {
-      throw new Error('MetricName must follow OTEL naming convention');
+      throw new Error("MetricName must follow OTEL naming convention");
     }
 
     return new MetricName(name);
@@ -470,16 +478,16 @@ classDiagram
 
 ### Common Value Objects
 
-| Value Object | Module | Purpose | Validation Rules |
-|--------------|--------|---------|------------------|
-| **Email** | 100-core | User email | RFC 5322 compliant |
-| **TenantId** | 100-core | Tenant identifier | Valid UUID |
-| **WorkspaceId** | 100-core | Workspace identifier | Valid UUID |
-| **MetricName** | 400-telemetry | Metric identifier | OTEL naming convention |
-| **MetricValue** | 400-telemetry | Metric measurement | Numeric, range validation |
-| **Timestamp** | 400-telemetry | Time point | Valid Date, timezone-aware |
-| **Threshold** | 600-alerts | Alert threshold | Numeric, comparative operator |
-| **Severity** | 600-alerts | Alert severity | Enum: INFO, WARN, ERROR, CRITICAL |
+| Value Object    | Module        | Purpose              | Validation Rules                  |
+| --------------- | ------------- | -------------------- | --------------------------------- |
+| **Email**       | 100-core      | User email           | RFC 5322 compliant                |
+| **TenantId**    | 100-core      | Tenant identifier    | Valid UUID                        |
+| **WorkspaceId** | 100-core      | Workspace identifier | Valid UUID                        |
+| **MetricName**  | 400-telemetry | Metric identifier    | OTEL naming convention            |
+| **MetricValue** | 400-telemetry | Metric measurement   | Numeric, range validation         |
+| **Timestamp**   | 400-telemetry | Time point           | Valid Date, timezone-aware        |
+| **Threshold**   | 600-alerts    | Alert threshold      | Numeric, comparative operator     |
+| **Severity**    | 600-alerts    | Alert severity       | Enum: INFO, WARN, ERROR, CRITICAL |
 
 ---
 
@@ -490,6 +498,7 @@ classDiagram
 A **Domain Event** represents something that happened in the domain that domain experts care about.
 
 **Characteristics:**
+
 1. ✅ **Immutable** - Past facts cannot change
 2. ✅ **Named in Past Tense** - MetricIngested, AlertTriggered
 3. ✅ **Contains Context** - Who, what, when, where
@@ -628,7 +637,10 @@ export interface IMetricRepository {
 
   // Query side (reads)
   findById(id: MetricId): Promise<Metric | null>;
-  findByFilters(filters: MetricFilters, tenantContext: TenantContext): Promise<Metric[]>;
+  findByFilters(
+    filters: MetricFilters,
+    tenantContext: TenantContext,
+  ): Promise<Metric[]>;
   findTimeSeries(query: TimeSeriesQuery): Promise<MetricTimeSeries>;
 
   // Aggregations
@@ -652,7 +664,7 @@ export class MetricRepository implements IMetricRepository {
 
   async save(metric: Metric): Promise<void> {
     const schema = this.mapper.toSchema(metric);
-    await this.clickhouse.insert('telemetry_metrics', [schema]);
+    await this.clickhouse.insert("telemetry_metrics", [schema]);
     await this.invalidateCache(metric.tenantContext.tenantId);
   }
 
@@ -672,10 +684,13 @@ export class MetricRepository implements IMetricRepository {
     // Cache results
     await this.cache.set(cacheKey, results, 300); // 5min TTL
 
-    return results.map(row => this.mapper.toDomain(row));
+    return results.map((row) => this.mapper.toDomain(row));
   }
 
-  private buildCacheKey(filters: MetricFilters, context: TenantContext): string {
+  private buildCacheKey(
+    filters: MetricFilters,
+    context: TenantContext,
+  ): string {
     return `metrics:${context.tenantId}:${JSON.stringify(filters)}`;
   }
 }
@@ -690,6 +705,7 @@ export class MetricRepository implements IMetricRepository {
 A **Domain Service** contains domain logic that doesn't naturally fit within a single aggregate.
 
 **Use Cases:**
+
 - Business logic spanning multiple aggregates
 - Calculations involving multiple entities
 - Domain operations without natural home in any aggregate
@@ -701,9 +717,7 @@ A **Domain Service** contains domain logic that doesn't naturally fit within a s
 
 @Injectable()
 export class AlertEvaluatorService {
-  constructor(
-    private readonly metricRepository: IMetricRepository,
-  ) {}
+  constructor(private readonly metricRepository: IMetricRepository) {}
 
   /**
    * Domain Service: Evaluate if a metric triggers an alert rule
@@ -747,13 +761,15 @@ export class AlertEvaluatorService {
   ): number {
     // Domain logic for different aggregation types
     switch (type) {
-      case 'AVG':
-        return metrics.reduce((sum, m) => sum + m.value.raw, 0) / metrics.length;
-      case 'MAX':
-        return Math.max(...metrics.map(m => m.value.raw));
-      case 'MIN':
-        return Math.min(...metrics.map(m => m.value.raw));
-      case 'SUM':
+      case "AVG":
+        return (
+          metrics.reduce((sum, m) => sum + m.value.raw, 0) / metrics.length
+        );
+      case "MAX":
+        return Math.max(...metrics.map((m) => m.value.raw));
+      case "MIN":
+        return Math.min(...metrics.map((m) => m.value.raw));
+      case "SUM":
         return metrics.reduce((sum, m) => sum + m.value.raw, 0);
       default:
         throw new Error(`Unknown aggregation type: ${type}`);
@@ -777,7 +793,7 @@ export class AlertEvaluatorService {
 ```typescript
 export class CalculateHourlyAggregationCommand {
   constructor(
-    public readonly dataType: 'metrics' | 'logs' | 'traces',
+    public readonly dataType: "metrics" | "logs" | "traces",
     public readonly startTime: Date,
     public readonly endTime: Date,
   ) {}
@@ -790,16 +806,14 @@ export class CalculateHourlyAggregationCommand {
 // backend/src/modules/400-telemetry/application/aggregation/handlers/calculate-hourly-aggregation.handler.ts
 
 @CommandHandler(CalculateHourlyAggregationCommand)
-export class CalculateHourlyAggregationHandler
-  implements ICommandHandler<CalculateHourlyAggregationCommand> {
-
+export class CalculateHourlyAggregationHandler implements ICommandHandler<CalculateHourlyAggregationCommand> {
   constructor(
     private readonly aggregationService: AggregationService,
     private readonly logger: WinstonLogger,
   ) {}
 
   async execute(command: CalculateHourlyAggregationCommand): Promise<void> {
-    this.logger.info('Calculating hourly aggregation', {
+    this.logger.info("Calculating hourly aggregation", {
       dataType: command.dataType,
       startTime: command.startTime,
       endTime: command.endTime,
@@ -813,9 +827,9 @@ export class CalculateHourlyAggregationHandler
         command.endTime,
       );
 
-      this.logger.info('Hourly aggregation completed successfully');
+      this.logger.info("Hourly aggregation completed successfully");
     } catch (error) {
-      this.logger.error('Hourly aggregation failed', error);
+      this.logger.error("Hourly aggregation failed", error);
       throw error;
     }
   }
@@ -836,7 +850,7 @@ export interface TimeSeriesFilters {
   metricName: string;
   startTime: Date;
   endTime: Date;
-  aggregation?: 'avg' | 'sum' | 'min' | 'max' | 'count';
+  aggregation?: "avg" | "sum" | "min" | "max" | "count";
   interval?: string; // e.g., '1m', '5m', '1h'
 }
 
@@ -845,7 +859,7 @@ export class GetMetricTimeSeriesQuery {
   public readonly metricName: MetricName;
   public readonly startTime: Date;
   public readonly endTime: Date;
-  public readonly aggregation: 'avg' | 'sum' | 'min' | 'max' | 'count';
+  public readonly aggregation: "avg" | "sum" | "min" | "max" | "count";
   public readonly interval: string;
 
   constructor(
@@ -858,8 +872,8 @@ export class GetMetricTimeSeriesQuery {
     this.metricName = MetricName.create(filters.metricName);
     this.startTime = filters.startTime;
     this.endTime = filters.endTime;
-    this.aggregation = filters.aggregation || 'avg';
-    this.interval = filters.interval || '5m';
+    this.aggregation = filters.aggregation || "avg";
+    this.interval = filters.interval || "5m";
   }
 }
 ```
@@ -870,9 +884,7 @@ export class GetMetricTimeSeriesQuery {
 // backend/src/modules/400-telemetry/application/handlers/get-metric-timeseries.handler.ts
 
 @QueryHandler(GetMetricTimeSeriesQuery)
-export class GetMetricTimeSeriesHandler
-  implements IQueryHandler<GetMetricTimeSeriesQuery> {
-
+export class GetMetricTimeSeriesHandler implements IQueryHandler<GetMetricTimeSeriesQuery> {
   constructor(
     private readonly metricRepository: IMetricRepository,
     private readonly cache: CacheService,
@@ -976,7 +988,7 @@ export class MetricIngestedHandler implements IEventHandler<MetricIngested> {
 
     // Evaluate each rule asynchronously via queue
     for (const rule of rules) {
-      await this.queueService.addJob('alert-evaluation', {
+      await this.queueService.addJob("alerts", {
         ruleId: rule.id.value,
         metricName: event.metricName,
         tenantId: event.tenantId,
@@ -1025,12 +1037,13 @@ graph LR
 ### 1. Aggregate Design
 
 ✅ **Good:**
+
 ```typescript
 class Metric extends AggregateRoot {
   // Business rule enforced at aggregate level
   updateValue(newValue: MetricValue): void {
     if (this._metricType.isCounter() && newValue.isLessThan(this._value)) {
-      throw new Error('Counter values cannot decrease');
+      throw new Error("Counter values cannot decrease");
     }
     this._value = newValue;
     this.apply(new MetricValueUpdated(this));
@@ -1039,13 +1052,14 @@ class Metric extends AggregateRoot {
 ```
 
 ❌ **Bad:**
+
 ```typescript
 // Business rule in application layer (wrong layer!)
 class UpdateMetricHandler {
   async execute(command: UpdateMetricCommand) {
     const metric = await this.repository.find(command.id);
-    if (metric.type === 'counter' && command.value < metric.value) {
-      throw new Error('Counter cannot decrease');
+    if (metric.type === "counter" && command.value < metric.value) {
+      throw new Error("Counter cannot decrease");
     }
     metric.value = command.value; // Direct property mutation
     await this.repository.save(metric);
@@ -1056,34 +1070,37 @@ class UpdateMetricHandler {
 ### 2. Value Object Usage
 
 ✅ **Good:**
+
 ```typescript
 class Metric {
   constructor(
-    private readonly metricName: MetricName,  // Value Object
-    private readonly timestamp: Timestamp,     // Value Object
+    private readonly metricName: MetricName, // Value Object
+    private readonly timestamp: Timestamp, // Value Object
   ) {}
 }
 
 // Usage with validation
-const name = MetricName.create('cpu_usage_percent'); // Throws if invalid
+const name = MetricName.create("cpu_usage_percent"); // Throws if invalid
 ```
 
 ❌ **Bad:**
+
 ```typescript
 class Metric {
   constructor(
-    private readonly metricName: string,  // Primitive obsession
-    private readonly timestamp: Date,     // No validation
+    private readonly metricName: string, // Primitive obsession
+    private readonly timestamp: Date, // No validation
   ) {}
 }
 
 // Usage without validation
-const metric = new Metric('invalid metric name!', new Date());
+const metric = new Metric("invalid metric name!", new Date());
 ```
 
 ### 3. Domain Events
 
 ✅ **Good:**
+
 ```typescript
 class Metric extends AggregateRoot {
   static create(props: MetricProps): Metric {
@@ -1095,6 +1112,7 @@ class Metric extends AggregateRoot {
 ```
 
 ❌ **Bad:**
+
 ```typescript
 class Metric {
   // No domain events - side effects handled imperatively
@@ -1110,6 +1128,7 @@ class Metric {
 ### 4. Repository Pattern
 
 ✅ **Good:**
+
 ```typescript
 // Domain layer defines interface (port)
 interface IMetricRepository {
@@ -1121,20 +1140,21 @@ interface IMetricRepository {
 class ClickHouseMetricRepository implements IMetricRepository {
   async save(metric: Metric): Promise<void> {
     const schema = this.mapper.toSchema(metric);
-    await this.clickhouse.insert('metrics', [schema]);
+    await this.clickhouse.insert("metrics", [schema]);
   }
 }
 ```
 
 ❌ **Bad:**
+
 ```typescript
 // Domain depends on infrastructure
-import { ClickHouse } from '@clickhouse/client';
+import { ClickHouse } from "@clickhouse/client";
 
 class Metric {
   async save(clickhouse: ClickHouse) {
     // Direct infrastructure dependency in domain!
-    await clickhouse.insert('metrics', [this.toJSON()]);
+    await clickhouse.insert("metrics", [this.toJSON()]);
   }
 }
 ```
@@ -1142,21 +1162,23 @@ class Metric {
 ### 5. CQRS Separation
 
 ✅ **Good:**
+
 ```typescript
 // Separate command and query
 @CommandHandler(IngestMetricsCommand)
-class IngestMetricsHandler { }
+class IngestMetricsHandler {}
 
 @QueryHandler(GetMetricTimeSeriesQuery)
-class GetMetricTimeSeriesHandler { }
+class GetMetricTimeSeriesHandler {}
 ```
 
 ❌ **Bad:**
+
 ```typescript
 // Mixed read/write in same handler
 class MetricService {
   async ingestAndQuery(data: any) {
-    await this.save(data);          // Write
+    await this.save(data); // Write
     return await this.find(data.id); // Read
   }
 }
@@ -1199,16 +1221,16 @@ graph TB
 
 ### Key Takeaways
 
-| Concept | Purpose | Example |
-|---------|---------|---------|
-| **Aggregates** | Enforce business invariants | `Metric.create()` validates counter rules |
-| **Value Objects** | Encapsulate validation | `MetricName.create()` enforces OTEL naming |
-| **Domain Events** | Decouple modules | `MetricIngested` triggers alert evaluation |
-| **Repositories** | Abstract data access | `IMetricRepository` interface in domain |
-| **Commands** | Represent write intentions | `IngestMetricsCommand` |
-| **Queries** | Represent read requests | `GetMetricTimeSeriesQuery` |
-| **CQRS** | Separate read/write | Optimized independently |
-| **Event Handlers** | React to domain events | `MetricIngestedHandler` evaluates alerts |
+| Concept            | Purpose                     | Example                                    |
+| ------------------ | --------------------------- | ------------------------------------------ |
+| **Aggregates**     | Enforce business invariants | `Metric.create()` validates counter rules  |
+| **Value Objects**  | Encapsulate validation      | `MetricName.create()` enforces OTEL naming |
+| **Domain Events**  | Decouple modules            | `MetricIngested` triggers alert evaluation |
+| **Repositories**   | Abstract data access        | `IMetricRepository` interface in domain    |
+| **Commands**       | Represent write intentions  | `IngestMetricsCommand`                     |
+| **Queries**        | Represent read requests     | `GetMetricTimeSeriesQuery`                 |
+| **CQRS**           | Separate read/write         | Optimized independently                    |
+| **Event Handlers** | React to domain events      | `MetricIngestedHandler` evaluates alerts   |
 
 ---
 
@@ -1223,4 +1245,4 @@ graph TB
 
 - **File Location:** `./backend/02-DDD-CQRS.md`
 - **Maintained By:** DevOpsCorner Indonesia
-- **Last Updated:** January 01st, 2026
+- **Last Updated:** May 2026

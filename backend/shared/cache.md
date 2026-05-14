@@ -1,7 +1,7 @@
 # Shared Module: Cache (Multi-Level Caching)
 
-- **Version:** 1.1.2-CE
-- **Last Updated:** January 01st, 2026
+- **Version:** 1.4.0
+- **Last Updated:** May 14th, 2026
 - **Status:** ✅ Production Ready
 - **Priority:** 🔥 HIGH - Performance Critical
 
@@ -216,10 +216,10 @@ export class CacheService implements OnModuleInit {
     setImmediate(async () => {
       try {
         this.redisClient = new Redis({
-          host: process.env.REDIS_HOST || 'localhost',
-          port: parseInt(process.env.REDIS_PORT || '6379'),
+          host: process.env.REDIS_HOST || "localhost",
+          port: parseInt(process.env.REDIS_PORT || "6379"),
           password: process.env.REDIS_PASSWORD || undefined,
-          db: parseInt(process.env.REDIS_CACHE_DB || '1'),
+          db: parseInt(process.env.REDIS_CACHE_DB || "1"),
           connectTimeout: 5000,
           maxRetriesPerRequest: 1,
           enableOfflineQueue: false,
@@ -227,9 +227,9 @@ export class CacheService implements OnModuleInit {
         });
 
         await this.redisClient.connect();
-        this.logger.log('✓ Cache service initialized with L1 + L2 (Redis)');
+        this.logger.log("✓ Cache service initialized with L1 + L2 (Redis)");
       } catch (error) {
-        this.logger.warn('⚠ Redis unavailable, operating in L1-only mode');
+        this.logger.warn("⚠ Redis unavailable, operating in L1-only mode");
         this.redisClient = null;
       }
     });
@@ -289,11 +289,7 @@ export class CacheService implements OnModuleInit {
   /**
    * Wrap a function with caching
    */
-  async wrap<T>(
-    key: string,
-    fn: () => Promise<T>,
-    ttl?: number,
-  ): Promise<T> {
+  async wrap<T>(key: string, fn: () => Promise<T>, ttl?: number): Promise<T> {
     // Try to get from cache
     const cached = await this.get<T>(key);
     if (cached !== null) {
@@ -321,7 +317,11 @@ export class CacheKeyGenerator {
   /**
    * Generate cache key for metrics
    */
-  static metrics(tenantId: string, metricName: string, timeRange: string): string {
+  static metrics(
+    tenantId: string,
+    metricName: string,
+    timeRange: string,
+  ): string {
     return `metrics:${tenantId}:${metricName}:${timeRange}`;
   }
 
@@ -329,7 +329,7 @@ export class CacheKeyGenerator {
    * Generate cache key for logs
    */
   static logs(tenantId: string, query: string, page: number): string {
-    const queryHash = Buffer.from(query).toString('base64').substring(0, 20);
+    const queryHash = Buffer.from(query).toString("base64").substring(0, 20);
     return `logs:${tenantId}:${queryHash}:${page}`;
   }
 
@@ -383,14 +383,14 @@ graph TB
     style D fill:#3498db
 ```
 
-| Data Type | L1 TTL | L2 TTL | Rationale |
-|-----------|--------|--------|-----------|
-| **Real-time Metrics** | 1 min | 5 min | Frequently changing data |
-| **Dashboard Data** | 5 min | 30 min | Moderate update frequency |
-| **Service Lists** | 30 min | 1 hour | Relatively static |
-| **Templates** | 1 hour | 24 hours | Rarely changes |
-| **Session Data** | 5 min | 15 min | User activity-based |
-| **Permission Cache** | 15 min | 1 hour | Security-sensitive |
+| Data Type             | L1 TTL | L2 TTL   | Rationale                 |
+| --------------------- | ------ | -------- | ------------------------- |
+| **Real-time Metrics** | 1 min  | 5 min    | Frequently changing data  |
+| **Dashboard Data**    | 5 min  | 30 min   | Moderate update frequency |
+| **Service Lists**     | 30 min | 1 hour   | Relatively static         |
+| **Templates**         | 1 hour | 24 hours | Rarely changes            |
+| **Session Data**      | 5 min  | 15 min   | User activity-based       |
+| **Permission Cache**  | 15 min | 1 hour   | Security-sensitive        |
 
 ---
 
@@ -426,19 +426,19 @@ export const defaultCacheConfig: CacheConfig = {
   // L2: Redis Cache (distributed, longer TTL)
   l2: {
     ttl: 30 * 60 * 1000, // 30 minutes
-    host: process.env.REDIS_HOST || 'localhost',
-    port: parseInt(process.env.REDIS_PORT || '6379', 10),
+    host: process.env.REDIS_HOST || "localhost",
+    port: parseInt(process.env.REDIS_PORT || "6379", 10),
     password: process.env.REDIS_PASSWORD || undefined,
-    db: parseInt(process.env.REDIS_CACHE_DB || '1', 10),
+    db: parseInt(process.env.REDIS_CACHE_DB || "1", 10),
   },
 
   // Cache key patterns
   keyPatterns: {
-    metrics: 'metrics:{tenantId}:{metricName}:{timeRange}',
-    logs: 'logs:{tenantId}:{query}:{page}',
-    dashboard: 'dashboard:{tenantId}:{dashboardId}',
-    session: 'session:{userId}',
-    realtime: 'realtime:{tenantId}:{metricName}',
+    metrics: "metrics:{tenantId}:{metricName}:{timeRange}",
+    logs: "logs:{tenantId}:{query}:{page}",
+    dashboard: "dashboard:{tenantId}:{dashboardId}",
+    session: "session:{userId}",
+    realtime: "realtime:{tenantId}:{metricName}",
   },
 };
 ```
@@ -451,16 +451,16 @@ export const defaultCacheConfig: CacheConfig = {
 
 ```typescript
 // Get from cache
-const data = await cacheService.get<MetricData>('metrics:tenant1:cpu:1h');
+const data = await cacheService.get<MetricData>("metrics:tenant1:cpu:1h");
 
 // Set in cache
-await cacheService.set('metrics:tenant1:cpu:1h', metricData, 60000);
+await cacheService.set("metrics:tenant1:cpu:1h", metricData, 60000);
 
 // Delete from cache
-await cacheService.del('metrics:tenant1:cpu:1h');
+await cacheService.del("metrics:tenant1:cpu:1h");
 
 // Pattern-based deletion
-await cacheService.delPattern('metrics:tenant1:*');
+await cacheService.delPattern("metrics:tenant1:*");
 ```
 
 ### Wrap Function with Caching
@@ -468,12 +468,12 @@ await cacheService.delPattern('metrics:tenant1:*');
 ```typescript
 // Automatically cache function result
 const metricData = await cacheService.wrap(
-  'metrics:tenant1:cpu:1h',
+  "metrics:tenant1:cpu:1h",
   async () => {
     // Expensive database query
-    return await clickhouse.query('SELECT ...');
+    return await clickhouse.query("SELECT ...");
   },
-  300000 // 5 minutes TTL
+  300000, // 5 minutes TTL
 );
 ```
 
@@ -507,21 +507,21 @@ pie title Cache Hit Distribution
     "Miss (200ms)" : 10
 ```
 
-| Metric | Target | Actual | Performance |
-|--------|--------|--------|-------------|
-| **L1 Hit Rate** | > 50% | 60% | ✅ Excellent |
-| **L2 Hit Rate** | > 30% | 30% | ✅ Good |
-| **Combined Hit Rate** | > 80% | 90% | ✅ Excellent |
-| **L1 Latency** | < 10ms | 5ms | ✅ Excellent |
-| **L2 Latency** | < 100ms | 50ms | ✅ Excellent |
+| Metric                | Target  | Actual | Performance  |
+| --------------------- | ------- | ------ | ------------ |
+| **L1 Hit Rate**       | > 50%   | 60%    | ✅ Excellent |
+| **L2 Hit Rate**       | > 30%   | 30%    | ✅ Good      |
+| **Combined Hit Rate** | > 80%   | 90%    | ✅ Excellent |
+| **L1 Latency**        | < 10ms  | 5ms    | ✅ Excellent |
+| **L2 Latency**        | < 100ms | 50ms   | ✅ Excellent |
 
 ### Performance Comparison
 
-| Operation | No Cache | L2 Only | L1 + L2 | Improvement |
-|-----------|----------|---------|---------|-------------|
-| **Metric Query** | 200ms | 50ms | 10ms | 20x faster |
-| **Dashboard Load** | 500ms | 150ms | 30ms | 16x faster |
-| **Service List** | 100ms | 40ms | 5ms | 20x faster |
+| Operation          | No Cache | L2 Only | L1 + L2 | Improvement |
+| ------------------ | -------- | ------- | ------- | ----------- |
+| **Metric Query**   | 200ms    | 50ms    | 10ms    | 20x faster  |
+| **Dashboard Load** | 500ms    | 150ms   | 30ms    | 16x faster  |
+| **Service List**   | 100ms    | 40ms    | 5ms     | 20x faster  |
 
 ---
 
@@ -550,11 +550,11 @@ const stats = await cacheService.getStats();
 
 ### Cache Admin Endpoints
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/admin/cache/stats` | GET | Get cache statistics |
-| `/admin/cache/clear` | POST | Clear all cache |
-| `/admin/cache/clear/:pattern` | POST | Clear by pattern |
+| Endpoint                      | Method | Description          |
+| ----------------------------- | ------ | -------------------- |
+| `/admin/cache/stats`          | GET    | Get cache statistics |
+| `/admin/cache/clear`          | POST   | Clear all cache      |
+| `/admin/cache/clear/:pattern` | POST   | Clear by pattern     |
 
 ---
 
@@ -563,6 +563,7 @@ const stats = await cacheService.getStats();
 ### When to Use Cache
 
 ✅ **Good Use Cases:**
+
 - Frequently queried, rarely changed data
 - Expensive database queries
 - API responses with high request rate
@@ -570,6 +571,7 @@ const stats = await cacheService.getStats();
 - Permission lookups
 
 ❌ **Avoid Caching:**
+
 - Real-time data requiring millisecond freshness
 - User-specific sensitive data (unless encrypted)
 - Data that changes on every request
@@ -579,15 +581,15 @@ const stats = await cacheService.getStats();
 
 ```typescript
 // ✅ Good: Hierarchical, specific
-CacheKeyGenerator.metrics('tenant-123', 'cpu_usage', '1h')
+CacheKeyGenerator.metrics("tenant-123", "cpu_usage", "1h");
 // → "metrics:tenant-123:cpu_usage:1h"
 
 // ✅ Good: Supports pattern invalidation
-CacheKeyGenerator.pattern('metrics', 'tenant-123')
+CacheKeyGenerator.pattern("metrics", "tenant-123");
 // → "metrics:tenant-123:*"
 
 // ❌ Bad: No hierarchy, hard to invalidate
-'tenant-123-cpu_usage-1h'
+("tenant-123-cpu_usage-1h");
 ```
 
 ---
@@ -613,10 +615,12 @@ graph TB
 ## Testing
 
 ### Unit Tests
+
 - `CacheService.spec.ts` - Service logic
 - `CacheKeyGenerator.spec.ts` - Key generation
 
 ### Integration Tests
+
 - `cache-integration.spec.ts` - Redis integration
 
 ---

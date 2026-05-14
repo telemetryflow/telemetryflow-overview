@@ -4,7 +4,7 @@
 - **Category**: Backend / Business Modules
 - **Status**: Production Ready
 - **Priority:** 🔥 HIGH - Core Platform Functionality
-- **Version**: 1.1.2-CE
+- **Version**: 1.4.0
 
 ---
 
@@ -44,11 +44,11 @@ graph LR
 
 ## Default Retention Policies
 
-| Data Type | Hot (Fast Query) | Warm | Cold | Archive | Total |
-|-----------|------------------|------|------|---------|-------|
-| **Metrics** | 7 days | 30 days | 90 days | 365 days | 492 days |
-| **Logs** | 7 days | 14 days | 30 days | 90 days | 141 days |
-| **Traces** | 7 days | 14 days | 30 days | - | 51 days |
+| Data Type   | Hot (Fast Query) | Warm    | Cold    | Archive  | Total    |
+| ----------- | ---------------- | ------- | ------- | -------- | -------- |
+| **Metrics** | 7 days           | 30 days | 90 days | 365 days | 492 days |
+| **Logs**    | 7 days           | 14 days | 30 days | 90 days  | 141 days |
+| **Traces**  | 7 days           | 14 days | 30 days | -        | 51 days  |
 
 ---
 
@@ -104,14 +104,14 @@ MODIFY TTL
 
 ## API Endpoints
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `POST` | `/api/v1/retention-policies` | Create policy |
-| `GET` | `/api/v1/retention-policies` | List policies |
-| `GET` | `/api/v1/retention-policies/:id` | Get policy |
-| `PATCH` | `/api/v1/retention-policies/:id` | Update policy |
+| Method  | Endpoint                         | Description   |
+| ------- | -------------------------------- | ------------- |
+| `POST`  | `/api/v2/retention-policies`     | Create policy |
+| `GET`   | `/api/v2/retention-policies`     | List policies |
+| `GET`   | `/api/v2/retention-policies/:id` | Get policy    |
+| `PATCH` | `/api/v2/retention-policies/:id` | Update policy |
 
 ---
 
-- **Last Updated**: January 01st, 2026
+- **Last Updated**: May 14th, 2026
 - **Maintained By**: DevOpsCorner Indonesia

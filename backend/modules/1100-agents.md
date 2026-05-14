@@ -4,7 +4,7 @@
 - **Category**: Backend / Business Modules
 - **Status**: Production Ready
 - **Priority:** 🔥 HIGH - Core Monitoring Functionality
-- **Version**: 1.1.2-CE
+- **Version**: 1.4.0
 
 ---
 
@@ -96,9 +96,9 @@ export class Agent extends AggregateRoot<AgentId> {
 }
 
 export enum AgentStatus {
-  ONLINE = 'ONLINE',
-  OFFLINE = 'OFFLINE',
-  DEGRADED = 'DEGRADED',
+  ONLINE = "ONLINE",
+  OFFLINE = "OFFLINE",
+  DEGRADED = "DEGRADED",
 }
 ```
 
@@ -142,15 +142,15 @@ CREATE INDEX idx_agents_last_heartbeat ON agents(last_heartbeat);
 
 ## API Endpoints
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `POST` | `/api/v1/agents/register` | Register new agent |
-| `POST` | `/api/v1/agents/:id/heartbeat` | Send heartbeat |
-| `GET` | `/api/v1/agents` | List agents |
-| `GET` | `/api/v1/agents/:id` | Get agent details |
-| `DELETE` | `/api/v1/agents/:id` | Deregister agent |
+| Method   | Endpoint                       | Description        |
+| -------- | ------------------------------ | ------------------ |
+| `POST`   | `/api/v2/agents/register`      | Register new agent |
+| `POST`   | `/api/v2/agents/:id/heartbeat` | Send heartbeat     |
+| `GET`    | `/api/v2/agents`               | List agents        |
+| `GET`    | `/api/v2/agents/:id`           | Get agent details  |
+| `DELETE` | `/api/v2/agents/:id`           | Deregister agent   |
 
 ---
 
-- **Last Updated**: January 01st, 2026
+- **Last Updated**: May 14th, 2026
 - **Maintained By**: DevOpsCorner Indonesia

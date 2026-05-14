@@ -230,8 +230,8 @@ flowchart TB
 
 ```
 hotfix/<version>-<description>
-hotfix/1.1.1-session-timeout
-hotfix/1.1.2-api-auth-fix
+hotfix/1.2.1-session-timeout
+hotfix/1.2.2-api-auth-fix
 ```
 
 **Rules:**
@@ -502,10 +502,10 @@ flowchart LR
         PATCH["PATCH<br/>Bug fixes"]
     end
 
-    subgraph Example["Example: 1.1.2"]
+    subgraph Example["Example: 1.2.0"]
         M["1"]
-        N["1"]
-        P["2"]
+        N["2"]
+        P["0"]
     end
 
     MAJOR --> M
@@ -614,7 +614,7 @@ flowchart TB
 # Create hotfix from main
 git checkout main
 git pull origin main
-git checkout -b hotfix/1.1.3-critical-bug
+git checkout -b hotfix/1.2.1-critical-bug
 
 # Fix the bug
 # Bump version
@@ -622,17 +622,17 @@ git commit -m "fix(critical): resolve production issue"
 
 # Merge to main
 git checkout main
-git merge --no-ff hotfix/1.1.3-critical-bug
-git tag -a v1.1.3 -m "Hotfix v1.1.3"
+git merge --no-ff hotfix/1.2.1-critical-bug
+git tag -a v1.2.1 -m "Hotfix v1.2.1"
 git push origin main --tags
 
 # Back-merge to develop
 git checkout develop
-git merge --no-ff hotfix/1.1.3-critical-bug
+git merge --no-ff hotfix/1.2.1-critical-bug
 git push origin develop
 
 # Delete hotfix branch
-git branch -d hotfix/1.1.3-critical-bug
+git branch -d hotfix/1.2.1-critical-bug
 ```
 
 ---

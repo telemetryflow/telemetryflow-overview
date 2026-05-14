@@ -1,5 +1,3 @@
-# TelemetryFlow Platform - Overview Documentation
-
 <div align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="https://github.com/telemetryflow/.github/raw/main/docs/assets/tfo-logo-dark.svg">
@@ -7,30 +5,34 @@
     <img src="https://github.com/telemetryflow/.github/raw/main/docs/assets/tfo-logo-light.svg" alt="TelemetryFlow Logo" width="80%">
   </picture>
 
-  <h3>Community Enterprise Observability Platform (CEOP)</h3>
+  <h1>TelemetryFlow Platform - Overview Documentation</h1>
+
+  <h3>Enterprise-Grade Observability Platform for Modern Cloud Infrastructure</h3>
 
   <p>
-    <strong>100% OpenTelemetry Compliant</strong> • Built with <strong>DDD/CQRS</strong> • Production-Ready
+    <strong>100% OpenTelemetry Compliant</strong> &bull;
+    Built with <strong>DDD/CQRS</strong> &bull;
+    Production-Ready &bull;
+    Apache 2.0 Licensed
   </p>
 
-  [![Version](https://img.shields.io/badge/version-1.1.1-orange.svg)](../CHANGELOG.md)
-  [![License](https://img.shields.io/badge/license-Apache--2.0-green.svg)](../LICENSE)
-  [![NestJS](https://img.shields.io/badge/NestJS-11.x-E0234E?logo=nestjs)](https://nestjs.com/)
-  [![Vue](https://img.shields.io/badge/Vue-3.5.24-4FC08D?logo=vue.js)](https://vuejs.org/)
-  [![TypeScript](https://img.shields.io/badge/TypeScript-5.9.3-3178C6?logo=typescript)](https://www.typescriptlang.org/)
-  [![ClickHouse](https://img.shields.io/badge/ClickHouse-23+-FFCC00?logo=clickhouse)](https://clickhouse.com/)
-  [![OpenTelemetry](https://img.shields.io/badge/OTLP-100%25%20Compliant-success?logo=opentelemetry)](https://opentelemetry.io/)
-  [![DDD](https://img.shields.io/badge/Architecture-DDD%2FCQRS-blueviolet)](docs-ddd-backend/)
-  [![RBAC](https://img.shields.io/badge/Security-5--Tier%20RBAC-red)](../backend/src/modules/iam/)
-  [![MCP Protocol](https://img.shields.io/badge/MCP-2024--11--05-purple?logo=data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMTIgMkM2LjQ4IDIgMiA2LjQ4IDIgMTJzNC40OCAxMCAxMCAxMCAxMC00LjQ4IDEwLTEwUzE3LjUyIDIgMTIgMnoiIGZpbGw9IiNmZmYiLz48L3N2Zz4=)](https://modelcontextprotocol.io/)
-  [![Claude API](https://img.shields.io/badge/Claude-Opus%204%20%7C%20Sonnet%204-E1BEE7?logo=anthropic)](https://anthropic.com)
+[![Version](https://img.shields.io/badge/version-1.4.0-orange.svg)](#)
+[![License](https://img.shields.io/badge/license-Apache--2.0-green.svg)](#)
+[![NestJS](https://img.shields.io/badge/NestJS-11.x-E0234E?logo=nestjs)](https://nestjs.com/)
+[![Vue](https://img.shields.io/badge/Vue-3.x-4FC08D?logo=vue.js)](https://vuejs.org/)
+[![Go](https://img.shields.io/badge/Go-1.26+-00ADD8?logo=go)](https://golang.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?logo=typescript)](https://www.typescriptlang.org/)
+[![ClickHouse](https://img.shields.io/badge/ClickHouse-23+-FFCC00?logo=clickhouse)](https://clickhouse.com/)
+[![OpenTelemetry](https://img.shields.io/badge/OTLP-100%25%20Compliant-success?logo=opentelemetry)](https://opentelemetry.io/)
+[![DDD](https://img.shields.io/badge/Architecture-DDD%2FCQRS-blueviolet)](#)
+
 </div>
 
-- **Version:** 1.1.2-CE
+- **Version:** 1.4.0-CE
 - **Status:** Production Ready
 - **License:** Apache 2.0
 - **Built by:** DevOpsCorner Indonesia
-- **Last Updated:** January 01st, 2026
+- **Last Updated:** May 14, 2026
 
 ---
 
@@ -49,29 +51,32 @@
 
 ## What is TelemetryFlow?
 
-**TelemetryFlow** is an **enterprise-grade observability platform** that provides complete telemetry collection, storage, and visualization capabilities. It is a 100% OpenTelemetry Protocol (OTLP) compliant platform designed to be an open-source that provides unified metrics, logs, and traces collection following OpenTelemetry standards.
+**TelemetryFlow** is an **enterprise-grade observability platform** that provides unified telemetry collection, storage, analysis, and visualization. It is **100% OpenTelemetry Protocol (OTLP) compliant**, designed as an open-source alternative to commercial solutions like Datadog, New Relic, and Dynatrace.
 
 ### Problem It Solves
 
-| Problem | TelemetryFlow Solution |
-|---------|----------------------|
-| **Fragmented Observability** | Organizations use separate tools for metrics (Prometheus), logs (ELK), and traces (Jaeger). TelemetryFlow unifies all three signals in one platform. |
-| **Vendor Lock-in** | By being OTLP-compliant, it works with any OpenTelemetry SDK or Collector, providing vendor-neutral observability. |
-| **Multi-Tenancy Complexity** | Provides hierarchical tenant isolation (Region → Organization → Workspace → Tenant) with automatic data segregation. |
-| **High Cost** | Open-source platform that can be self-hosted, eliminating per-GB pricing of commercial solutions. |
-| **Compliance Requirements** | Built-in audit logging, GDPR compliance, regional data segregation, and soft deletion for compliance. |
+| Problem                      | TelemetryFlow Solution                                                    |
+| ---------------------------- | ------------------------------------------------------------------------- |
+| **Fragmented Tooling**       | Unifies metrics, logs, traces, and exemplars into a single platform       |
+| **Vendor Lock-in**           | 100% OTLP-compliant — works with any OpenTelemetry SDK or Collector       |
+| **Multi-Tenancy Complexity** | Hierarchical isolation: Region → Organization → Workspace → Tenant        |
+| **High Cost**                | Self-hosted, eliminating per-GB pricing of commercial solutions           |
+| **Compliance Requirements**  | Built-in audit logging, GDPR compliance, regional data segregation        |
+| **Monitoring Silos**         | Consolidates Prometheus, kube-state-metrics, node-exporter into one agent |
 
 ### Core Capabilities
 
-- **📊 Unified Telemetry Collection** - Metrics, Logs, and Traces in one platform
-- **🔌 100% OTLP Compliant** - Works with any OpenTelemetry SDK
-- **🏢 Enterprise Multi-Tenancy** - Hierarchical isolation with Region → Org → Workspace → Tenant
-- **🚨 Advanced Alerting** - 33 production-ready alert rules with fatigue prevention
-- **📈 Real-time Dashboards** - 6 pre-configured templates with 12+ widget types
-- **🔐 Enterprise Security** - JWT, MFA, SSO (Google/GitHub/Azure/Okta), RBAC, API keys
-- **⚡ High Performance** - Multi-level caching, queue-based processing, ClickHouse optimization
-- **📋 Compliance Ready** - Audit logging, GDPR, SOC2, HIPAA support
-- **🤖 AI-Powered Observability** - MCP Server with Claude AI integration for intelligent analysis
+- **Unified Telemetry Collection** — Metrics, Logs, Traces, and Exemplars in one platform
+- **100% OTLP Compliant** — Works with any OpenTelemetry SDK
+- **Enterprise Multi-Tenancy** — Hierarchical isolation with Region → Org → Workspace → Tenant
+- **Advanced Alerting** — 33 production-ready alert rules with fatigue prevention
+- **Real-time Dashboards** — 6 pre-configured templates with 12+ widget types
+- **Enterprise Security** — JWT, MFA, SSO (Google/GitHub/Azure/Okta), 5-Tier RBAC, API keys
+- **High Performance** — Multi-level caching, queue-based processing, ClickHouse optimization
+- **Compliance Ready** — Audit logging, GDPR, SOC2, HIPAA support
+- **Database Monitoring** — Native collectors for 9 databases with Query Analytics (QAN)
+- **Infrastructure Agent** — TFO Agent replaces Prometheus, KSM, node-exporter, FluentBit
+- **AI Intelligence** — MCP servers for Claude AI, TFQL natural language queries
 
 ---
 
@@ -129,18 +134,11 @@ This documentation is organized into the following sections:
 │   ├── DATABASE-SCHEMA.md             # PostgreSQL + ClickHouse schemas
 │   ├── NAMING-CONVENTIONS.md          # Coding standards
 │   └── OTLP-INGESTION.md              # OTLP ingestion guide
-├── deployment/
-│   ├── DOCKER-COMPOSE.md              # Docker deployment
-│   ├── KUBERNETES.md                  # Kubernetes deployment
-│   ├── CONFIGURATION.md               # Environment configuration
-│   └── PRODUCTION-CHECKLIST.md        # Production deployment guide
-└── tfo-otel/
-    ├── README.md                      # TFO-OTEL overview
-    ├── TFO-OTEL-AGENT.md              # TFO-Agent documentation
-    ├── TFO-OTEL-COLLECTOR.md          # TFO-Collector documentation
-    ├── ARCHITECTURE.md                # OTEL architecture
-    ├── CONFIGURATION.md               # OTEL configuration
-    └── INGESTION-FLOW.md              # Telemetry ingestion flow
+└── deployment/
+    ├── DOCKER-COMPOSE.md              # Docker deployment
+    ├── KUBERNETES.md                  # Kubernetes deployment
+    ├── CONFIGURATION.md               # Environment configuration
+    └── PRODUCTION-CHECKLIST.md        # Production deployment guide
 ```
 
 ---
@@ -149,11 +147,12 @@ This documentation is organized into the following sections:
 
 ### Prerequisites
 
-- **Node.js** 18+ (20.x recommended)
-- **PostgreSQL** 15+
+- **Node.js** 20+ & **pnpm** 9+
+- **PostgreSQL** 16+
 - **ClickHouse** 23+
 - **Redis** 7+
 - **Docker** & **Docker Compose** (for local development)
+- **Go** 1.24+ (for Agent/Collector development)
 
 ### Local Development Setup
 
@@ -162,58 +161,41 @@ This documentation is organized into the following sections:
 git clone https://github.com/telemetryflow/telemetryflow-platform.git
 cd telemetryflow-platform
 
-# 2. Start infrastructure services (PostgreSQL, ClickHouse, Redis)
-cd backend
-pnpm docker:up
+# 2. Start infrastructure services (PostgreSQL, ClickHouse, Redis, NATS)
+docker-compose --profile core up -d
 
-# 3. Install backend dependencies
+# 3. Install dependencies
 pnpm install
 
 # 4. Run database migrations
-pnpm migration:run
+pnpm db:migrate
 
-# 5. Start backend development server
-pnpm dev
+# 5. Seed data
+pnpm db:seed
 
-# 6. In a new terminal, start frontend
-cd ../frontend
-pnpm install
+# 6. Start development servers
 pnpm dev
 ```
 
 ### Access the Platform
 
-- **Frontend:** http://localhost:5173
-- **Backend API:** http://localhost:3100/api/v2
-- **API Documentation:** http://localhost:3100/api/docs
-- **Health Check:** http://localhost:3100/health
+| Service                | URL                            |
+| ---------------------- | ------------------------------ |
+| **Frontend Dashboard** | http://localhost:8080          |
+| **Backend API**        | http://localhost:3000/api/v2   |
+| **API Documentation**  | http://localhost:3000/api/docs |
+| **Health Check**       | http://localhost:3000/health   |
+| **ClickHouse**         | http://localhost:8123          |
 
-### Default Credentials
+### Default Credentials (5-Tier RBAC)
 
-```bash
-# Super Administrator
-Email: super.administrator@telemetryflow.id
-Password: SuperAdmin@123456
-
-# Administrator
-Email: admin.telemetryflow@telemetryflow.id
-Password: Admin@123456
-
-# Developer
-Email: developer.telemetryflow@telemetryflow.id
-Password: Developer@123456
-
-# Viewer
-Email: viewer.telemetryflow@telemetryflow.id
-Password: Viewer@123456
-
-# Demo
-Email: demo.telemetryflow@telemetryflow.id
-Password: Demo@123456
-```
-
-> References:
-> [06-RBAC-SYSTEM-PLATFORM.md](./architecture/06-RBAC-SYSTEM-PLATFORM.md)
+| Role                    | Email                                    | Password          |
+| ----------------------- | ---------------------------------------- | ----------------- |
+| **Super Administrator** | super.administrator@telemetryflow.id     | SuperAdmin@123456 |
+| **Administrator**       | admin.telemetryflow@telemetryflow.id     | Admin@123456      |
+| **Developer**           | developer.telemetryflow@telemetryflow.id | Developer@123456  |
+| **Viewer**              | viewer.telemetryflow@telemetryflow.id    | Viewer@123456     |
+| **Demo**                | demo.telemetryflow@telemetryflow.id      | Demo@123456       |
 
 ---
 
@@ -222,13 +204,16 @@ Password: Demo@123456
 ### 1. Unified Telemetry Collection (OTLP Compliant)
 
 **Metrics**
-- Time-series storage in ClickHouse
+
+- Time-series storage in ClickHouse with pre-aggregation materialized views
 - Support for: Gauges, Counters, Histograms, Summaries
 - Exemplars for metric-trace correlation
 - Pre-aggregation tables for 50-90% query speedup
 - Custom aggregation functions (sum, avg, min, max, percentiles)
+- Rollup cascade: raw → 1m → 1h → 1d (automatic via materialized views)
 
 **Logs**
+
 - Structured logging with full-text search
 - Severity levels: DEBUG, INFO, WARN, ERROR, FATAL
 - Trace context propagation (traceId, spanId)
@@ -236,13 +221,15 @@ Password: Demo@123456
 - High-cardinality attribute indexing
 
 **Traces**
-- Distributed tracing with span visualization
-- Service dependency mapping
-- Critical path analysis
-- Trace-log correlation
-- Span attribute search
+
+- Distributed tracing with waterfall span visualization
+- Service dependency mapping from span relationships
+- Critical path analysis identifying bottlenecks
+- Trace-log correlation for unified debugging
+- Span attribute search with flexible filtering
 
 **OTLP Endpoints**
+
 ```
 POST /api/v2/otlp/metrics   # Ingest OTLP metrics
 POST /api/v2/otlp/logs      # Ingest OTLP logs
@@ -253,50 +240,158 @@ POST /api/v2/otlp/traces    # Ingest OTLP traces
 
 ```mermaid
 sequenceDiagram
-    participant CLIENT as OTEL Client
-    participant OTLP as OTLP Controller
+    participant SRC as Telemetry Source
+    participant COL as TFO Collector
+    participant API as Platform API
     participant AUTH as API Key Auth
-    participant TRANS as Transformer
-    participant QUEUE as BullMQ Queue
-    participant WORKER as Queue Worker
+    participant Q as BullMQ Queue
+    participant W as Queue Worker
     participant CH as ClickHouse
 
-    CLIENT->>OTLP: POST /v1/metrics
-    OTLP->>AUTH: Validate API Key
-    AUTH->>AUTH: Check Argon2id Hash
-
-    alt Valid API Key
-        AUTH-->>OTLP: Authorized
-        OTLP->>TRANS: Transform OTLP
-        TRANS->>TRANS: Extract attributes
-        TRANS->>QUEUE: Enqueue Job
-        QUEUE-->>OTLP: Job ID
-        OTLP-->>CLIENT: 200 OK
-
-        QUEUE->>WORKER: Process Job
-        WORKER->>WORKER: Batch 10K rows
-        WORKER->>CH: INSERT telemetry
-        CH-->>WORKER: Success
-        WORKER->>QUEUE: Complete Job
-    else Invalid API Key
-        AUTH-->>CLIENT: 401 Unauthorized
-    end
-
-    Note over WORKER,CH: Async processing
+    SRC->>COL: OTLP Export
+    COL->>API: POST /v1/metrics (or /v1/logs, /v1/traces)
+    API->>AUTH: Validate API Key (Argon2id)
+    AUTH-->>API: Authorized
+    API->>Q: Enqueue Job (async)
+    API-->>COL: 202 Accepted
+    Q->>W: Process Job
+    W->>W: Batch 10K rows
+    W->>CH: INSERT with MV rollup
+    Note over CH: raw → 1m → 1h → 1d cascade
 ```
 
-### 2. Multi-Tenancy Architecture
+### 2. Infrastructure Monitoring
 
-**Hierarchical Isolation:**
+#### TFO Agent v1.2.0 — One-For-All Collector
+
+```mermaid
+graph TB
+    subgraph Replaced["Replaces These Tools"]
+        PROM["Prometheus"]
+        KSM["kube-state-metrics"]
+        NE["node-exporter"]
+        FB["FluentBit"]
+        CAD["cAdvisor"]
+    end
+
+    subgraph Agent["TFO Agent v1.2.0 (Go 1.26, OTEL SDK v1.43.0)"]
+        NE_MOD["Node Exporter<br/>CPU, Memory, DiskIO,<br/>Filesystem, Network, Load"]
+        K8S_MOD["Kubernetes<br/>Nodes, Pods, Deployments,<br/>Services, HPA, PDB, Events"]
+        CAD_MOD["cAdvisor<br/>Container CPU, Memory,<br/>Network, Filesystem"]
+        LOG_MOD["Log Collector<br/>Pod Logs, Node Logs"]
+        DB_MOD["Database Collectors<br/>MySQL, PostgreSQL, MongoDB,<br/>MSSQL, ClickHouse, Aurora,<br/>CockroachDB, TimescaleDB"]
+        EBPF_MOD["eBPF<br/>Syscalls, Network,<br/>File I/O, Scheduler"]
+        DOCKER_MOD["Docker<br/>32 per-container metrics"]
+    end
+
+    Replaced -.->|"Consolidated into"| Agent
+    Agent -->|"OTLP"| PLATFORM["TFO Platform"]
+
+    style Replaced fill:#ffebee,stroke:#c62828,color:#000
+    style Agent fill:#e8f5e9,stroke:#2e7d32,color:#000
+```
+
+**Key Capabilities:**
+
+- **9 Database Collectors**: MySQL/MariaDB/Percona, PostgreSQL, MongoDB, MSSQL, ClickHouse, CockroachDB, Amazon Aurora, TimescaleDB, SQLite3
+- **eBPF Metrics**: 28 kernel-level metrics across 7 categories (syscall, network, file I/O, scheduler, memory, TCP state, Hubble)
+- **Docker Monitoring**: 32 per-container metrics via Docker Engine API
+- **cAdvisor Scraping**: Prometheus endpoint scraper for container metrics
+- **39+ Integrations**: Cloud (GCP, Azure, AWS, Alibaba), APM (Datadog, New Relic, Dynatrace, Instana), OSS (SigNoz, Coroot, HyperDX, OpenObserve, Netdata), Streaming (Kafka, Loki, InfluxDB), Network (Cisco, SNMP, MQTT)
+- **Resilient**: Disk-backed buffer, auto-reconnection, graceful shutdown
+- **Cross-Platform**: Linux, macOS, Windows
+
+#### TFO Collector v1.2.1 — OCB-Native Gateway
+
+```mermaid
+flowchart LR
+    subgraph Sources["Telemetry Sources"]
+        APP["Applications"]
+        AGENT["TFO Agent"]
+        EXT["External"]
+    end
+
+    subgraph Collector["TFO Collector v1.2.1"]
+        RCV["tfootlp Receiver<br/>gRPC :4317 / HTTP :4318"]
+        PROC["Processors<br/>k8sattributes, batch,<br/>transform, resource"]
+        EXP_TFO["tfo Exporter<br/>→ TFO Platform"]
+        CONN["Connectors<br/>spanmetrics, servicegraph"]
+    end
+
+    Sources --> RCV --> PROC
+    PROC --> EXP_TFO
+    PROC --> CONN
+
+    style Sources fill:#e8eaf6,stroke:#283593,color:#000
+    style Collector fill:#e3f2fd,stroke:#1565c0,color:#000
+```
+
+**Key Features:**
+
+- Built on OpenTelemetry Core v1.58.0 + Contrib v0.152.0
+- **Dual Endpoints**: Community v1 + Platform v2 on same port (4318)
+- **4 Custom TFO Components**: `tfootlp` receiver, `tfo` exporter, `tfoauth` extension, `tfoidentity` extension
+- **85+ OTel Community Components**: receivers, processors, exporters
+- **Connectors**: spanmetrics (exemplars), servicegraph (service dependency maps)
+- **Security**: Alpine runtime, non-root (UID 10001), CVE-patched, RBAC for K8s
+- **Deployment**: Docker, Kubernetes (Helm), binary
+
+#### Kubernetes Monitoring
+
+Comprehensive K8s observability with 79+ graph definitions and 8 datatables:
+
+| Category          | Metrics                               | Graphs |
+| ----------------- | ------------------------------------- | ------ |
+| **Node Metrics**  | CPU, Memory, Disk, Network, Load      | 15+    |
+| **Pod/Container** | CPU, Memory, Restarts, Status         | 20+    |
+| **Workloads**     | Deployments, StatefulSets, DaemonSets | 12+    |
+| **Storage**       | PV, PVC, Storage Classes              | 8+     |
+| **Network**       | Services, Endpoints, Ingresses        | 10+    |
+| **Cluster**       | API Server, CoreDNS, Events, HPA      | 14+    |
+
+#### Database Monitoring (QAN)
+
+Query Analytics with native collectors for popular databases:
+
+```mermaid
+graph TB
+    subgraph DB["Database Sources"]
+        MYSQL["MySQL / MariaDB / Percona"]
+        PG["PostgreSQL"]
+        MONGO["MongoDB"]
+        MSSQL["MSSQL"]
+        AURORA["Amazon Aurora"]
+        CH["ClickHouse"]
+        CRDB["CockroachDB"]
+    end
+
+    subgraph Agent["TFO Agent"]
+        COLL["Database Collectors"]
+    end
+
+    subgraph Platform["TFO Platform"]
+        DBMON["DB Monitoring Module"]
+        QAN["Query Analytics (QAN)<br/>Top Queries, Slow Queries,<br/>Execution Statistics"]
+    end
+
+    DB --> Agent --> Platform
+    DBMON --> QAN
+
+    style DB fill:#e3f2fd,stroke:#1565c0,color:#000
+    style Agent fill:#e8f5e9,stroke:#2e7d32,color:#000
+    style Platform fill:#fff3e0,stroke:#e65100,color:#000
+```
+
+### 3. Multi-Tenancy Architecture
 
 ```mermaid
 graph TD
     REGION[Region<br/>Geographic Isolation<br/>us-east, eu-west, ap-south<br/>GDPR Compliance]
 
-    REGION --> ORG1[Organization 1<br/>Company A<br/>Multi-org Support]
-    REGION --> ORG2[Organization 2<br/>Company B]
+    REGION --> ORG1[Organization 1<br/>Multi-org Support]
+    REGION --> ORG2[Organization 2]
 
-    ORG1 --> WS1[Workspace 1<br/>Team: Backend<br/>Logical Separation]
+    ORG1 --> WS1[Workspace 1<br/>Team: Backend]
     ORG1 --> WS2[Workspace 2<br/>Team: Frontend]
 
     WS1 --> T1[Tenant: Production<br/>Environment Level<br/>Data Isolation]
@@ -306,19 +401,13 @@ graph TD
     WS2 --> T4[Tenant: Production]
     WS2 --> T5[Tenant: Development]
 
-    style REGION fill:#FF6B6B
-    style ORG1 fill:#4ECDC4
-    style ORG2 fill:#4ECDC4
-    style WS1 fill:#45B7D1
-    style WS2 fill:#45B7D1
-    style T1 fill:#96CEB4
-    style T2 fill:#96CEB4
-    style T3 fill:#96CEB4
-    style T4 fill:#96CEB4
-    style T5 fill:#96CEB4
+    style REGION fill:#e8eaf6,stroke:#283593,color:#000
+    style ORG1 fill:#e3f2fd,stroke:#1565c0,color:#000
+    style ORG2 fill:#e3f2fd,stroke:#1565c0,color:#000
 ```
 
 **Features:**
+
 - Automatic tenant context injection
 - All queries filtered by workspace_id and tenant_id
 - ClickHouse partitioning by tenant
@@ -326,88 +415,46 @@ graph TD
 - Resource quotas per workspace
 - Regional data segregation for compliance
 
-### 3. Authentication & Security
+### 4. Authentication & Security
 
 **5-Tier RBAC System:**
-- **Super Administrator** - Global platform management
-- **Administrator** - Organization-level management
-- **Developer** - Write access to telemetry
-- **Viewer** - Read-only dashboard access
-- **Demo** - Limited demo access
+
+```mermaid
+graph LR
+    SA["Super Administrator<br/>Full system access"]
+    ADM["Administrator<br/>Organization management"]
+    DEV["Developer<br/>Read/write telemetry"]
+    VWR["Viewer<br/>Read-only access"]
+    DEMO["Demo<br/>Sandbox access"]
+
+    SA --> ADM --> DEV --> VWR --> DEMO
+
+    style SA fill:#c62828,stroke:#b71c1c,color:#fff
+    style ADM fill:#e65100,stroke:#bf360c,color:#fff
+    style DEV fill:#1565c0,stroke:#0d47a1,color:#fff
+    style VWR fill:#2e7d32,stroke:#1b5e20,color:#fff
+    style DEMO fill:#616161,stroke:#424242,color:#fff
+```
 
 **API Key Authentication (OTLP):**
-- AWS-style dual-key system (tfk-*/tfs-*)
+
+- AWS-style dual-key system (tfk-_/tfs-_)
 - Argon2id hashing (OWASP-recommended)
 - Permission-based access: `metrics:write`, `logs:write`, `traces:write`
 - Automatic key rotation with zero-downtime
 - Rate limiting: 1000 req/min per key
 
 **Authentication Methods:**
+
 - JWT with refresh tokens
 - Multi-Factor Authentication (TOTP)
 - SSO providers: Google, GitHub, Azure AD, Okta
 - SAML 2.0 and OIDC support
 
-**Authentication Flow:**
-
-```mermaid
-sequenceDiagram
-    participant USER as User
-    participant FE as Frontend
-    participant API as Backend API
-    participant GUARD as Auth Guard
-    participant JWT as JWT Service
-    participant DB as PostgreSQL
-    participant MFA as MFA Service
-
-    USER->>FE: Login
-    FE->>API: POST /auth/login
-    API->>DB: Find user by email
-    DB-->>API: User found
-
-    alt Password Valid
-        API->>API: Verify Argon2id
-
-        alt MFA Enabled
-            API->>MFA: Generate TOTP
-            MFA-->>USER: Send MFA code
-            USER->>FE: Enter MFA code
-            FE->>API: POST /auth/verify-mfa
-            API->>MFA: Validate TOTP
-
-            alt MFA Valid
-                MFA-->>API: Valid
-                API->>JWT: Generate tokens
-                JWT-->>API: access + refresh
-                API-->>FE: 200 + tokens
-                FE->>FE: Store tokens
-                FE-->>USER: Logged in
-            else MFA Invalid
-                MFA-->>USER: 401 Invalid MFA
-            end
-        else No MFA
-            API->>JWT: Generate tokens
-            JWT-->>API: access + refresh
-            API-->>FE: 200 + tokens
-            FE-->>USER: Logged in
-        end
-    else Password Invalid
-        API-->>USER: 401 Invalid credentials
-    end
-
-    Note over FE,API: Subsequent requests
-    USER->>FE: Access dashboard
-    FE->>API: GET /api/v1/metrics
-    API->>GUARD: Validate JWT
-    GUARD->>GUARD: Verify signature
-    GUARD->>GUARD: Check expiration
-    GUARD-->>API: Valid
-    API-->>FE: 200 + data
-```
-
-### 4. Advanced Alerting
+### 5. Advanced Alerting
 
 **33 Default Production-Ready Rules:**
+
 - Kubernetes (pod crashes, OOMKilled, restarts)
 - VMs (CPU, memory, disk, network)
 - Redis (memory usage, evictions, slowlog)
@@ -415,17 +462,20 @@ sequenceDiagram
 - Databases (connection pool, slow queries)
 
 **Fatigue Prevention:**
+
 - Cooldown periods (5-60 minutes)
 - Rate limiting (max 10 alerts/hour per rule)
 - Deduplication (fingerprint-based)
 - Auto-resolution after conditions clear
 
 **Notification Channels (8):**
+
 - Email, Slack, PagerDuty, Webhook, Microsoft Teams, Discord, Telegram, SMS (Twilio)
 
-### 5. Dashboards & Visualization
+### 6. Dashboards & Visualization
 
 **6 Pre-configured Templates:**
+
 1. **System Monitoring** - CPU, memory, disk, network
 2. **Application Performance Monitoring (APM)** - Response times, throughput, errors, traces
 3. **Logs Explorer** - Advanced log filtering and analysis
@@ -434,99 +484,99 @@ sequenceDiagram
 6. **Custom Metrics Dashboard** - Flexible custom metrics
 
 **12+ Widget Types:**
+
 - line_chart, bar_chart, area_chart, pie_chart, donut_chart
 - table, gauge, stat, heatmap, graph (network diagram)
 - text panel, logs viewer
 
-**Features:**
-- Drag-and-drop dashboard builder
-- Real-time updates via WebSocket
-- Template variables for dynamic parameterization
-- Clone from templates
-- Export/import dashboards
+### 7. Component Registry System
 
-### 6. Performance Optimizations
-
-**Multi-Level Cache:**
-- L1: In-memory cache (60s TTL)
-- L2: Redis cache (30min TTL)
-- 60-80% cache hit rate
-
-**Message Queues:**
-- 5 BullMQ queues: OTLP, Alerts, Aggregation, Cleanup, Notifications
-- Async processing with retries
-- Job prioritization
-
-**Database Optimizations:**
-- 20 ClickHouse indexes (bloom filter, minmax, set)
-- 10-50x faster searches
-- Partitioning by tenant and timestamp
-- Data compression (50-90% space savings)
-
-### 7. AI-Powered Observability (TFO-MCP)
-
-**Model Context Protocol Server:**
-
-TFO-MCP is an enterprise-grade MCP server implementation that brings AI capabilities to the TelemetryFlow platform, enabling intelligent analysis and interaction with telemetry data.
+The frontend uses a centralized registry for all UI components:
 
 ```mermaid
-graph LR
-    subgraph "MCP Clients"
-        CC[Claude Code]
-        IDE[IDE Extensions]
-        CLI[CLI Tools]
+graph TB
+    subgraph Registries["Component Registries (459 Total)"]
+        GR["Graph Registry<br/>260+ definitions<br/>ID: XXX1####"]
+        SP["Stat Panel Registry<br/>158 definitions<br/>ID: XXX2####"]
+        DT["DataTable Registry<br/>41 definitions<br/>ID: XXX3####"]
     end
 
-    subgraph "TFO-MCP Server"
-        SERVER[MCP Server<br/>JSON-RPC 2.0]
-        TOOLS[8 Built-in Tools]
-        AI[Claude AI<br/>Integration]
+    subgraph Composables["Vue Composables"]
+        UGR["useGraphFromRegistry()"]
+        USP["useStatPanelsFromRegistry()"]
+        UDT["useDataTableFromRegistry()"]
     end
 
-    subgraph "TelemetryFlow"
-        CH[(ClickHouse)]
-        PG[(PostgreSQL)]
+    subgraph Components["UI Components"]
+        RGP["RegistryGraphPanel<br/>3 variants: default/mini/panel<br/>13 chart types"]
     end
 
-    CC --> SERVER
-    IDE --> SERVER
-    CLI --> SERVER
-    SERVER --> TOOLS
-    SERVER --> AI
-    AI --> CH
-    AI --> PG
+    Registries --> Composables --> Components
 
-    style SERVER fill:#E1BEE7,stroke:#7B1FA2
-    style AI fill:#FFCDD2,stroke:#C62828
+    style Registries fill:#e8eaf6,stroke:#283593,color:#000
+    style Composables fill:#e8f5e9,stroke:#2e7d32,color:#000
+    style Components fill:#fff3e0,stroke:#e65100,color:#000
 ```
 
-**Key Features:**
+**23 Module Codes**: HOM, DSH, MET, TRC, LOG, COR, EXP, ALR, RPT, UPT, STP, SVM, NWM, K8S, INF, AGT, RET, SUB, IAM, TEN, AUD, APK, NOT, LLM
 
-- Claude AI conversation capabilities via MCP protocol
-- 8 built-in tools (AI chat, file operations, system commands)
-- Domain-Driven Design (DDD) with CQRS architecture
-- OpenTelemetry integration for self-instrumentation
-- Multi-transport support: stdio, SSE (planned), WebSocket (planned)
+### 8. AI Intelligence
 
-**Built-in Tools:**
+**MCP Integration** — Model Context Protocol servers for AI-powered observability:
 
-| Tool                  | Category | Description                |
-| --------------------- | -------- | -------------------------- |
-| `claude_conversation` | AI       | Send messages to Claude AI |
-| `read_file`           | File     | Read file contents         |
-| `write_file`          | File     | Write content to file      |
-| `list_directory`      | File     | List directory contents    |
-| `search_files`        | File     | Search files by pattern    |
-| `execute_command`     | System   | Execute shell commands     |
-| `system_info`         | System   | Get system information     |
-| `echo`                | Utility  | Echo input (testing)       |
+- **Go MCP Server** — Claude AI integration with platform API
+- **Python MCP Server** — Natural language querying and analysis
 
-**Supported Claude Models:**
+**LLM Module:**
 
-- Claude 4 Opus - Complex reasoning and analysis
-- Claude 4 Sonnet - Balanced performance (default)
-- Claude 3.7 Sonnet - Extended thinking
-- Claude 3.5 Sonnet/Haiku - Fast responses
+- Claude AI integration for natural language querying
+- TFQL generation from natural language descriptions
+- Anomaly explanation with contextual analysis
+- Incident summarization across correlated signals
+
+**Query Engine (TFQL):**
+
+```mermaid
+flowchart LR
+    USER["User Query<br/>(TFQL or NL)"]
+    TFQL["TFQL Engine"]
+    PROM["PromQL"]
+    CHSQL["ClickHouse SQL"]
+    ES["Elasticsearch DSL"]
+
+    USER --> TFQL
+    TFQL --> PROM
+    TFQL --> CHSQL
+    TFQL --> ES
+```
+
+### 9. Performance Optimizations
+
+**Dual-Layer Cache:**
+
+- L1: In-memory cache (60s TTL)
+- L2: Redis cache (1800s TTL)
+- Event-driven invalidation via domain events
+- Key prefix: `tf:cache:`
+
+**Queue System (BullMQ on Redis DB 1):**
+
+| Queue                  | Concurrency | Purpose                           |
+| ---------------------- | ----------- | --------------------------------- |
+| `otlp-ingestion`       | 10          | OTLP telemetry data processing    |
+| `telemetry-processing` | 10          | Post-ingestion transformations    |
+| `domain-events`        | 5           | Cross-module event propagation    |
+| `alerts`               | 5           | Alert evaluation and notification |
+| `notifications`        | 3           | Email, Slack, webhook delivery    |
+| `reports`              | 3           | Scheduled report generation       |
+
+**ClickHouse Optimizations:**
+
+- 10 base tables, 24 materialized views
+- TTL rollup cascade: raw → 1m → 1h → 1d
+- Bloom filter, minmax, and set indexes
+- Partitioning by tenant and timestamp
+- 50-90% data compression
 
 ---
 
@@ -535,75 +585,57 @@ graph LR
 ### High-Level Architecture
 
 ```mermaid
-graph TB
-    subgraph "External Clients"
-        OTEL[OpenTelemetry SDK/Collector<br/>gRPC/HTTP]
-        BROWSER[Web Browser]
-        SSO[SSO Providers<br/>Google/GitHub/Azure/Okta]
-        MCP_CLIENT[MCP Clients<br/>Claude Code, IDE Extensions]
+flowchart TB
+    subgraph Sources["Telemetry Sources"]
+        APP1["Applications<br/>(Python/Go/Node)"]
+        K8S["Kubernetes<br/>Cluster"]
+        VM["VMs &<br/>Bare Metal"]
+        DB["Databases"]
+        EXT["External<br/>Services"]
     end
 
-    subgraph "TelemetryFlow Platform"
-        subgraph "Frontend Layer"
-            FE[Frontend<br/>Vue 3 + Vite + TypeScript<br/>Port 3101]
-        end
-
-        subgraph "Backend Layer"
-            API[Backend API<br/>NestJS + TypeScript<br/>Port 3100]
-            OTLP_EP[OTLP Endpoint<br/>gRPC Port 4317]
-        end
-
-        subgraph "AI Layer"
-            MCP[TFO-MCP Server<br/>Go + DDD/CQRS<br/>Claude AI Integration]
-        end
-
-        subgraph "Data Layer"
-            PG[(PostgreSQL 15+<br/>Metadata & RBAC<br/>Users, Tenants, Configs)]
-            CH[(ClickHouse 23+<br/>Time-Series Telemetry<br/>Metrics, Logs, Traces)]
-            REDIS[(Redis 7+<br/>Cache & Queue<br/>L2 Cache, BullMQ)]
-        end
-
-        subgraph "Processing Layer"
-            QUEUE[BullMQ Queues<br/>OTLP, Alerts, Aggregation]
-            NATS[NATS<br/>Event Streaming<br/>Real-time Events]
-        end
-
-        subgraph "Integration Layer"
-            EMAIL[Email Service<br/>Nodemailer]
-            NOTIF[Notification Services<br/>Slack, PagerDuty, Teams]
-            CLAUDE[Anthropic Claude API<br/>AI Analysis]
-        end
+    subgraph Collection["Collection Layer"]
+        AGENT["TFO Agent v1.2.0<br/>Node Exporter + K8s<br/>+ cAdvisor + DB + eBPF"]
+        TFOC["TFO Collector v1.2.1<br/>OCB Native<br/>v1/v2 Endpoints"]
     end
 
-    BROWSER -->|HTTPS| FE
-    FE -->|REST API| API
-    OTEL -->|OTLP/gRPC| OTLP_EP
-    SSO -.->|OAuth2/OIDC| API
-    MCP_CLIENT -->|JSON-RPC 2.0| MCP
+    subgraph Ingestion["Ingestion Layer"]
+        OTLP_EP["OTLP Endpoints<br/>/v1/metrics /v1/logs /v1/traces"]
+        AUTH["API Key Auth<br/>Argon2id Hash"]
+        QUEUE["BullMQ Queues"]
+    end
 
-    API -->|Queries| PG
-    API -->|Telemetry Queries| CH
-    API -->|Cache/Queue| REDIS
-    OTLP_EP -->|Enqueue| QUEUE
-    MCP -->|Query| CH
-    MCP -->|AI Analysis| CLAUDE
+    subgraph Storage["Storage Layer"]
+        PG["PostgreSQL 16<br/>IAM, Config, Entities"]
+        CH["ClickHouse 23+<br/>Metrics, Logs, Traces<br/>Materialized Views"]
+        RD["Redis 7+<br/>Cache + Queues"]
+    end
 
-    QUEUE -->|Process| CH
-    QUEUE -->|Alert Check| API
-    API -->|Publish Events| NATS
+    subgraph Messaging["Event Bus"]
+        NATS["NATS<br/>Domain Events"]
+    end
 
-    API -->|Send Email| EMAIL
-    API -->|Send Notification| NOTIF
+    subgraph Presentation["Presentation Layer"]
+        BE["NestJS Backend<br/>DDD/CQRS /api/v2/"]
+        FE["Vue 3 Frontend<br/>Pinia + Naive UI + ECharts"]
+        MCP["MCP Servers<br/>Claude AI"]
+    end
 
-    style FE fill:#42b983
-    style API fill:#e34c26
-    style MCP fill:#E1BEE7
-    style PG fill:#336791
-    style CH fill:#ffcc01
-    style REDIS fill:#d82c20
-    style QUEUE fill:#cf1f1f
-    style NATS fill:#27aae1
-    style CLAUDE fill:#FFCDD2
+    Sources --> Collection
+    Collection -->|"OTLP v1/v2"| Ingestion
+    Ingestion --> Storage
+    Ingestion --> Messaging
+    Storage --> BE
+    Messaging --> BE
+    BE --> FE
+    BE --> MCP
+
+    style Sources fill:#e8eaf6,stroke:#283593,color:#000
+    style Collection fill:#e3f2fd,stroke:#1565c0,color:#000
+    style Ingestion fill:#fff3e0,stroke:#e65100,color:#000
+    style Storage fill:#fce4ec,stroke:#880e4f,color:#000
+    style Messaging fill:#f3e5f5,stroke:#6a1b9a,color:#000
+    style Presentation fill:#e0f2f1,stroke:#004d40,color:#000
 ```
 
 ### Backend Architecture (DDD + CQRS)
@@ -611,59 +643,41 @@ graph TB
 ```mermaid
 graph TD
     subgraph "Presentation Layer"
-        CTRL[Controllers HTTP Endpoints]
-        DTO[DTOs Request Response]
-        GUARD[Guards Auth RBAC]
-        DEC[Decorators CurrentUser TenantContext]
-        INT[Interceptors Logging Transform]
+        CTRL[Controllers]
+        DTO[DTOs]
+        GUARD[Guards - Auth / RBAC]
+        DEC[Decorators - TenantContext]
     end
 
-    subgraph "Application Layer CQRS"
-        CMD[Commands CreateUser IngestMetric]
-        QRY[Queries GetUser QueryMetrics]
-        HANDLER[Handlers Business Logic]
-        SVC[Services Application Services]
-        EVENT[Event Bus Domain Events]
+    subgraph "Application Layer (CQRS)"
+        CMD[Commands - Write Operations]
+        QRY[Queries - Read Operations]
+        HANDLER[Handlers]
+        EVENT[Event Bus]
     end
 
-    subgraph "Domain Layer DDD"
-        AGG[Aggregates User Tenant Metric]
-        VO[Value Objects UserId TenantId Email]
-        DEVT[Domain Events UserCreated MetricIngested]
-        PORT[Repository Ports Interfaces]
+    subgraph "Domain Layer (DDD)"
+        AGG[Aggregates]
+        VO[Value Objects]
+        DEVT[Domain Events]
+        PORT[Repository Interfaces]
     end
 
     subgraph "Infrastructure Layer"
-        ORM[TypeORM PostgreSQL]
-        CH_SVC[ClickHouse Client Time-Series DB]
-        CACHE[Redis Client L2 Cache]
-        QUEUE_SVC[BullMQ Job Queues]
-        EXT[External APIs Email SSO Notifications]
+        ORM[TypeORM - PostgreSQL]
+        CH_SVC[ClickHouse Client]
+        CACHE[Redis Client]
+        QUEUE_SVC[BullMQ Queues]
     end
 
-    CTRL --> DTO
-    CTRL --> GUARD
-    CTRL --> DEC
-    CTRL --> INT
     CTRL --> CMD
     CTRL --> QRY
-
     CMD --> HANDLER
     QRY --> HANDLER
-    HANDLER --> SVC
+    HANDLER --> AGG
     HANDLER --> EVENT
-
-    SVC --> AGG
-    SVC --> VO
-    SVC --> DEVT
-    SVC --> PORT
-
-    PORT -.implements.-> ORM
-    PORT -.implements.-> CH_SVC
-    PORT -.implements.-> CACHE
-    PORT -.implements.-> QUEUE_SVC
-    PORT -.implements.-> EXT
-
+    PORT -.->|"implements"| ORM
+    PORT -.->|"implements"| CH_SVC
     EVENT --> QUEUE_SVC
 
     style CTRL fill:#4CAF50
@@ -679,91 +693,63 @@ graph TD
 ```mermaid
 graph TB
     subgraph "Production Environment"
-        subgraph "Load Balancer Layer"
-            LB[Load Balancer<br/>Nginx/HAProxy<br/>SSL Termination]
+        subgraph "Load Balancer"
+            LB[LB<br/>Nginx/HAProxy<br/>SSL Termination]
         end
 
         subgraph "Application Layer"
-            FE1[Frontend Instance 1<br/>Nginx + Vue 3]
-            FE2[Frontend Instance 2<br/>Nginx + Vue 3]
-            API1[Backend Instance 1<br/>NestJS]
-            API2[Backend Instance 2<br/>NestJS]
-            API3[Backend Instance 3<br/>NestJS]
+            FE1[Frontend<br/>Vue 3]
+            API1[Backend 1<br/>NestJS]
+            API2[Backend 2<br/>NestJS]
+            API3[Backend 3<br/>NestJS]
         end
 
         subgraph "Data Layer"
-            PG_PRIMARY[(PostgreSQL Primary<br/>Write/Read)]
-            PG_REPLICA[(PostgreSQL Replica<br/>Read Only)]
-            CH_CLUSTER[(ClickHouse Cluster<br/>3 Shards, 2 Replicas)]
-            REDIS_CLUSTER[(Redis Cluster<br/>3 Masters, 3 Replicas)]
+            PG_PRIMARY[(PostgreSQL<br/>Primary)]
+            PG_REPLICA[(PostgreSQL<br/>Replica)]
+            CH_CLUSTER[(ClickHouse<br/>Cluster)]
+            REDIS_CLUSTER[(Redis<br/>Cluster)]
+        end
+
+        subgraph "Collection Layer"
+            AGENTS["TFO Agents<br/>(DaemonSet)"]
+            COLLECTORS["TFO Collectors<br/>(Deployment)"]
         end
 
         subgraph "Message Layer"
-            NATS_CLUSTER[NATS Cluster<br/>3 Nodes]
-        end
-
-        subgraph "Monitoring Layer"
-            PROM[Prometheus]
-            GRAF[Grafana]
-            ALERT[Alertmanager]
+            NATS_CLUSTER[NATS<br/>Cluster]
         end
     end
 
-    subgraph "External Services"
-        S3[S3/Object Storage<br/>Backups]
-        EMAIL_SVC[Email Service<br/>SendGrid/SES]
-        SSO_SVC[SSO Providers<br/>Google/GitHub/Okta]
-    end
-
-    LB -->|Round Robin| FE1
-    LB -->|Round Robin| FE2
-    LB -->|Round Robin| API1
-    LB -->|Round Robin| API2
-    LB -->|Round Robin| API3
-
+    LB --> FE1
+    LB --> API1
+    LB --> API2
+    LB --> API3
     FE1 --> API1
-    FE2 --> API2
-
     API1 --> PG_PRIMARY
     API2 --> PG_REPLICA
     API3 --> PG_PRIMARY
-
+    PG_PRIMARY -.->|Replication| PG_REPLICA
     API1 --> CH_CLUSTER
     API2 --> CH_CLUSTER
     API3 --> CH_CLUSTER
-
-    API1 --> REDIS_CLUSTER
-    API2 --> REDIS_CLUSTER
-    API3 --> REDIS_CLUSTER
-
-    API1 --> NATS_CLUSTER
-    API2 --> NATS_CLUSTER
-    API3 --> NATS_CLUSTER
-
-    PG_PRIMARY -.->|Replication| PG_REPLICA
-    PG_PRIMARY -->|Backup| S3
-
-    API1 --> EMAIL_SVC
-    API1 --> SSO_SVC
-
-    PROM -->|Scrape| API1
-    PROM -->|Scrape| API2
-    PROM -->|Scrape| API3
-    GRAF --> PROM
-    PROM --> ALERT
+    AGENTS -->|"OTLP"| COLLECTORS
+    COLLECTORS -->|"OTLP"| API1
 
     style LB fill:#FF6B6B
     style FE1 fill:#42b983
-    style FE2 fill:#42b983
     style API1 fill:#e34c26
     style API2 fill:#e34c26
     style API3 fill:#e34c26
     style PG_PRIMARY fill:#336791
     style CH_CLUSTER fill:#ffcc01
     style REDIS_CLUSTER fill:#d82c20
+    style AGENTS fill:#00add8
+    style COLLECTORS fill:#00add8
 ```
 
 For detailed architecture documentation, see:
+
 - [System Architecture](./architecture/01-SYSTEM-ARCHITECTURE.md)
 - [Data Flow](./architecture/02-DATA-FLOW.md)
 - [Multi-Tenancy](./architecture/03-MULTI-TENANCY.md)
@@ -776,51 +762,46 @@ For detailed architecture documentation, see:
 
 ### Backend
 
-| Category | Technology | Version | Purpose |
-|----------|-----------|---------|---------|
-| **Framework** | NestJS | 10.x | Enterprise Node.js framework |
-| **Language** | TypeScript | 5.7+ | Type-safe development |
-| **Runtime** | Node.js | 18-20.x | JavaScript runtime |
-| **Metadata DB** | PostgreSQL | 15+ | Relational data storage |
-| **Telemetry DB** | ClickHouse | 23+ | Time-series data storage |
-| **Cache & Queue** | Redis | 7+ | Caching and job queues |
-| **ORM** | TypeORM | 0.3.x | PostgreSQL migrations |
-| **Queue** | BullMQ | 5.x | Async job processing |
-| **Messaging** | NATS | 2.x | Event streaming (optional) |
-| **Telemetry** | OpenTelemetry | 0.208+ | Self-instrumentation |
-| **Auth** | Passport JWT | Latest | Authentication |
-| **Validation** | class-validator | Latest | DTO validation |
-| **Hashing** | Argon2 | Latest | Password hashing |
+| Category          | Technology      | Version | Purpose                         |
+| ----------------- | --------------- | ------- | ------------------------------- |
+| **Framework**     | NestJS          | 11.x    | Enterprise Node.js framework    |
+| **Language**      | TypeScript      | 5.x     | Type-safe development           |
+| **Runtime**       | Node.js         | 20+     | JavaScript runtime              |
+| **Metadata DB**   | PostgreSQL      | 16+     | Relational data storage         |
+| **Telemetry DB**  | ClickHouse      | 23+     | Time-series data storage        |
+| **Cache & Queue** | Redis           | 7+      | L1/L2 caching and BullMQ queues |
+| **ORM**           | TypeORM         | 0.3.x   | PostgreSQL migrations           |
+| **Queue**         | BullMQ          | 5.x     | Async job processing (6 queues) |
+| **Messaging**     | NATS            | 2.x     | Event streaming                 |
+| **Telemetry**     | OpenTelemetry   | 0.208+  | Self-instrumentation            |
+| **Auth**          | Passport JWT    | Latest  | Authentication                  |
+| **Validation**    | class-validator | Latest  | DTO validation                  |
+| **Hashing**       | Argon2          | Latest  | Password + API key hashing      |
 
 ### Frontend
 
-| Category | Technology | Version | Purpose |
-|----------|-----------|---------|---------|
-| **Framework** | Vue | 3.5.24 | Progressive JavaScript framework |
-| **Build Tool** | Vite | 7.2.4 | Lightning-fast HMR |
-| **Language** | TypeScript | 5.8.3 | Type-safe development |
-| **UI Library** | Naive UI | 2.43.2 | Vue 3 component library |
-| **CSS Engine** | UnoCSS | 66.5.9 | Atomic CSS |
-| **State** | Pinia | 3.0.4 | Vue 3 state management |
-| **Router** | Vue Router | 4.6.3 | Official Vue router |
-| **Charts** | ECharts | 6.0.0 | 80+ chart types |
-| **HTTP Client** | Axios | 1.13.2 | REST API calls |
-| **WebSocket** | Socket.IO | 4.8.1 | Real-time updates |
+| Category        | Technology     | Version | Purpose                          |
+| --------------- | -------------- | ------- | -------------------------------- |
+| **Framework**   | Vue            | 3.5+    | Progressive JavaScript framework |
+| **Build Tool**  | Vite           | 6.x     | Lightning-fast HMR               |
+| **Language**    | TypeScript     | 5.x     | Type-safe development            |
+| **UI Library**  | Naive UI       | 2.43+   | Vue 3 component library          |
+| **CSS Engine**  | UnoCSS         | 66.x    | Atomic CSS                       |
+| **State**       | Pinia          | 3.0+    | Vue 3 state management           |
+| **Router**      | Vue Router     | 4.6+    | Official Vue router              |
+| **Charts**      | Apache ECharts | 5.x+    | 80+ chart types                  |
+| **HTTP Client** | Axios          | 1.13+   | REST API calls                   |
+| **WebSocket**   | Socket.IO      | 4.8+    | Real-time updates                |
 
-### TFO-MCP (AI Integration)
+### Agent & Collector
 
-| Category | Technology | Version | Purpose |
-|----------|-----------|---------|---------|
-| **Language** | Go | 1.24+ | High-performance runtime |
-| **Architecture** | DDD/CQRS | - | Domain-Driven Design patterns |
-| **Protocol** | MCP | 2024-11-05 | Model Context Protocol |
-| **AI SDK** | anthropic-sdk-go | v0.2.0-beta.3 | Claude AI integration |
-| **OTEL SDK** | OpenTelemetry | v1.39.0 | Telemetry instrumentation |
-| **Logging** | zerolog | Latest | Zero-allocation JSON logging |
-| **Config** | Viper | Latest | Configuration management |
-| **Cache** | Redis | 7+ | Response caching |
-| **Queue** | NATS JetStream | Latest | Message queue |
-| **Databases** | PostgreSQL, ClickHouse | 15+, 23+ | Metadata and analytics |
+| Category         | Technology            | Version  | Purpose                               |
+| ---------------- | --------------------- | -------- | ------------------------------------- |
+| **Agent**        | Go                    | 1.26+    | TFO Agent (infrastructure collection) |
+| **Collector**    | Go (OCB)              | 1.26+    | TFO Collector (OTLP gateway)          |
+| **OTEL SDK**     | OpenTelemetry Go      | v1.43.0  | Agent instrumentation                 |
+| **OTEL Core**    | OpenTelemetry         | v1.58.0  | Collector core                        |
+| **OTEL Contrib** | OpenTelemetry Contrib | v0.152.0 | Collector community components        |
 
 ---
 
@@ -830,145 +811,101 @@ For detailed architecture documentation, see:
 
 ```mermaid
 graph LR
-    subgraph "Shared Modules (Foundation)"
-        LOGGER[Logger]
-        CACHE[Cache]
-        QUEUE[Queue]
-        MSG[Messaging]
-        EMAIL[Email]
-        CORS[CORS]
-        CH[ClickHouse]
-        OTEL[OpenTelemetry]
-    end
-
     subgraph "Core Modules"
-        CORE[100-Core<br/>IAM, Multi-tenancy]
-        AUTH[200-Auth<br/>JWT, MFA, Sessions]
-        APIKEY[300-API Keys<br/>OTLP Auth]
-        SSO[700-SSO<br/>OAuth Providers]
+        CORE["Core<br/>IAM, Multi-tenancy, RBAC"]
+        AUTH["Auth<br/>JWT, MFA, Sessions"]
+        APIKEY["API Keys<br/>OTLP Auth"]
+        SSO["SSO<br/>OAuth Providers"]
     end
 
     subgraph "Telemetry Modules"
-        TELEM[400-Telemetry<br/>OTLP Ingestion]
-        MONITOR[500-Monitoring<br/>Uptime Checks]
-        ALERT[600-Alerts<br/>Alert Rules]
+        METRICS["Metrics<br/>Time-Series"]
+        LOGS["Logs<br/>Structured Logging"]
+        TRACES["Traces<br/>Distributed Tracing"]
+        EXM["Exemplars"]
+        COR["Correlations"]
     end
 
-    subgraph "Dashboard Modules"
-        DASH[900-Dashboard<br/>Templates & Widgets]
-        QUERY[1400-Query Builder<br/>Visual Queries]
-        EXPORT[1300-Export<br/>CSV, JSON, Parquet]
+    subgraph "Monitoring Modules"
+        AGENT["Agent<br/>Management"]
+        K8S["Kubernetes<br/>Cluster Monitoring"]
+        VM["VM<br/>Infrastructure"]
+        UPT["Uptime<br/>Synthetic Checks"]
+        STP["Status Page"]
+        SVM["Service Map"]
+        NWM["Network Map"]
+        DBM["DB Monitoring<br/>+ QAN"]
     end
 
-    subgraph "Management Modules"
-        AUDIT[800-Audit<br/>Compliance Logging]
-        SUB[1000-Subscription<br/>Billing]
-        AGENT[1100-Agents<br/>Agent Management]
-        STATUS[1200-Status Page<br/>Public Status]
-        RETENTION[1500-Retention<br/>Data Lifecycle]
+    subgraph "Platform Modules"
+        DSH["Dashboard"]
+        ALR["Alerting"]
+        RET["Retention"]
+        SUB["Subscription"]
+        NOT["Notification"]
+        AUD["Audit"]
     end
 
-    CORE --> LOGGER
-    CORE --> CACHE
-    CORE --> QUEUE
+    subgraph "Intelligence"
+        AI["AI Intelligence"]
+        LLM["LLM"]
+        TFQL["TFQL Query"]
+    end
+
+    subgraph "Reporting"
+        RPT["Reporting"]
+    end
 
     AUTH --> CORE
-    AUTH --> EMAIL
-    AUTH --> CACHE
-
     APIKEY --> CORE
-    APIKEY --> CACHE
-
     SSO --> AUTH
-    SSO --> CORE
-
-    TELEM --> APIKEY
-    TELEM --> QUEUE
-    TELEM --> CH
-    TELEM --> OTEL
-
-    MONITOR --> CORE
-    MONITOR --> ALERT
-    MONITOR --> QUEUE
-
-    ALERT --> CORE
-    ALERT --> EMAIL
-    ALERT --> MSG
-    ALERT --> QUEUE
-
-    DASH --> CORE
-    DASH --> CH
-    DASH --> CACHE
-
-    QUERY --> CORE
-    QUERY --> CH
-    QUERY --> CACHE
-
-    EXPORT --> CORE
-    EXPORT --> CH
-    EXPORT --> QUEUE
-
-    AUDIT --> CORE
-    AUDIT --> LOGGER
-    AUDIT --> QUEUE
-
-    SUB --> CORE
-    SUB --> EMAIL
-
-    AGENT --> CORE
-    AGENT --> MONITOR
-
-    STATUS --> CORE
-    STATUS --> MONITOR
-
-    RETENTION --> CORE
-    RETENTION --> CH
-    RETENTION --> QUEUE
+    METRICS --> APIKEY
+    K8S --> AGENT
+    DBM --> AGENT
+    ALR --> CORE
+    DSH --> CORE
 
     style CORE fill:#4CAF50
     style AUTH fill:#2196F3
-    style TELEM fill:#FF9800
-    style DASH fill:#9C27B0
-    style LOGGER fill:#607D8B
-    style CACHE fill:#607D8B
-    style QUEUE fill:#607D8B
-    style CH fill:#ffcc01
+    style METRICS fill:#FF9800
+    style K8S fill:#00ADD8
+    style DSH fill:#9C27B0
 ```
 
-### Backend Modules (15)
+### Backend Modules (25+)
 
-| Module | Name | Purpose | Status |
-|--------|------|---------|--------|
-| **100** | Core | IAM, Multi-tenancy, RBAC | ✅ Production |
-| **200** | Auth | Authentication, JWT, MFA | ✅ Production |
-| **300** | API Keys | OTLP API key authentication | ✅ Production |
-| **400** | Telemetry | OTLP ingestion (metrics/logs/traces) | ✅ Production |
-| **500** | Monitoring | Uptime monitors, agent management | ✅ Production |
-| **600** | Alerts | Alert rules, notifications, history | ✅ Production |
-| **700** | SSO | Google, GitHub, Azure, Okta | ✅ Production |
-| **800** | Audit | Audit logging, compliance | ✅ Production |
-| **900** | Dashboard | Dashboard templates, widgets | ✅ Production |
-| **1000** | Subscription | Billing, subscription management | ✅ Production |
-| **1100** | Agents | Agent deployment, heartbeat | ✅ Production |
-| **1200** | Status Page | Public/private status pages | ✅ Production |
-| **1300** | Export | Data export (CSV, JSON, Parquet) | ✅ Production |
-| **1400** | Query Builder | Visual query builder | ✅ Production |
-| **1500** | Retention Policy | Data retention management | ✅ Production |
-
-### Shared Modules (10)
-
-| Module | Purpose | Key Features |
-|--------|---------|--------------|
-| **logger** | Logging service | Winston, multiple transports, trace propagation |
-| **cache** | Multi-level cache | L1 (memory) + L2 (Redis), 60-80% hit rate |
-| **queue** | Job queue | BullMQ, 5 queues, async processing |
-| **messaging** | Event streaming | NATS pub/sub, optional |
-| **email** | Email service | Nodemailer, Handlebars templates |
-| **cors** | CORS configuration | Database-driven validation |
-| **clickhouse** | ClickHouse service | Shared ClickHouse client |
-| **otel** | OpenTelemetry | Self-instrumentation |
-| **ui** | Web UI | EJS templates, static assets |
-| **platform** | Platform utilities | Common helpers |
+| Module           | Name            | Purpose                                | Status     |
+| ---------------- | --------------- | -------------------------------------- | ---------- |
+| **Core**         | auth            | Authentication, JWT, MFA               | Production |
+| **Core**         | iam             | Users, Roles, Permissions, RBAC        | Production |
+| **Core**         | tenancy         | Multi-tenant isolation                 | Production |
+| **Core**         | cache           | Dual-layer caching (L1/L2)             | Production |
+| **Telemetry**    | metrics         | OTLP metrics ingestion & queries       | Production |
+| **Telemetry**    | logs            | OTLP logs ingestion & search           | Production |
+| **Telemetry**    | traces          | OTLP traces ingestion & visualization  | Production |
+| **Telemetry**    | exemplars       | Metric-to-trace correlation            | Production |
+| **Telemetry**    | correlations    | Cross-signal correlation               | Production |
+| **Monitoring**   | agent           | Agent registration & lifecycle         | Production |
+| **Monitoring**   | kubernetes      | K8s cluster monitoring (79+ graphs)    | Production |
+| **Monitoring**   | vm              | VM/infrastructure monitoring           | Production |
+| **Monitoring**   | uptime          | Synthetic checks & endpoint monitoring | Production |
+| **Monitoring**   | status-page     | Public/private status pages            | Production |
+| **Monitoring**   | service-map     | Service dependency mapping             | Production |
+| **Monitoring**   | network-map     | Network topology visualization         | Production |
+| **Monitoring**   | db-monitoring   | Database monitoring + QAN              | Production |
+| **Platform**     | dashboard       | Dashboard templates & widgets          | Production |
+| **Platform**     | alerting        | Alert rules, notifications (33 rules)  | Production |
+| **Platform**     | retention       | Per-signal TTL management              | Production |
+| **Platform**     | subscription    | Plan-based feature gating              | Production |
+| **Platform**     | api-keys        | AWS-style API key management           | Production |
+| **Platform**     | notification    | Multi-channel notifications            | Production |
+| **Platform**     | sso             | Google, GitHub, Azure AD, Okta         | Production |
+| **Platform**     | audit           | Immutable audit trail                  | Production |
+| **Intelligence** | ai-intelligence | AI-powered observability               | Production |
+| **Intelligence** | llm             | Claude AI integration                  | Production |
+| **Intelligence** | query           | TFQL query engine                      | Production |
+| **Intelligence** | data-masking    | PII redaction                          | Production |
+| **Reporting**    | reporting       | Scheduled reports & PDF                | Production |
 
 ---
 
@@ -992,44 +929,6 @@ graph LR
 - **Documentation:** JSDoc for all public APIs
 - **Commit Messages:** Conventional Commits format
 
-### Module Development Guide
-
-When creating a new module, follow the standard structure:
-
-```
-{module-number}-{module-name}/
-├── {module-number}-{module-name}.module.ts
-├── README.md
-├── application/
-│   ├── commands/
-│   ├── queries/
-│   ├── handlers/
-│   ├── dto/
-│   └── services/
-├── domain/
-│   ├── aggregates/
-│   ├── entities/
-│   ├── events/
-│   ├── repositories/
-│   ├── services/
-│   └── value-objects/
-├── infrastructure/
-│   ├── persistence/
-│   │   ├── postgres/
-│   │   └── clickhouse/
-│   ├── messaging/
-│   └── services/
-├── presentation/
-│   ├── controllers/
-│   ├── dto/
-│   ├── guards/
-│   └── decorators/
-└── tests/
-    ├── unit/
-    ├── integration/
-    └── e2e/
-```
-
 ---
 
 ## Support & Resources
@@ -1050,19 +949,19 @@ When creating a new module, follow the standard structure:
 
 ### Statistics
 
-| Metric | Count |
-|--------|-------|
-| Backend Modules | 15 |
-| Frontend Modules | 5+ |
-| TFO-MCP Tools | 8 |
-| CQRS Handlers | 40+ |
-| API Endpoints | 120+ |
-| Database Tables | 50+ |
-| Lines of Code | 110,000+ |
-| Test Cases | 280+ |
-| Test Coverage | 88-92% |
-| Documentation Pages | 203+ |
-| Version | 1.1.2-CE |
+| Metric                         | Count                                   |
+| ------------------------------ | --------------------------------------- |
+| Backend Modules                | 25+ (DDD/CQRS)                          |
+| Frontend Registry Entries      | 459 (graphs + stat panels + datatables) |
+| CQRS Handlers                  | 40+                                     |
+| API Endpoints                  | 120+                                    |
+| Database Collectors (Agent)    | 9 databases                             |
+| 3rd Party Integrations (Agent) | 39+                                     |
+| eBPF Metrics (Agent)           | 28 kernel-level                         |
+| ClickHouse Base Tables         | 10                                      |
+| ClickHouse Materialized Views  | 24                                      |
+| BullMQ Queues                  | 6                                       |
+| Version                        | 1.4.0-CE                                |
 
 ---
 
@@ -1074,7 +973,8 @@ Apache License 2.0 - See [LICENSE](./LICENSE) for details.
 
 ## Acknowledgments
 
-Built with ❤️ by **DevOpsCorner Indonesia**
+Built by **DevOpsCorner Indonesia**
 
-- **Status:** ✅ Production Ready (Zero Build Errors)
-- **Last Updated:** January 01st, 2026
+- **Status:** Production Ready
+- **Last Updated:** May 14, 2026
+- **Website:** [telemetryflow.id](https://telemetryflow.id)

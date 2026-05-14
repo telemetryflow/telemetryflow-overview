@@ -1,7 +1,7 @@
 # Performance & Optimization Architecture
 
-- **Version:** 1.1.2-CE
-- **Last Updated:** January 01st, 2026
+- **Version:** 1.4.0
+- **Last Updated:** May 14, 2026
 - **Status:** ✅ Complete
 
 ---
@@ -26,14 +26,14 @@ TelemetryFlow implements a comprehensive **6-layer performance optimization stra
 
 ### Performance Goals
 
-| Metric | Target | Actual |
-|--------|--------|--------|
-| **OTLP Ingestion Latency** | <100ms | 50-80ms |
-| **Query Response Time** | <1s | 200-800ms |
-| **Cache Hit Rate** | >70% | 75-85% |
-| **Queue Throughput** | 1000 jobs/sec | 800-1200 jobs/sec |
-| **Database Load** | <60% CPU | 40-55% CPU |
-| **API Rate Limit** | 1000 req/min | Configurable |
+| Metric                     | Target        | Actual            |
+| -------------------------- | ------------- | ----------------- |
+| **OTLP Ingestion Latency** | <100ms        | 50-80ms           |
+| **Query Response Time**    | <1s           | 200-800ms         |
+| **Cache Hit Rate**         | >70%          | 75-85%            |
+| **Queue Throughput**       | 1000 jobs/sec | 800-1200 jobs/sec |
+| **Database Load**          | <60% CPU      | 40-55% CPU        |
+| **API Rate Limit**         | 1000 req/min  | Configurable      |
 
 ### Optimization Layers
 
@@ -50,7 +50,7 @@ graph TB
     end
 
     subgraph "Layer 3: Async Processing"
-        E[BullMQ Queues<br/>5 Queue Types]
+        E[BullMQ Queues<br/>6 Queue Types]
         F[Job Prioritization]
     end
 
@@ -201,14 +201,14 @@ stateDiagram-v2
 
 #### L1 Cache Features
 
-| Feature | Configuration | Purpose |
-|---------|---------------|---------|
-| **Storage** | JavaScript Map | Ultra-fast in-memory access (~1ms) |
-| **TTL** | 60 seconds (default) | Balance freshness vs cache hit rate |
-| **Max Size** | 1000 items | Prevent memory exhaustion |
-| **Eviction** | FIFO (First In, First Out) | Remove oldest when capacity exceeded |
-| **Cleanup** | Every 60 seconds | Remove expired entries automatically |
-| **Validation** | Timestamp-based expiry | Check `expiresAt` on every get |
+| Feature        | Configuration              | Purpose                              |
+| -------------- | -------------------------- | ------------------------------------ |
+| **Storage**    | JavaScript Map             | Ultra-fast in-memory access (~1ms)   |
+| **TTL**        | 60 seconds (default)       | Balance freshness vs cache hit rate  |
+| **Max Size**   | 1000 items                 | Prevent memory exhaustion            |
+| **Eviction**   | FIFO (First In, First Out) | Remove oldest when capacity exceeded |
+| **Cleanup**    | Every 60 seconds           | Remove expired entries automatically |
+| **Validation** | Timestamp-based expiry     | Check `expiresAt` on every get       |
 
 ### L2 Cache (Redis)
 
@@ -242,15 +242,15 @@ graph LR
 
 #### L2 Cache Features
 
-| Feature | Configuration | Purpose |
-|---------|---------------|---------|
-| **Storage** | Redis DB 1 | Distributed cache for multi-instance deployments |
-| **TTL** | 30 minutes (default) | Longer retention than L1 |
-| **Operation** | SETEX (Set with Expiry) | Atomic set + TTL |
-| **Connection** | Lazy connect, 5s timeout | Non-blocking startup |
-| **Retry Strategy** | Max 3, exponential backoff | Resilience to Redis failures |
-| **Fallback** | L1-only mode if unavailable | Graceful degradation |
-| **Pattern Deletion** | SCAN-based invalidation | Bulk cache clearing by pattern |
+| Feature              | Configuration               | Purpose                                          |
+| -------------------- | --------------------------- | ------------------------------------------------ |
+| **Storage**          | Redis DB 1                  | Distributed cache for multi-instance deployments |
+| **TTL**              | 30 minutes (default)        | Longer retention than L1                         |
+| **Operation**        | SETEX (Set with Expiry)     | Atomic set + TTL                                 |
+| **Connection**       | Lazy connect, 5s timeout    | Non-blocking startup                             |
+| **Retry Strategy**   | Max 3, exponential backoff  | Resilience to Redis failures                     |
+| **Fallback**         | L1-only mode if unavailable | Graceful degradation                             |
+| **Pattern Deletion** | SCAN-based invalidation     | Bulk cache clearing by pattern                   |
 
 ### Cache Key Patterns
 
@@ -313,6 +313,7 @@ pie title Cache Hit Rate Distribution
 ```
 
 **Expected Performance**:
+
 - **L1 Hit Rate**: 45-55%
 - **L2 Hit Rate**: 25-35%
 - **Combined Hit Rate**: 70-90%
@@ -358,17 +359,19 @@ graph TB
     subgraph "Queue Layer - Redis DB 2"
         D[OTLP Ingestion Queue<br/>Priority: HIGH<br/>1000 jobs/sec]
         E[Alert Evaluation Queue<br/>Priority: HIGH<br/>100 jobs/sec]
-        F[Aggregation Queue<br/>Priority: MEDIUM<br/>50 jobs/sec]
-        G[Cleanup Queue<br/>Priority: LOW<br/>10 jobs/sec]
+        F[Telemetry Processing Queue<br/>Priority: MEDIUM<br/>50 jobs/sec]
+        G[Domain Events Queue<br/>Priority: HIGH<br/>50 jobs/sec]
         H[Notification Queue<br/>Priority: MEDIUM<br/>100 jobs/sec]
+        H2[Reports Queue<br/>Priority: MEDIUM<br/>50 jobs/sec]
     end
 
     subgraph "Worker Layer"
         I[OTLP Processor<br/>10 concurrent workers]
         J[Alert Processor<br/>5 concurrent workers]
-        K[Aggregation Processor<br/>3 concurrent workers]
-        L[Cleanup Processor<br/>2 concurrent workers]
-        M[Notification Processor<br/>5 concurrent workers]
+        K[Telemetry Processor<br/>10 concurrent workers]
+        L[Domain Events Processor<br/>5 concurrent workers]
+        M[Notification Processor<br/>3 concurrent workers]
+        M2[Reports Processor<br/>3 concurrent workers]
     end
 
     subgraph "Storage Layer"
@@ -386,12 +389,14 @@ graph TB
     F --> K
     G --> L
     H --> M
+    H2 --> M2
 
     I --> N
     J --> O
     K --> N
-    L --> N
+    L --> O
     M --> P
+    M2 --> N
 
     style D fill:#ff6b6b
     style E fill:#ff6b6b
@@ -424,9 +429,10 @@ classDiagram
     class QueueTypes {
         OTLP_INGESTION
         ALERT_EVALUATION
-        AGGREGATION
-        CLEANUP
+        TELEMETRY_PROCESSING
+        DOMAIN_EVENTS
         NOTIFICATION
+        REPORTS
     }
 
     class BackoffStrategy {
@@ -452,22 +458,21 @@ graph LR
     subgraph "HIGH Priority Queues"
         D[OTLP Ingestion<br/>10 workers<br/>1000 jobs/sec]
         E[Alert Evaluation<br/>5 workers<br/>100 jobs/sec]
+        G2[Domain Events<br/>5 workers<br/>50 jobs/sec]
     end
 
     subgraph "MEDIUM Priority Queues"
-        F[Aggregation<br/>3 workers<br/>50 jobs/sec]
-        G[Notification<br/>5 workers<br/>100 jobs/sec]
-    end
-
-    subgraph "LOW Priority Queues"
-        H[Cleanup<br/>2 workers<br/>10 jobs/sec]
+        F[Telemetry Processing<br/>10 workers<br/>50 jobs/sec]
+        G[Notification<br/>3 workers<br/>100 jobs/sec]
+        G3[Reports<br/>3 workers<br/>50 jobs/sec]
     end
 
     A --> D
     A --> E
+    A --> G2
     B --> F
     B --> G
-    C --> H
+    B --> G3
 
     style D fill:#ff6b6b
     style E fill:#ff6b6b
@@ -505,9 +510,10 @@ stateDiagram-v2
         Exponential Backoff
         OTLP 1s 2s 4s
         Alert 2s 4s 8s
-        Aggregation 5s 10s 20s
-        Cleanup 10s 20s 40s
+        Telemetry Processing 5s 10s 20s
+        Domain Events 1s 2s 4s
         Notification 3s 6s 12s 24s 48s
+        Reports 5s 10s 20s
     end note
 ```
 
@@ -707,7 +713,7 @@ graph LR
     subgraph "Performance Metrics"
         F[Jobs/Second]
         G[Avg Processing Time]
-        H[Success Rate %]
+        H[Success Rate]
     end
 
     subgraph "Health Indicators"
@@ -715,7 +721,7 @@ graph LR
         I -->|Yes| J[Scale Up Workers]
         I -->|No| K[Normal Operation]
 
-        L{Failed Rate > 10%?}
+        L{Failed Rate > 10pct?}
         L -->|Yes| M[Alert DevOps]
         L -->|No| N[Healthy]
     end
@@ -799,7 +805,7 @@ flowchart TD
     C --> E[Scan Granule for Match]
     E --> F{Found Match?}
     F -->|Yes| G[Return Rows]
-    F -->|No| H[False Positive<br/>~1% rate]
+    F -->|No| H[False Positive<br/>~1pct rate]
 
     D --> I[Next Granule]
     H --> I
@@ -813,23 +819,23 @@ flowchart TD
     style D fill:#27ae60
     style H fill:#f39c12
 
-    Note[Bloom Filter Performance:<br/>- Skip 90-99% of granules<br/>- 10-50x faster for string lookups<br/>- 1% false positive rate acceptable]
+    Note[Bloom Filter Performance:<br/>- Skip 90-99pct of granules<br/>- 10-50x faster for string lookups<br/>- 1 pct false positive rate acceptable]
 ```
 
 **Bloom Filter Indexes Created:**
 
-| Index Name | Column | Table | Use Case | Performance Gain |
-|------------|--------|-------|----------|------------------|
-| `idx_metric_name` | `metric_name` | metrics | Find specific metrics | 10-50x faster |
-| `idx_service_name` | `service_name` | metrics/logs/traces | Filter by service | 10-50x faster |
-| `idx_tenant_id` | `tenant_id` | metrics/logs/traces | Multi-tenancy isolation | 10-50x faster |
-| `idx_workspace_id` | `workspace_id` | metrics/logs/traces | Workspace filtering | 10-50x faster |
-| `idx_organization_id` | `organization_id` | metrics/logs/traces | Organization filtering | 10-50x faster |
-| `idx_trace_id_bloom` | `trace_id` | logs/traces | Trace correlation | 20-100x faster |
-| `idx_span_id_bloom` | `span_id` | traces | Span lookup | 20-100x faster |
-| `idx_parent_span_id_bloom` | `parent_span_id` | traces | Parent-child span queries | 20-100x faster |
-| `idx_body_bloom` | `body` | logs | Full-text log search | 10-30x faster |
-| `idx_attributes_bloom` | `attributes` | metrics/logs/traces | Tag/attribute search | 10-30x faster |
+| Index Name                 | Column            | Table               | Use Case                  | Performance Gain |
+| -------------------------- | ----------------- | ------------------- | ------------------------- | ---------------- |
+| `idx_metric_name`          | `metric_name`     | metrics             | Find specific metrics     | 10-50x faster    |
+| `idx_service_name`         | `service_name`    | metrics/logs/traces | Filter by service         | 10-50x faster    |
+| `idx_tenant_id`            | `tenant_id`       | metrics/logs/traces | Multi-tenancy isolation   | 10-50x faster    |
+| `idx_workspace_id`         | `workspace_id`    | metrics/logs/traces | Workspace filtering       | 10-50x faster    |
+| `idx_organization_id`      | `organization_id` | metrics/logs/traces | Organization filtering    | 10-50x faster    |
+| `idx_trace_id_bloom`       | `trace_id`        | logs/traces         | Trace correlation         | 20-100x faster   |
+| `idx_span_id_bloom`        | `span_id`         | traces              | Span lookup               | 20-100x faster   |
+| `idx_parent_span_id_bloom` | `parent_span_id`  | traces              | Parent-child span queries | 20-100x faster   |
+| `idx_body_bloom`           | `body`            | logs                | Full-text log search      | 10-30x faster    |
+| `idx_attributes_bloom`     | `attributes`      | metrics/logs/traces | Tag/attribute search      | 10-30x faster    |
 
 ### MinMax Indexes
 
@@ -861,17 +867,17 @@ flowchart TD
     style F fill:#27ae60
     style J fill:#27ae60
 
-    Note[MinMax Performance:<br/>- Skip 80-95% of granules for range queries<br/>- 5-20x faster<br/>- Especially effective for time-based queries]
+    Note[MinMax Performance:<br/>- Skip 80-95pct of granules for range queries<br/>- 5-20x faster<br/>- Especially effective for time-based queries]
 ```
 
 **MinMax Indexes Created:**
 
-| Index Name | Column | Granularity | Use Case | Performance Gain |
-|------------|--------|-------------|----------|------------------|
-| `idx_timestamp` | `timestamp` | 1 (optimal) | Time range queries | 5-20x faster |
-| `idx_value_minmax` | `value` | 3 | Metric value filters | 5-20x faster |
-| `idx_severity_number_minmax` | `severity_number` | 3 | Log severity ranges | 5-15x faster |
-| `idx_duration_minmax` | `duration_nano` | 3 | Trace duration filters | 5-15x faster |
+| Index Name                   | Column            | Granularity | Use Case               | Performance Gain |
+| ---------------------------- | ----------------- | ----------- | ---------------------- | ---------------- |
+| `idx_timestamp`              | `timestamp`       | 1 (optimal) | Time range queries     | 5-20x faster     |
+| `idx_value_minmax`           | `value`           | 3           | Metric value filters   | 5-20x faster     |
+| `idx_severity_number_minmax` | `severity_number` | 3           | Log severity ranges    | 5-15x faster     |
+| `idx_duration_minmax`        | `duration_nano`   | 3           | Trace duration filters | 5-15x faster     |
 
 ### Set Indexes
 
@@ -898,17 +904,17 @@ flowchart TD
 
     style F fill:#27ae60
 
-    Note[Set Index Performance:<br/>- Skip 70-90% of granules for enum filters<br/>- 10-30x faster for categorical data<br/>- Best for low-cardinality columns]
+    Note[Set Index Performance:<br/>- Skip 70-90pct of granules for enum filters<br/>- 10-30x faster for categorical data<br/>- Best for low-cardinality columns]
 ```
 
 **Set Indexes Created:**
 
-| Index Name | Column | Values | Use Case | Performance Gain |
-|------------|--------|--------|----------|------------------|
-| `idx_metric_type_set` | `metric_type` | gauge, counter, histogram, summary | Filter by metric type | 10-30x faster |
-| `idx_severity_set` | `severity_text` | TRACE, DEBUG, INFO, WARN, ERROR, FATAL | Filter by log severity | 10-30x faster |
-| `idx_span_kind_set` | `span_kind` | INTERNAL, SERVER, CLIENT, PRODUCER, CONSUMER | Filter by span type | 10-30x faster |
-| `idx_status_code_set` | `status_code` | UNSET, OK, ERROR | Filter by trace status | 10-30x faster |
+| Index Name            | Column          | Values                                       | Use Case               | Performance Gain |
+| --------------------- | --------------- | -------------------------------------------- | ---------------------- | ---------------- |
+| `idx_metric_type_set` | `metric_type`   | gauge, counter, histogram, summary           | Filter by metric type  | 10-30x faster    |
+| `idx_severity_set`    | `severity_text` | TRACE, DEBUG, INFO, WARN, ERROR, FATAL       | Filter by log severity | 10-30x faster    |
+| `idx_span_kind_set`   | `span_kind`     | INTERNAL, SERVER, CLIENT, PRODUCER, CONSUMER | Filter by span type    | 10-30x faster    |
+| `idx_status_code_set` | `status_code`   | UNSET, OK, ERROR                             | Filter by trace status | 10-30x faster    |
 
 ### Partitioning Strategy
 
@@ -941,7 +947,7 @@ graph TB
     style B fill:#27ae60
     style C fill:#27ae60
 
-    Note[Partition Pruning Benefits:<br/>- Skip entire partitions outside time range<br/>- Reduce I/O by 80-95% for time-range queries<br/>- Automatic TTL deletion per partition]
+    Note[Partition Pruning Benefits:<br/>- Skip entire partitions outside time range<br/>- Reduce I/O by 80-95pct for time-range queries<br/>- Automatic TTL deletion per partition]
 ```
 
 ### Partition Pruning Performance
@@ -971,7 +977,7 @@ sequenceDiagram
     Q->>Q: Merge Results
     Q-->>Client: Final Result Set
 
-    Note over M: Partition Pruning:<br/>- Metadata-only check (no disk I/O)<br/>- Reduces query scope by 80-95%<br/>- Enables sub-second queries
+    Note over M: Partition Pruning:<br/>- Metadata-only check (no disk I/O)<br/>- Reduces query scope by 80-95pct<br/>- Enables sub-second queries
 ```
 
 ### Materialized Columns
@@ -1009,11 +1015,11 @@ graph LR
 
 **Materialized Columns Created:**
 
-| Column | Expression | Purpose | Performance Gain |
-|--------|------------|---------|------------------|
-| `date` | `toDate(timestamp)` | Daily grouping without conversion | 2-5x faster |
-| `hour` | `toStartOfHour(timestamp)` | Hourly aggregations | 2-5x faster |
-| `duration_ms` | `duration_nano / 1000000.0` | Avoid division in every query | 1.5-3x faster |
+| Column        | Expression                  | Purpose                           | Performance Gain |
+| ------------- | --------------------------- | --------------------------------- | ---------------- |
+| `date`        | `toDate(timestamp)`         | Daily grouping without conversion | 2-5x faster      |
+| `hour`        | `toStartOfHour(timestamp)`  | Hourly aggregations               | 2-5x faster      |
+| `duration_ms` | `duration_nano / 1000000.0` | Avoid division in every query     | 1.5-3x faster    |
 
 ### Materialized Views
 
@@ -1045,10 +1051,12 @@ graph TB
 
 **Materialized Views Created:**
 
-| View Name | Engine | Purpose | Performance Gain | Use Case |
-|-----------|--------|---------|------------------|----------|
-| `mv_service_list` | ReplacingMergeTree | Unique services per tenant | 100x faster | Dashboard service dropdown |
-| `mv_metric_list` | ReplacingMergeTree | Service → metric mapping | 100x faster | Metric autocomplete/suggestions |
+| View Name         | Engine             | Purpose                    | Performance Gain | Use Case                        |
+| ----------------- | ------------------ | -------------------------- | ---------------- | ------------------------------- |
+| `mv_service_list` | ReplacingMergeTree | Unique services per tenant | 100x faster      | Dashboard service dropdown      |
+| `mv_metric_list`  | ReplacingMergeTree | Service -> metric mapping  | 100x faster      | Metric autocomplete/suggestions |
+
+**Rollup Cascade**: 24 materialized views providing multi-resolution aggregation: raw -> 1m -> 1h -> 1d (metrics), raw -> 1h -> daily (logs/traces/uptime). Engine types include SummingMergeTree (stats), AggregatingMergeTree (percentiles), and MergeTree (filtered).
 
 ### Query Optimization Example
 
@@ -1064,12 +1072,12 @@ sequenceDiagram
     User->>QE: SELECT service_name, avg(value)<br/>FROM telemetry_metrics<br/>WHERE tenant_id='t123'<br/>AND timestamp BETWEEN '2025-12-01' AND '2025-12-10'<br/>AND metric_name='cpu_usage'<br/>GROUP BY service_name
 
     QE->>Part: Apply Partition Pruning
-    Part-->>QE: Prune 90% of partitions ⚡<br/>(10 partitions → 1 partition)
+    Part-->>QE: Prune 90pct of partitions ⚡<br/>(10 partitions → 1 partition)
 
     QE->>Idx: Apply Bloom Filter Indexes
-    Idx->>Idx: idx_tenant_id: Skip 95% of granules
-    Idx->>Idx: idx_metric_name: Skip 99% of granules
-    Idx-->>QE: Only 0.05% granules remain ⚡
+    Idx->>Idx: idx_tenant_id: Skip 95pct of granules
+    Idx->>Idx: idx_metric_name: Skip 99pct of granules
+    Idx-->>QE: Only 0.05pct granules remain ⚡
 
     QE->>Scan: Scan Remaining Granules
     Scan-->>QE: Return Matched Rows
@@ -1134,12 +1142,14 @@ flowchart TD
 ```
 
 **Async Insert Benefits:**
+
 - 10-100x higher throughput
 - Sub-millisecond response times
 - Automatic batching
 - Reduces disk I/O
 
 **Configuration:**
+
 ```typescript
 clickhouse_settings: {
   async_insert: 1,
@@ -1481,9 +1491,10 @@ graph TB
     subgraph "Queue Rate Limits - Redis DB 2"
         A[OTLP Ingestion<br/>1000 jobs/second]
         B[Alert Evaluation<br/>100 jobs/second]
-        C[Aggregation<br/>50 jobs/second]
-        D[Cleanup<br/>10 jobs/second]
+        C[Telemetry Processing<br/>50 jobs/second]
+        D[Domain Events<br/>50 jobs/second]
         E[Notification<br/>100 jobs/second]
+        F2[Reports<br/>50 jobs/second]
     end
 
     subgraph "Rate Limiter Logic"
@@ -1495,6 +1506,7 @@ graph TB
     C --> F
     D --> F
     E --> F
+    F2 --> F
 
     F -->|Yes| G[Delay Job Execution<br/>Status: Delayed]
     F -->|No| H[Process Immediately<br/>Status: Waiting]
@@ -1541,6 +1553,10 @@ classDiagram
 
 ## Query Optimization Techniques
 
+### TFQL Query Language
+
+TelemetryFlow provides **TFQL (TelemetryFlow Query Language)** as a unified query interface that translates to PromQL, ClickHouse SQL, and Elasticsearch DSL. This allows users to write queries in a single syntax and have them optimized for the underlying data store automatically.
+
 ### Parameterized Query Pattern
 
 ```mermaid
@@ -1569,13 +1585,14 @@ flowchart TD
 ```
 
 **Example:**
+
 ```typescript
 // ❌ UNSAFE: String concatenation
 const query = `SELECT * FROM metrics WHERE tenant_id = '${tenantId}'`;
 
 // ✅ SAFE: Parameterized query
 const query = `SELECT * FROM metrics WHERE tenant_id = {tenantId:String}`;
-const params = { tenantId: 'tenant-123' };
+const params = { tenantId: "tenant-123" };
 await clickhouse.query(query, params);
 ```
 
@@ -1735,8 +1752,8 @@ graph TB
     end
 
     subgraph "System Metrics"
-        E[CPU Usage %]
-        F[Memory Usage %]
+        E[CPU Usage]
+        F[Memory Usage]
         G[Disk I/O]
         H[Network Traffic]
     end
@@ -1752,6 +1769,10 @@ graph TB
         M[Metric Aggregation]
         N[Trace Sampling]
         O[Log Collection]
+    end
+
+    subgraph "TFO-Agent v1.2.0 Monitoring"
+        P2[eBPF 28 metrics<br/>Docker/cAdvisor 32 metrics<br/>DB Monitoring QAN 9 collectors]
     end
 
     A --> M
@@ -1770,6 +1791,7 @@ graph TB
     M --> P[Export to ClickHouse]
     N --> P
     O --> P
+    P2 --> M
 
     P --> Q[TelemetryFlow UI<br/>Performance Dashboard]
 
@@ -1784,13 +1806,13 @@ graph LR
         A[Request Rate: 1250/min]
         B[Avg Response Time: 45ms]
         C[p95 Response Time: 180ms]
-        D[Error Rate: 0.01%]
+        D[Error Rate: 0.01pct]
     end
 
     subgraph "Cache Performance"
-        E[L1 Hit Rate: 52%]
-        F[L2 Hit Rate: 31%]
-        G[Combined: 83% ⚡]
+        E[L1 Hit Rate: 52pct]
+        F[L2 Hit Rate: 31pct]
+        G[Combined: 83pct ⚡]
         H[Cache Memory: 120MB]
     end
 
@@ -1798,17 +1820,17 @@ graph LR
         I[OTLP Queue: 450 jobs/sec]
         J[Alert Queue: 25 jobs/sec]
         K[Queue Lag: 120ms]
-        L[Failed Jobs: 0.5%]
+        L[Failed Jobs: 0.5pct]
     end
 
     subgraph "Database Performance"
         M[PostgreSQL Queries: 200/sec]
         N[ClickHouse Inserts: 800/sec]
         O[Query Latency p95: 180ms]
-        P[Disk Usage: 45%]
+        P[Disk Usage: 45pct]
     end
 
-    G --> Q{Hit Rate < 70%?}
+    G --> Q{Hit Rate Below Threshold?}
     Q -->|Yes| R[Alert: Low Cache Efficiency]
     Q -->|No| S[Healthy ✅]
 
@@ -1852,13 +1874,13 @@ graph TB
 stateDiagram-v2
     [*] --> Normal: System Start
 
-    Normal --> HighLoad: CPU > 70% for 5min<br/>OR Queue Lag > 1000
+    Normal --> HighLoad: CPU > 70pct for 5min<br/>OR Queue Lag > 1000
     HighLoad --> ScalingUp: Trigger Auto-Scale
     ScalingUp --> Scaled: Add 2 Workers
 
-    Scaled --> Normal: CPU < 50% for 10min<br/>AND Queue Lag < 100
+    Scaled --> Normal: CPU < 50pct for 10min<br/>AND Queue Lag < 100
 
-    Scaled --> Critical: CPU > 90%<br/>OR Queue Lag > 5000
+    Scaled --> Critical: CPU > 90pct<br/>OR Queue Lag > 5000
     Critical --> Emergency: Alert DevOps
     Emergency --> ManualIntervention: Human Action Required
 
@@ -1866,17 +1888,17 @@ stateDiagram-v2
 
     note right of HighLoad
         Auto-scaling thresholds:
-        - CPU usage > 70%
+        - CPU usage > 70pct
         - Queue lag > 1000ms
-        - Failed jobs > 10%
-        - Memory > 80%
+        - Failed jobs > 10pct
+        - Memory > 80pct
     end note
 
     note right of Critical
         Emergency alerts:
-        - CPU > 90%
+        - CPU > 90pct
         - Queue lag > 5000ms
-        - Disk > 95%
+        - Disk > 95pct
         - Database connection pool exhausted
     end note
 ```
@@ -1925,13 +1947,13 @@ flowchart TD
 
 ### Cache Strategy Selection
 
-| Data Type | Cache Profile | L1 TTL | L2 TTL | Reason |
-|-----------|---------------|--------|--------|--------|
-| **User Session** | SHORT | 1 min | 5 min | Frequent auth checks, short-lived |
-| **Dashboard Data** | MEDIUM | 5 min | 30 min | Balance freshness vs load |
-| **Metric Metadata** | LONG | 30 min | 1 hour | Rarely changes |
-| **Static Config** | STATIC | 1 hour | 24 hours | Almost never changes |
-| **Real-time Metrics** | No cache | - | - | Must be fresh |
+| Data Type             | Cache Profile | L1 TTL | L2 TTL   | Reason                            |
+| --------------------- | ------------- | ------ | -------- | --------------------------------- |
+| **User Session**      | SHORT         | 1 min  | 5 min    | Frequent auth checks, short-lived |
+| **Dashboard Data**    | MEDIUM        | 5 min  | 30 min   | Balance freshness vs load         |
+| **Metric Metadata**   | LONG          | 30 min | 1 hour   | Rarely changes                    |
+| **Static Config**     | STATIC        | 1 hour | 24 hours | Almost never changes              |
+| **Real-time Metrics** | No cache      | -      | -        | Must be fresh                     |
 
 ### Query Optimization Guidelines
 
@@ -1997,22 +2019,26 @@ flowchart TD
 
 ### Monitoring and Alerting Rules
 
-| Metric | Warning Threshold | Critical Threshold | Action |
-|--------|-------------------|-------------------|--------|
-| **API Response Time p95** | > 500ms | > 1000ms | Investigate slow endpoints |
-| **Cache Hit Rate** | < 70% | < 50% | Review cache TTL, add more caching |
-| **Queue Lag** | > 500ms | > 1000ms | Scale up workers |
-| **Failed Jobs Rate** | > 5% | > 10% | Check error logs, fix bugs |
-| **CPU Usage** | > 70% | > 90% | Auto-scale or optimize queries |
-| **Memory Usage** | > 80% | > 95% | Check memory leaks |
-| **Disk Usage** | > 80% | > 95% | Cleanup old data or scale storage |
-| **ClickHouse Query Latency** | > 1s | > 5s | Add indexes, optimize query |
+| Metric                       | Warning Threshold | Critical Threshold | Action                             |
+| ---------------------------- | ----------------- | ------------------ | ---------------------------------- |
+| **API Response Time p95**    | > 500ms           | > 1000ms           | Investigate slow endpoints         |
+| **Cache Hit Rate**           | < 70%             | < 50%              | Review cache TTL, add more caching |
+| **Queue Lag**                | > 500ms           | > 1000ms           | Scale up workers                   |
+| **Failed Jobs Rate**         | > 5%              | > 10%              | Check error logs, fix bugs         |
+| **CPU Usage**                | > 70%             | > 90%              | Auto-scale or optimize queries     |
+| **Memory Usage**             | > 80%             | > 95%              | Check memory leaks                 |
+| **Disk Usage**               | > 80%             | > 95%              | Cleanup old data or scale storage  |
+| **ClickHouse Query Latency** | > 1s              | > 5s               | Add indexes, optimize query        |
 
 ---
 
 ## Summary
 
 TelemetryFlow's **6-layer performance optimization strategy** delivers:
+
+- **TFO-Collector v1.2.1**: OCB-native OTEL Collector (Core v1.58.0, Contrib v0.152.0) with 4 custom TFO components (`tfootlp`, `tfo`, `tfoauth`, `tfoidentity`)
+- **TFO-Agent v1.2.0**: Go 1.26 agent with 15+ collectors, 39+ integrations, eBPF (28 metrics), Docker/cAdvisor (32 per-container metrics), DB Monitoring QAN (9 DB collectors)
+- **Component Registry**: 3 registries (graph 260+, stat-panel 158, datatable 41) with composable bridge pattern for optimized UI rendering
 
 - ✅ **50-90% reduction** in database load via multi-level caching
 - ✅ **10-100x faster** queries through ClickHouse indexing
@@ -2030,14 +2056,14 @@ graph LR
     end
 
     subgraph "After Optimization"
-        B[Query Time: 200ms ⚡<br/>Cache Hit: 83%<br/>Throughput: 1000 req/sec]
+        B[Query Time: 200ms ⚡<br/>Cache Hit: 83pct<br/>Throughput: 1000 req/sec]
     end
 
     A -->|Apply All Optimizations| B
 
     C[50x Faster Queries]
     D[100x Higher Throughput]
-    E[90% Lower Database Load]
+    E[90pct Lower Database Load]
 
     B --> C
     B --> D
@@ -2052,6 +2078,7 @@ graph LR
 ---
 
 **Next Steps:**
+
 - Review [Backend Overview](../backend/00-BACKEND-OVERVIEW.md)
 - Explore [Module Structure](../backend/03-MODULE-STRUCTURE.md)
 - Understand [DDD/CQRS Patterns](../backend/02-DDD-CQRS.md)
@@ -2059,6 +2086,7 @@ graph LR
 ---
 
 **Related Documentation:**
+
 - [Data Flow Architecture](./02-DATA-FLOW.md)
 - [Multi-Tenancy Implementation](./03-MULTI-TENANCY.md)
 - [Security Architecture](./04-SECURITY.md)
@@ -2068,4 +2096,4 @@ graph LR
 
 - **File Location:** `./architecture/05-PERFORMANCE.md`
 - **Maintained By:** DevOpsCorner Indonesia
-- **Last Updated:** January 01st, 2026
+- **Last Updated:** May 14, 2026

@@ -85,7 +85,7 @@ flowchart LR
 | Component         | Minimum Version       | Notes                        |
 | ----------------- | --------------------- | ---------------------------- |
 | Operating System  | Linux, macOS, Windows | 64-bit recommended           |
-| Go (source build) | 1.24+                 | Only for source installation |
+| Go (source build) | 1.26+                 | Only for source installation |
 | Docker            | 20.10+                | Only for Docker installation |
 | Git               | 2.0+                  | Only for source installation |
 
@@ -276,7 +276,7 @@ tfo-mcp version
 
 ```bash
 # Build with specific version
-make build VERSION=1.1.2
+make build VERSION=1.2.0
 
 # Build with debug symbols
 go build -gcflags="all=-N -l" -o tfo-mcp ./cmd/mcp
@@ -297,7 +297,7 @@ make build-all
 go install github.com/telemetryflow/telemetryflow-mcp/telemetryflow-mcp/cmd/mcp@latest
 
 # Install specific version
-go install github.com/telemetryflow/telemetryflow-mcp/telemetryflow-mcp/cmd/mcp@v1.1.2
+go install github.com/telemetryflow/telemetryflow-mcp/telemetryflow-mcp/cmd/mcp@v1.2.0
 
 # Verify
 tfo-mcp version
@@ -329,13 +329,13 @@ flowchart TB
 
 ```bash
 # Pull latest image
-docker pull devopscorner/tfo-mcp:latest
+docker pull telemetryflow/tfo-mcp:latest
 
 # Pull specific version
-docker pull devopscorner/tfo-mcp:1.1.2
+docker pull telemetryflow/tfo-mcp:1.2.0
 
 # Verify image
-docker images devopscorner/tfo-mcp
+docker images telemetryflow/tfo-mcp
 ```
 
 ### Run Container
@@ -344,13 +344,13 @@ docker images devopscorner/tfo-mcp
 # Basic run
 docker run -it --rm \
   -e TELEMETRYFLOW_MCP_CLAUDE_API_KEY="your-api-key" \
-  devopscorner/tfo-mcp:latest
+  telemetryflow/tfo-mcp:latest
 
 # With custom config
 docker run -it --rm \
   -v $(pwd)/config.yaml:/app/config.yaml \
   -e TELEMETRYFLOW_MCP_CLAUDE_API_KEY="your-api-key" \
-  devopscorner/tfo-mcp:latest \
+  telemetryflow/tfo-mcp:latest \
   run --config /app/config.yaml
 
 # With volume for resources
@@ -358,7 +358,7 @@ docker run -it --rm \
   -v $(pwd)/config.yaml:/app/config.yaml \
   -v $(pwd)/resources:/app/resources \
   -e TELEMETRYFLOW_MCP_CLAUDE_API_KEY="your-api-key" \
-  devopscorner/tfo-mcp:latest
+  telemetryflow/tfo-mcp:latest
 ```
 
 ### Docker Compose
@@ -405,7 +405,7 @@ See the full [docker-compose.yaml](../docker-compose.yaml) for complete configur
 docker build -t my-tfo-mcp:latest .
 
 # Build with specific tag
-docker build -t my-tfo-mcp:1.1.2 .
+docker build -t my-tfo-mcp:1.2.0 .
 
 # Build multi-platform
 docker buildx build \
@@ -539,8 +539,8 @@ tfo-mcp version
 
 # Expected output:
 # TFO-MCP - TelemetryFlow MCP Server
-# Version:    1.1.2
-# Go Version: go1.24
+# Version:    1.2.0
+# Go Version: go1.26
 # ...
 
 # 2. Validate configuration
@@ -570,15 +570,15 @@ echo '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":
 
 ```bash
 # Check image
-docker images devopscorner/tfo-mcp
+docker images telemetryflow/tfo-mcp
 
 # Run version check
-docker run --rm devopscorner/tfo-mcp:latest version
+docker run --rm telemetryflow/tfo-mcp:latest version
 
 # Run validation
 docker run --rm \
   -v $(pwd)/config.yaml:/app/config.yaml \
-  devopscorner/tfo-mcp:latest validate
+  telemetryflow/tfo-mcp:latest validate
 ```
 
 ---
@@ -623,10 +623,10 @@ tfo-mcp version
 
 ```bash
 # Pull latest image
-docker pull devopscorner/tfo-mcp:latest
+docker pull telemetryflow/tfo-mcp:latest
 
 # Or specific version
-docker pull devopscorner/tfo-mcp:1.1.3
+docker pull telemetryflow/tfo-mcp:1.2.0
 
 # Restart container
 docker-compose down
@@ -689,7 +689,7 @@ docker stop tfo-mcp
 docker rm tfo-mcp
 
 # Remove image
-docker rmi devopscorner/tfo-mcp:latest
+docker rmi telemetryflow/tfo-mcp:latest
 
 # Remove volumes (optional)
 docker volume rm tfo-mcp-config

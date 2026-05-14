@@ -4,7 +4,7 @@
 - **Category**: Backend / Shared Modules
 - **Status**: Production Ready
 - **Priority:** 🔥 HIGH - Observability
-- **Version**: 1.1.2-CE
+- **Version**: 1.4.0
 
 ---
 
@@ -53,13 +53,13 @@ graph TB
 
 ```typescript
 // shared/otel/otel.service.ts
-import { Injectable, OnModuleDestroy } from '@nestjs/common';
-import { NodeSDK } from '@opentelemetry/sdk-node';
-import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node';
-import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-grpc';
-import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-grpc';
-import { PeriodicExportingMetricReader } from '@opentelemetry/sdk-metrics';
-import { trace, Span, SpanStatusCode } from '@opentelemetry/api';
+import { Injectable, OnModuleDestroy } from "@nestjs/common";
+import { NodeSDK } from "@opentelemetry/sdk-node";
+import { getNodeAutoInstrumentations } from "@opentelemetry/auto-instrumentations-node";
+import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-grpc";
+import { OTLPMetricExporter } from "@opentelemetry/exporter-metrics-otlp-grpc";
+import { PeriodicExportingMetricReader } from "@opentelemetry/sdk-metrics";
+import { trace, Span, SpanStatusCode } from "@opentelemetry/api";
 
 @Injectable()
 export class OtelService implements OnModuleDestroy {
@@ -68,20 +68,22 @@ export class OtelService implements OnModuleDestroy {
 
   async initializeOpenTelemetry(): Promise<{ sdk: NodeSDK }> {
     if (this.initialized) {
-      console.warn('[OTEL] Already initialized, skipping...');
+      console.warn("[OTEL] Already initialized, skipping...");
       return { sdk: this.sdk! };
     }
 
-    const otlpEndpoint = process.env.OTEL_EXPORTER_OTLP_ENDPOINT || 'http://localhost:4317';
-    const serviceName = process.env.OTEL_SERVICE_NAME || 'telemetryflow-backend';
-    const serviceVersion = process.env.OTEL_SERVICE_VERSION || '1.1.2-CE';
-    const environment = process.env.NODE_ENV || 'development';
+    const otlpEndpoint =
+      process.env.OTEL_EXPORTER_OTLP_ENDPOINT || "http://localhost:4317";
+    const serviceName =
+      process.env.OTEL_SERVICE_NAME || "telemetryflow-backend";
+    const serviceVersion = process.env.OTEL_SERVICE_VERSION || "1.4.0";
+    const environment = process.env.NODE_ENV || "development";
 
     // Create resource with service information
     const resource = resourceFromAttributes({
       [ATTR_SERVICE_NAME]: serviceName,
       [ATTR_SERVICE_VERSION]: serviceVersion,
-      'deployment.environment': environment,
+      "deployment.environment": environment,
     });
 
     // Configure trace exporter (OTLP gRPC)
@@ -107,24 +109,24 @@ export class OtelService implements OnModuleDestroy {
       metricReader,
       instrumentations: [
         getNodeAutoInstrumentations({
-          '@opentelemetry/instrumentation-fs': {
+          "@opentelemetry/instrumentation-fs": {
             enabled: false, // Too verbose
           },
-          '@opentelemetry/instrumentation-http': {
+          "@opentelemetry/instrumentation-http": {
             enabled: true,
             ignoreIncomingRequestHook: (request) => {
-              const ignorePaths = ['/health', '/metrics'];
+              const ignorePaths = ["/health", "/metrics"];
               return ignorePaths.some((path) => request.url?.includes(path));
             },
           },
-          '@opentelemetry/instrumentation-express': {
+          "@opentelemetry/instrumentation-express": {
             enabled: true,
           },
-          '@opentelemetry/instrumentation-pg': {
+          "@opentelemetry/instrumentation-pg": {
             enabled: true,
             enhancedDatabaseReporting: true,
           },
-          '@opentelemetry/instrumentation-ioredis': {
+          "@opentelemetry/instrumentation-ioredis": {
             enabled: true,
           },
         }),
@@ -133,12 +135,12 @@ export class OtelService implements OnModuleDestroy {
 
     await this.sdk.start();
     this.initialized = true;
-    console.log('[OTEL] OpenTelemetry SDK initialized successfully');
+    console.log("[OTEL] OpenTelemetry SDK initialized successfully");
 
     return { sdk: this.sdk };
   }
 
-  getTracer(name: string = 'telemetryflow'): Tracer {
+  getTracer(name: string = "telemetryflow"): Tracer {
     return trace.getTracer(name);
   }
 
@@ -161,7 +163,7 @@ export class OtelService implements OnModuleDestroy {
   async onModuleDestroy(): Promise<void> {
     if (this.sdk && this.initialized) {
       await this.sdk.shutdown();
-      console.log('[OTEL] SDK shut down successfully');
+      console.log("[OTEL] SDK shut down successfully");
     }
   }
 }
@@ -172,6 +174,7 @@ export class OtelService implements OnModuleDestroy {
 ## Initialization
 
 **Bootstrap Initialization:**
+
 ```typescript
 // main.ts
 async function bootstrap() {
@@ -193,37 +196,38 @@ async function bootstrap() {
 
 **Supported Instrumentations:**
 
-| Library | Instrumentation | Enabled | Notes |
-|---------|----------------|---------|-------|
-| **HTTP** | `@opentelemetry/instrumentation-http` | ✅ | Traces all HTTP requests |
-| **Express** | `@opentelemetry/instrumentation-express` | ✅ | Traces Express routes |
-| **NestJS** | `@opentelemetry/instrumentation-nestjs-core` | ✅ | Traces NestJS controllers |
-| **PostgreSQL** | `@opentelemetry/instrumentation-pg` | ✅ | Traces database queries |
-| **Redis** | `@opentelemetry/instrumentation-ioredis` | ✅ | Traces Redis operations |
-| **gRPC** | `@opentelemetry/instrumentation-grpc` | ✅ | Traces gRPC calls |
-| **File System** | `@opentelemetry/instrumentation-fs` | ❌ | Too verbose |
+| Library         | Instrumentation                              | Enabled | Notes                     |
+| --------------- | -------------------------------------------- | ------- | ------------------------- |
+| **HTTP**        | `@opentelemetry/instrumentation-http`        | ✅      | Traces all HTTP requests  |
+| **Express**     | `@opentelemetry/instrumentation-express`     | ✅      | Traces Express routes     |
+| **NestJS**      | `@opentelemetry/instrumentation-nestjs-core` | ✅      | Traces NestJS controllers |
+| **PostgreSQL**  | `@opentelemetry/instrumentation-pg`          | ✅      | Traces database queries   |
+| **Redis**       | `@opentelemetry/instrumentation-ioredis`     | ✅      | Traces Redis operations   |
+| **gRPC**        | `@opentelemetry/instrumentation-grpc`        | ✅      | Traces gRPC calls         |
+| **File System** | `@opentelemetry/instrumentation-fs`          | ❌      | Too verbose               |
 
 ---
 
 ## Manual Instrumentation
 
 **Create Custom Spans:**
+
 ```typescript
-import { OtelService } from '@/otel/otel.service';
-import { trace, context } from '@opentelemetry/api';
+import { OtelService } from "@/otel/otel.service";
+import { trace, context } from "@opentelemetry/api";
 
 @Injectable()
 export class MetricsService {
   constructor(private readonly otelService: OtelService) {}
 
   async processMetrics(metrics: Metric[]): Promise<void> {
-    const tracer = this.otelService.getTracer('metrics-service');
+    const tracer = this.otelService.getTracer("metrics-service");
 
     // Create span
-    const span = tracer.startSpan('processMetrics', {
+    const span = tracer.startSpan("processMetrics", {
       attributes: {
-        'metrics.count': metrics.length,
-        'metrics.type': 'gauge',
+        "metrics.count": metrics.length,
+        "metrics.type": "gauge",
       },
     });
 
@@ -293,11 +297,12 @@ sequenceDiagram
 ## Configuration
 
 **Environment Variables:**
+
 ```bash
 # OpenTelemetry Configuration
 OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317
 OTEL_SERVICE_NAME=telemetryflow-backend
-OTEL_SERVICE_VERSION=1.1.2-CE
+OTEL_SERVICE_VERSION=1.4.0
 NODE_ENV=production
 
 # Sampling (optional)
@@ -310,6 +315,7 @@ OTEL_TRACES_SAMPLER_ARG=0.1  # Sample 10% of traces
 ## Trace Context Propagation
 
 **W3C Trace Context:**
+
 ```http
 GET /api/metrics HTTP/1.1
 Host: api.telemetryflow.id
@@ -327,14 +333,17 @@ tracestate: congo=t61rcWkgMzE
 
 ```typescript
 // Use semantic conventions for consistent attributes
-import { SEMATTRS_HTTP_METHOD, SEMATTRS_HTTP_STATUS_CODE } from '@opentelemetry/semantic-conventions';
+import {
+  SEMATTRS_HTTP_METHOD,
+  SEMATTRS_HTTP_STATUS_CODE,
+} from "@opentelemetry/semantic-conventions";
 
 span.setAttributes({
-  [SEMATTRS_HTTP_METHOD]: 'POST',
+  [SEMATTRS_HTTP_METHOD]: "POST",
   [SEMATTRS_HTTP_STATUS_CODE]: 200,
-  'http.route': '/api/metrics',
-  'tenant.id': 'tenant_123',
-  'user.id': 'user_456',
+  "http.route": "/api/metrics",
+  "tenant.id": "tenant_123",
+  "user.id": "user_456",
 });
 ```
 
@@ -344,14 +353,14 @@ span.setAttributes({
 
 ```typescript
 // Add events to spans
-span.addEvent('cache_miss', {
-  'cache.key': 'user:123',
-  'cache.ttl': 300,
+span.addEvent("cache_miss", {
+  "cache.key": "user:123",
+  "cache.ttl": 300,
 });
 
-span.addEvent('validation_failed', {
-  'validation.error': 'Invalid email format',
-  'validation.field': 'email',
+span.addEvent("validation_failed", {
+  "validation.error": "Invalid email format",
+  "validation.field": "email",
 });
 ```
 
@@ -360,32 +369,33 @@ span.addEvent('validation_failed', {
 ## Metrics
 
 **OpenTelemetry Metrics:**
-```typescript
-import { metrics } from '@opentelemetry/api';
 
-const meter = metrics.getMeter('telemetryflow');
+```typescript
+import { metrics } from "@opentelemetry/api";
+
+const meter = metrics.getMeter("telemetryflow");
 
 // Counter
-const requestCounter = meter.createCounter('http.server.requests', {
-  description: 'Total HTTP requests',
-  unit: '1',
+const requestCounter = meter.createCounter("http.server.requests", {
+  description: "Total HTTP requests",
+  unit: "1",
 });
 
 requestCounter.add(1, {
-  method: 'POST',
-  route: '/api/metrics',
+  method: "POST",
+  route: "/api/metrics",
   status: 200,
 });
 
 // Histogram
-const requestDuration = meter.createHistogram('http.server.duration', {
-  description: 'HTTP request duration',
-  unit: 'ms',
+const requestDuration = meter.createHistogram("http.server.duration", {
+  description: "HTTP request duration",
+  unit: "ms",
 });
 
 requestDuration.record(150, {
-  method: 'POST',
-  route: '/api/metrics',
+  method: "POST",
+  route: "/api/metrics",
 });
 ```
 
@@ -394,11 +404,13 @@ requestDuration.record(150, {
 ## Performance Impact
 
 **Overhead:**
+
 - Auto-instrumentation: ~2-5% CPU overhead
 - Manual spans: ~0.1-0.5ms per span
 - Export: Async, minimal blocking
 
 **Optimization:**
+
 - Use sampling for high-traffic endpoints
 - Disable verbose instrumentations (fs)
 - Batch export for better performance
@@ -434,5 +446,5 @@ requestDuration.record(150, {
 
 ---
 
-- **Last Updated**: January 01st, 2026
+- **Last Updated**: May 14th, 2026
 - **Maintained By**: DevOpsCorner Indonesia

@@ -1,8 +1,8 @@
 # TelemetryFlow MCP Server Documentation
 
-- **Version:** 1.1.2
+- **Version:** 1.2.0
 - **MCP Protocol:** 2024-11-05
-- **Last Updated:** January 2026
+- **Last Updated:** May 2026
 - **Status:** Production Ready
 
 ---
@@ -92,6 +92,7 @@ graph TB
 
 | Version | Date         | Changes                               |
 | ------- | ------------ | ------------------------------------- |
+| 1.2.0   | May 2026     | Updated for platform v1.4.0 alignment |
 | 1.1.2   | January 2026 | Initial release with full MCP support |
 
 ---

@@ -1,8 +1,8 @@
 # 5-Tier RBAC System - Platform Documentation
 
-- **Date**: 2025-12-05
+- **Date**: May 14, 2026
 - **Status**: ✅ Complete
-- **Version**: 3.0 (Complete Platform + Core Integration)
+- **Version**: 4.0 (Complete Platform + Core Integration)
 
 ---
 
@@ -11,6 +11,7 @@
 TelemetryFlow implements a **5-tier Role-Based Access Control (RBAC) system** with hierarchical permissions and organizational scoping. This document provides comprehensive visualization and comparison of all roles, permissions, and access patterns.
 
 **This document combines:**
+
 - ✅ Platform-level RBAC architecture and visualization
 - ✅ Core implementation details from backend modules
 - ✅ Complete permission matrices and comparison tables
@@ -116,22 +117,23 @@ flowchart TD
 
 #### Permissions Breakdown
 
-| Category | Permissions | Description |
-|----------|-------------|-------------|
-| **Platform** | platform:* | Full platform management |
-| **IAM** | iam:*, users:*, roles:*, permissions:* | All identity and access operations |
-| **Organizations** | organizations:* | All organization operations |
-| **Regions** | regions:* | All region operations |
-| **Workspaces** | workspaces:* | All workspace operations |
-| **Tenants** | tenants:* | All tenant operations |
-| **Telemetry** | metrics:*, logs:*, traces:* | All observability operations |
-| **Dashboards** | dashboards:* | All dashboard operations |
-| **Alerts** | alerts:*, alert-rule-groups:* | All alerting operations |
-| **Monitoring** | monitoring:* | All monitoring operations |
-| **Agents** | agents:* | All agent operations |
-| **Uptime** | uptime:* | All uptime monitoring operations |
-| **Audit** | audit-logs:read, audit-logs:export | Audit log access |
-| **System** | system:* | System administration |
+| Category          | Permissions                            | Description                                    |
+| ----------------- | -------------------------------------- | ---------------------------------------------- |
+| **Platform**      | platform:\*                            | Full platform management                       |
+| **IAM**           | iam:_, users:_, roles:_, permissions:_ | All identity and access operations             |
+| **Organizations** | organizations:\*                       | All organization operations                    |
+| **Regions**       | regions:\*                             | All region operations                          |
+| **Workspaces**    | workspaces:\*                          | All workspace operations                       |
+| **Tenants**       | tenants:\*                             | All tenant operations                          |
+| **Telemetry**     | metrics:_, logs:_, traces:\*           | All observability operations                   |
+| **Dashboards**    | dashboards:\*                          | All dashboard operations                       |
+| **Alerts**        | alerts:_, alert-rule-groups:_          | All alerting operations                        |
+| **Monitoring**    | monitoring:\*                          | All monitoring operations                      |
+| **Agents**        | agents:\*                              | All agent operations                           |
+| **Uptime**        | uptime:\*                              | All uptime monitoring operations               |
+| **DB Monitoring** | monitoring:db                          | Database Monitoring with QAN (9 DB collectors) |
+| **Audit**         | audit-logs:read, audit-logs:export     | Audit log access                               |
+| **System**        | system:\*                              | System administration                          |
 
 #### Use Cases
 
@@ -157,6 +159,7 @@ mindmap
 ```
 
 **Typical Users**:
+
 - Platform administrators
 - DevOps team managing infrastructure
 - System maintenance engineers
@@ -174,24 +177,25 @@ mindmap
 
 #### Permissions Breakdown
 
-| Category | Permissions | Description |
-|----------|-------------|-------------|
-| **Platform** | ❌ None | No platform management |
-| **Organizations** | organizations:read, organizations:update | Read/Update only (no create/delete) |
-| **Users** | users:* | Full user CRUD within organization |
-| **Roles** | roles:* | Full role CRUD within organization |
-| **Permissions** | permissions:read | Read-only permission viewing |
-| **Tenants** | tenants:* | Full tenant CRUD |
-| **Workspaces** | workspaces:* | Full workspace CRUD |
-| **Regions** | regions:read | Read-only region access |
-| **Telemetry** | metrics:*, logs:*, traces:* | All observability operations |
-| **Dashboards** | dashboards:* | All dashboard operations |
-| **Alerts** | alerts:*, alert-rule-groups:* | All alerting operations |
-| **Monitoring** | monitoring:* | All monitoring operations |
-| **Agents** | agents:* | All agent operations |
-| **Uptime** | uptime:* | All uptime operations |
-| **Audit** | audit-logs:read, audit-logs:export | Audit log read/export |
-| **System** | ❌ None | No system administration |
+| Category          | Permissions                              | Description                                    |
+| ----------------- | ---------------------------------------- | ---------------------------------------------- |
+| **Platform**      | ❌ None                                  | No platform management                         |
+| **Organizations** | organizations:read, organizations:update | Read/Update only (no create/delete)            |
+| **Users**         | users:\*                                 | Full user CRUD within organization             |
+| **Roles**         | roles:\*                                 | Full role CRUD within organization             |
+| **Permissions**   | permissions:read                         | Read-only permission viewing                   |
+| **Tenants**       | tenants:\*                               | Full tenant CRUD                               |
+| **Workspaces**    | workspaces:\*                            | Full workspace CRUD                            |
+| **Regions**       | regions:read                             | Read-only region access                        |
+| **Telemetry**     | metrics:_, logs:_, traces:\*             | All observability operations                   |
+| **Dashboards**    | dashboards:\*                            | All dashboard operations                       |
+| **Alerts**        | alerts:_, alert-rule-groups:_            | All alerting operations                        |
+| **Monitoring**    | monitoring:\*                            | All monitoring operations                      |
+| **Agents**        | agents:\*                                | All agent operations                           |
+| **Uptime**        | uptime:\*                                | All uptime operations                          |
+| **DB Monitoring** | monitoring:db                            | Database Monitoring with QAN (9 DB collectors) |
+| **Audit**         | audit-logs:read, audit-logs:export       | Audit log read/export                          |
+| **System**        | ❌ None                                  | No system administration                       |
 
 #### Capabilities vs Restrictions
 
@@ -203,6 +207,7 @@ pie title Administrator Capabilities
 ```
 
 **Typical Users**:
+
 - Organization administrators
 - Team leads
 - Department managers
@@ -220,24 +225,24 @@ pie title Administrator Capabilities
 
 #### Permissions Breakdown
 
-| Category | Permissions | Description |
-|----------|-------------|-------------|
-| **Organizations** | organizations:read | Read-only |
-| **Users** | users:create, users:read, users:update | No delete |
-| **Roles** | roles:read | Read-only |
-| **Permissions** | permissions:read | Read-only |
-| **Tenants** | tenants:create, tenants:read, tenants:update | No delete |
-| **Workspaces** | workspaces:create, workspaces:read, workspaces:update | No delete |
-| **Regions** | regions:read | Read-only |
-| **Metrics** | metrics:read, metrics:write | No delete |
-| **Logs** | logs:read, logs:write | No delete |
-| **Traces** | traces:read, traces:write | No delete |
-| **Dashboards** | dashboards:create, dashboards:read, dashboards:update | No delete |
-| **Alerts** | alerts:create, alerts:read, alerts:update | No delete/acknowledge |
-| **Alert Rules** | alert-rule-groups:create, alert-rule-groups:read, alert-rule-groups:update | No delete |
-| **Agents** | agents:create, agents:read, agents:update, agents:register | No delete |
-| **Uptime** | uptime:create, uptime:read, uptime:update, uptime:check | No delete |
-| **Audit** | audit-logs:read | Read-only |
+| Category          | Permissions                                                                | Description           |
+| ----------------- | -------------------------------------------------------------------------- | --------------------- |
+| **Organizations** | organizations:read                                                         | Read-only             |
+| **Users**         | users:create, users:read, users:update                                     | No delete             |
+| **Roles**         | roles:read                                                                 | Read-only             |
+| **Permissions**   | permissions:read                                                           | Read-only             |
+| **Tenants**       | tenants:create, tenants:read, tenants:update                               | No delete             |
+| **Workspaces**    | workspaces:create, workspaces:read, workspaces:update                      | No delete             |
+| **Regions**       | regions:read                                                               | Read-only             |
+| **Metrics**       | metrics:read, metrics:write                                                | No delete             |
+| **Logs**          | logs:read, logs:write                                                      | No delete             |
+| **Traces**        | traces:read, traces:write                                                  | No delete             |
+| **Dashboards**    | dashboards:create, dashboards:read, dashboards:update                      | No delete             |
+| **Alerts**        | alerts:create, alerts:read, alerts:update                                  | No delete/acknowledge |
+| **Alert Rules**   | alert-rule-groups:create, alert-rule-groups:read, alert-rule-groups:update | No delete             |
+| **Agents**        | agents:create, agents:read, agents:update, agents:register                 | No delete             |
+| **Uptime**        | uptime:create, uptime:read, uptime:update, uptime:check                    | No delete             |
+| **Audit**         | audit-logs:read                                                            | Read-only             |
 
 #### Developer Workflow
 
@@ -256,6 +261,7 @@ stateDiagram-v2
 ```
 
 **Typical Users**:
+
 - Software developers
 - DevOps engineers
 - QA engineers
@@ -273,11 +279,11 @@ stateDiagram-v2
 
 #### Permissions Breakdown
 
-| Category | Permissions | Description |
-|----------|-------------|-------------|
-| **All Resources** | *:read | Read-only for all resources |
-| **Uptime** | uptime:read, uptime:check | Can check uptime status |
-| **Write/Create/Update/Delete** | ❌ None | No modification allowed |
+| Category                       | Permissions               | Description                 |
+| ------------------------------ | ------------------------- | --------------------------- |
+| **All Resources**              | \*:read                   | Read-only for all resources |
+| **Uptime**                     | uptime:read, uptime:check | Can check uptime status     |
+| **Write/Create/Update/Delete** | ❌ None                   | No modification allowed     |
 
 #### Read-Only Access Pattern
 
@@ -301,6 +307,7 @@ graph LR
 ```
 
 **Typical Users**:
+
 - Business analysts
 - Stakeholders
 - External auditors
@@ -321,14 +328,14 @@ graph LR
 
 #### Permissions Breakdown
 
-| Category | Permissions | Restrictions |
-|----------|-------------|--------------|
-| **All Developer Permissions** | Same as Tier 3 | 🔒 Demo Org ONLY |
-| **Organization Access** | organizations:read | 🔒 `org-demo` only |
-| **Workspace Access** | workspaces:* | 🔒 `ws-demo` only |
-| **Tenant Access** | tenants:* | 🔒 `tn-demo` only |
-| **Data Retention** | All operations | ⏰ Auto-deleted every 6 hours |
-| **Production Access** | ❌ None | 🔒 Cannot access production |
+| Category                      | Permissions        | Restrictions                  |
+| ----------------------------- | ------------------ | ----------------------------- |
+| **All Developer Permissions** | Same as Tier 3     | 🔒 Demo Org ONLY              |
+| **Organization Access**       | organizations:read | 🔒 `org-demo` only            |
+| **Workspace Access**          | workspaces:\*      | 🔒 `ws-demo` only             |
+| **Tenant Access**             | tenants:\*         | 🔒 `tn-demo` only             |
+| **Data Retention**            | All operations     | ⏰ Auto-deleted every 6 hours |
+| **Production Access**         | ❌ None            | 🔒 Cannot access production   |
 
 #### Demo Environment Isolation
 
@@ -375,6 +382,7 @@ gantt
 ```
 
 **Typical Users**:
+
 - Product demonstration accounts
 - Trial users (free tier)
 - Training environments
@@ -388,34 +396,35 @@ gantt
 
 ### Complete Permission Matrix
 
-| Permission Category | Super Admin | Administrator | Developer | Viewer | Demo |
-|---------------------|-------------|---------------|-----------|--------|------|
-| **Scope** | 🌍 Global | 🏢 Organization | 💻 Organization | 👁️ Organization | 🔬 Demo Org Only |
-| **Permission Count** | 60+ (100%) | 55+ (92%) | 40+ (67%) | 17 (28%) | 40+ (67%) |
-| **Platform Management** | ✅ Full | ❌ None | ❌ None | ❌ None | ❌ None |
-| **System Administration** | ✅ Full | ❌ None | ❌ None | ❌ None | ❌ None |
-| **Organization CRUD** | ✅ Full | 📖 Read/Update | 📖 Read | 📖 Read | 📖 Read (Demo only) |
-| **User Management** | ✅ Full | ✅ Full | 📝 Create/Read/Update | 📖 Read | 📝 Create/Read/Update |
-| **Role Management** | ✅ Full | ✅ Full | 📖 Read | 📖 Read | 📖 Read |
-| **Permission Mgmt** | ✅ Full | 📖 Read | 📖 Read | 📖 Read | 📖 Read |
-| **Tenant Management** | ✅ Full | ✅ Full | 📝 Create/Read/Update | 📖 Read | 📝 Create/Read/Update |
-| **Workspace Mgmt** | ✅ Full | ✅ Full | 📝 Create/Read/Update | 📖 Read | 📝 Create/Read/Update |
-| **Region Management** | ✅ Full | 📖 Read | 📖 Read | 📖 Read | 📖 Read |
-| **Metrics** | ✅ Full | ✅ Full | 📊 Read/Write | 📖 Read | 📊 Read/Write |
-| **Logs** | ✅ Full | ✅ Full | 📊 Read/Write | 📖 Read | 📊 Read/Write |
-| **Traces** | ✅ Full | ✅ Full | 📊 Read/Write | 📖 Read | 📊 Read/Write |
-| **Dashboards** | ✅ Full | ✅ Full | 📝 Create/Read/Update | 📖 Read | 📝 Create/Read/Update |
-| **Alerts** | ✅ Full | ✅ Full | 📝 Create/Read/Update | 📖 Read | 📝 Create/Read/Update |
-| **Alert Rule Groups** | ✅ Full | ✅ Full | 📝 Create/Read/Update | 📖 Read | 📝 Create/Read/Update |
-| **Agents** | ✅ Full | ✅ Full | 📝 Create/Read/Update/Register | 📖 Read | 📝 Create/Read/Update/Register |
-| **Uptime Monitoring** | ✅ Full | ✅ Full | 📝 Create/Read/Update/Check | 📖 Read/Check | 📝 Create/Read/Update/Check |
-| **Audit Logs** | ✅ Read/Export | ✅ Read/Export | 📖 Read | 📖 Read | 📖 Read |
-| **Delete Operations** | ✅ Yes | ✅ Yes | ❌ No | ❌ No | ❌ No |
-| **Export Operations** | ✅ Yes | ✅ Yes | ❌ No | ❌ No | ❌ No |
-| **Data Retention** | ♾️ Permanent | ♾️ Permanent | ♾️ Permanent | ♾️ Permanent | ⏰ 6 hours |
-| **Multi-Org Access** | ✅ Yes | ❌ No | ❌ No | ❌ No | ❌ No |
+| Permission Category       | Super Admin    | Administrator   | Developer                      | Viewer          | Demo                           |
+| ------------------------- | -------------- | --------------- | ------------------------------ | --------------- | ------------------------------ |
+| **Scope**                 | 🌍 Global      | 🏢 Organization | 💻 Organization                | 👁️ Organization | 🔬 Demo Org Only               |
+| **Permission Count**      | 60+ (100%)     | 55+ (92%)       | 40+ (67%)                      | 17 (28%)        | 40+ (67%)                      |
+| **Platform Management**   | ✅ Full        | ❌ None         | ❌ None                        | ❌ None         | ❌ None                        |
+| **System Administration** | ✅ Full        | ❌ None         | ❌ None                        | ❌ None         | ❌ None                        |
+| **Organization CRUD**     | ✅ Full        | 📖 Read/Update  | 📖 Read                        | 📖 Read         | 📖 Read (Demo only)            |
+| **User Management**       | ✅ Full        | ✅ Full         | 📝 Create/Read/Update          | 📖 Read         | 📝 Create/Read/Update          |
+| **Role Management**       | ✅ Full        | ✅ Full         | 📖 Read                        | 📖 Read         | 📖 Read                        |
+| **Permission Mgmt**       | ✅ Full        | 📖 Read         | 📖 Read                        | 📖 Read         | 📖 Read                        |
+| **Tenant Management**     | ✅ Full        | ✅ Full         | 📝 Create/Read/Update          | 📖 Read         | 📝 Create/Read/Update          |
+| **Workspace Mgmt**        | ✅ Full        | ✅ Full         | 📝 Create/Read/Update          | 📖 Read         | 📝 Create/Read/Update          |
+| **Region Management**     | ✅ Full        | 📖 Read         | 📖 Read                        | 📖 Read         | 📖 Read                        |
+| **Metrics**               | ✅ Full        | ✅ Full         | 📊 Read/Write                  | 📖 Read         | 📊 Read/Write                  |
+| **Logs**                  | ✅ Full        | ✅ Full         | 📊 Read/Write                  | 📖 Read         | 📊 Read/Write                  |
+| **Traces**                | ✅ Full        | ✅ Full         | 📊 Read/Write                  | 📖 Read         | 📊 Read/Write                  |
+| **Dashboards**            | ✅ Full        | ✅ Full         | 📝 Create/Read/Update          | 📖 Read         | 📝 Create/Read/Update          |
+| **Alerts**                | ✅ Full        | ✅ Full         | 📝 Create/Read/Update          | 📖 Read         | 📝 Create/Read/Update          |
+| **Alert Rule Groups**     | ✅ Full        | ✅ Full         | 📝 Create/Read/Update          | 📖 Read         | 📝 Create/Read/Update          |
+| **Agents**                | ✅ Full        | ✅ Full         | 📝 Create/Read/Update/Register | 📖 Read         | 📝 Create/Read/Update/Register |
+| **Uptime Monitoring**     | ✅ Full        | ✅ Full         | 📝 Create/Read/Update/Check    | 📖 Read/Check   | 📝 Create/Read/Update/Check    |
+| **Audit Logs**            | ✅ Read/Export | ✅ Read/Export  | 📖 Read                        | 📖 Read         | 📖 Read                        |
+| **Delete Operations**     | ✅ Yes         | ✅ Yes          | ❌ No                          | ❌ No           | ❌ No                          |
+| **Export Operations**     | ✅ Yes         | ✅ Yes          | ❌ No                          | ❌ No           | ❌ No                          |
+| **Data Retention**        | ♾️ Permanent   | ♾️ Permanent    | ♾️ Permanent                   | ♾️ Permanent    | ⏰ 6 hours                     |
+| **Multi-Org Access**      | ✅ Yes         | ❌ No           | ❌ No                          | ❌ No           | ❌ No                          |
 
 **Legend**:
+
 - ✅ Full = Full CRUD access
 - 📝 Create/Read/Update = No delete
 - 📊 Read/Write = No delete
@@ -467,16 +476,16 @@ graph TD
 
 ### Scope & Access Comparison
 
-| Aspect | Super Admin | Administrator | Developer | Viewer | Demo |
-|--------|-------------|---------------|-----------|--------|------|
-| **Geographic Scope** | 🌍 All Regions | 🌍 Multiple Regions | 🗺️ Single Region | 🗺️ Single Region | 📍 Demo Region Only |
-| **Org Access** | 🏢 All Organizations | 🏢 Single Org | 🏢 Single Org | 🏢 Single Org | 🏢 Demo Org ONLY |
-| **Workspace Access** | 📁 All Workspaces | 📁 All in Org | 📁 All in Org | 📁 All in Org | 📁 Demo Workspace ONLY |
-| **Tenant Access** | 🏷️ All Tenants | 🏷️ All in Org | 🏷️ All in Org | 🏷️ All in Org | 🏷️ Demo Tenant ONLY |
-| **Cross-Org Access** | ✅ Yes | ❌ No | ❌ No | ❌ No | ❌ No |
-| **Production Access** | ✅ Yes | ✅ Yes | ✅ Yes | ✅ Yes | ❌ No (Demo only) |
-| **Multi-Tenancy** | ✅ All Tenants | ✅ Org Tenants | ✅ Org Tenants | ✅ Org Tenants | 🔒 Demo Tenant |
-| **Data Isolation** | 🔓 None (Full access) | 🔒 Org-level | 🔒 Org-level | 🔒 Org-level | 🔒🔒 Demo-level |
+| Aspect                | Super Admin           | Administrator       | Developer        | Viewer           | Demo                   |
+| --------------------- | --------------------- | ------------------- | ---------------- | ---------------- | ---------------------- |
+| **Geographic Scope**  | 🌍 All Regions        | 🌍 Multiple Regions | 🗺️ Single Region | 🗺️ Single Region | 📍 Demo Region Only    |
+| **Org Access**        | 🏢 All Organizations  | 🏢 Single Org       | 🏢 Single Org    | 🏢 Single Org    | 🏢 Demo Org ONLY       |
+| **Workspace Access**  | 📁 All Workspaces     | 📁 All in Org       | 📁 All in Org    | 📁 All in Org    | 📁 Demo Workspace ONLY |
+| **Tenant Access**     | 🏷️ All Tenants        | 🏷️ All in Org       | 🏷️ All in Org    | 🏷️ All in Org    | 🏷️ Demo Tenant ONLY    |
+| **Cross-Org Access**  | ✅ Yes                | ❌ No               | ❌ No            | ❌ No            | ❌ No                  |
+| **Production Access** | ✅ Yes                | ✅ Yes              | ✅ Yes           | ✅ Yes           | ❌ No (Demo only)      |
+| **Multi-Tenancy**     | ✅ All Tenants        | ✅ Org Tenants      | ✅ Org Tenants   | ✅ Org Tenants   | 🔒 Demo Tenant         |
+| **Data Isolation**    | 🔓 None (Full access) | 🔒 Org-level        | 🔒 Org-level     | 🔒 Org-level     | 🔒🔒 Demo-level        |
 
 ### Permission Count Breakdown
 
@@ -491,16 +500,16 @@ pie title Permission Distribution Across Roles
 
 ### Access Level Comparison
 
-| Access Level | Super Admin | Administrator | Developer | Viewer | Demo |
-|--------------|-------------|---------------|-----------|--------|------|
-| **Global Platform** | ⭐⭐⭐⭐⭐ | ⚫⚫⚫⚫⚫ | ⚫⚫⚫⚫⚫ | ⚫⚫⚫⚫⚫ | ⚫⚫⚫⚫⚫ |
-| **Organization Mgmt** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⚫ | ⭐⚫⚫⚫⚫ | ⭐⚫⚫⚫⚫ | ⭐⚫⚫⚫⚫ |
-| **User Management** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⚫⚫ | ⭐⚫⚫⚫⚫ | ⭐⭐⭐⚫⚫ |
-| **Resource CRUD** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⚫⚫ | ⭐⚫⚫⚫⚫ | ⭐⭐⭐⚫⚫ |
-| **Telemetry Write** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⚫ | ⚫⚫⚫⚫⚫ | ⭐⭐⭐⭐⚫ |
-| **Telemetry Read** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
-| **Delete Operations** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⚫⚫⚫⚫⚫ | ⚫⚫⚫⚫⚫ | ⚫⚫⚫⚫⚫ |
-| **System Admin** | ⭐⭐⭐⭐⭐ | ⚫⚫⚫⚫⚫ | ⚫⚫⚫⚫⚫ | ⚫⚫⚫⚫⚫ | ⚫⚫⚫⚫⚫ |
+| Access Level          | Super Admin | Administrator | Developer  | Viewer     | Demo       |
+| --------------------- | ----------- | ------------- | ---------- | ---------- | ---------- |
+| **Global Platform**   | ⭐⭐⭐⭐⭐  | ⚫⚫⚫⚫⚫    | ⚫⚫⚫⚫⚫ | ⚫⚫⚫⚫⚫ | ⚫⚫⚫⚫⚫ |
+| **Organization Mgmt** | ⭐⭐⭐⭐⭐  | ⭐⭐⭐⭐⚫    | ⭐⚫⚫⚫⚫ | ⭐⚫⚫⚫⚫ | ⭐⚫⚫⚫⚫ |
+| **User Management**   | ⭐⭐⭐⭐⭐  | ⭐⭐⭐⭐⭐    | ⭐⭐⭐⚫⚫ | ⭐⚫⚫⚫⚫ | ⭐⭐⭐⚫⚫ |
+| **Resource CRUD**     | ⭐⭐⭐⭐⭐  | ⭐⭐⭐⭐⭐    | ⭐⭐⭐⚫⚫ | ⭐⚫⚫⚫⚫ | ⭐⭐⭐⚫⚫ |
+| **Telemetry Write**   | ⭐⭐⭐⭐⭐  | ⭐⭐⭐⭐⭐    | ⭐⭐⭐⭐⚫ | ⚫⚫⚫⚫⚫ | ⭐⭐⭐⭐⚫ |
+| **Telemetry Read**    | ⭐⭐⭐⭐⭐  | ⭐⭐⭐⭐⭐    | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
+| **Delete Operations** | ⭐⭐⭐⭐⭐  | ⭐⭐⭐⭐⭐    | ⚫⚫⚫⚫⚫ | ⚫⚫⚫⚫⚫ | ⚫⚫⚫⚫⚫ |
+| **System Admin**      | ⭐⭐⭐⭐⭐  | ⚫⚫⚫⚫⚫    | ⚫⚫⚫⚫⚫ | ⚫⚫⚫⚫⚫ | ⚫⚫⚫⚫⚫ |
 
 **Legend**: ⭐ = Has access, ⚫ = No access
 
@@ -510,13 +519,13 @@ pie title Permission Distribution Across Roles
 
 ### Default Users
 
-| User | Email | Password | Role | Organization | Tenant |
-|------|-------|----------|------|--------------|--------|
-| Super Administrator | `superadmin.telemetryflow@telemetryflow.id` | `SuperAdmin@123456` | super_administrator | All | All |
-| Administrator TelemetryFlow | `administrator.telemetryflow@telemetryflow.id` | `Admin@123456` | administrator | TelemetryFlow | TelemetryFlow |
-| Developer TelemetryFlow | `developer.telemetryflow@telemetryflow.id` | `Developer@123456` | developer | TelemetryFlow | TelemetryFlow |
-| Viewer TelemetryFlow | `viewer.telemetryflow@telemetryflow.id` | `Viewer@123456` | viewer | TelemetryFlow | TelemetryFlow |
-| Demo TelemetryFlow | `demo.telemetryflow@telemetryflow.id` | `Demo@123456` | demo | Demo Org | Demo Tenant |
+| User                        | Email                                          | Password            | Role                | Organization  | Tenant        |
+| --------------------------- | ---------------------------------------------- | ------------------- | ------------------- | ------------- | ------------- |
+| Super Administrator         | `superadmin.telemetryflow@telemetryflow.id`    | `SuperAdmin@123456` | super_administrator | All           | All           |
+| Administrator TelemetryFlow | `administrator.telemetryflow@telemetryflow.id` | `Admin@123456`      | administrator       | TelemetryFlow | TelemetryFlow |
+| Developer TelemetryFlow     | `developer.telemetryflow@telemetryflow.id`     | `Developer@123456`  | developer           | TelemetryFlow | TelemetryFlow |
+| Viewer TelemetryFlow        | `viewer.telemetryflow@telemetryflow.id`        | `Viewer@123456`     | viewer              | TelemetryFlow | TelemetryFlow |
+| Demo TelemetryFlow          | `demo.telemetryflow@telemetryflow.id`          | `Demo@123456`       | demo                | Demo Org      | Demo Tenant   |
 
 ### Role Assignment Flow
 
@@ -598,13 +607,13 @@ graph TD
 
 #### Isolation Layers
 
-| Layer | Super Admin | Administrator | Developer | Viewer | Demo |
-|-------|-------------|---------------|-----------|--------|------|
-| **Region** | ✅ All regions | ✅ Org regions | ✅ Org regions | ✅ Org regions | 🔒 Demo region |
-| **Organization** | ✅ All orgs | 🔒 Single org | 🔒 Single org | 🔒 Single org | 🔒 Demo org ONLY |
-| **Workspace** | ✅ All workspaces | ✅ Org workspaces | ✅ Org workspaces | ✅ Org workspaces | 🔒 Demo workspace |
-| **Tenant** | ✅ All tenants | ✅ Org tenants | ✅ Org tenants | ✅ Org tenants | 🔒 Demo tenant |
-| **Data Isolation** | 🔓 None | 🔒 Org-level | 🔒 Org-level | 🔒 Org-level | 🔒🔒 Demo-level |
+| Layer              | Super Admin       | Administrator     | Developer         | Viewer            | Demo              |
+| ------------------ | ----------------- | ----------------- | ----------------- | ----------------- | ----------------- |
+| **Region**         | ✅ All regions    | ✅ Org regions    | ✅ Org regions    | ✅ Org regions    | 🔒 Demo region    |
+| **Organization**   | ✅ All orgs       | 🔒 Single org     | 🔒 Single org     | 🔒 Single org     | 🔒 Demo org ONLY  |
+| **Workspace**      | ✅ All workspaces | ✅ Org workspaces | ✅ Org workspaces | ✅ Org workspaces | 🔒 Demo workspace |
+| **Tenant**         | ✅ All tenants    | ✅ Org tenants    | ✅ Org tenants    | ✅ Org tenants    | 🔒 Demo tenant    |
+| **Data Isolation** | 🔓 None           | 🔒 Org-level      | 🔒 Org-level      | 🔒 Org-level      | 🔒🔒 Demo-level   |
 
 ### Demo Environment Protection
 
@@ -623,16 +632,16 @@ timeline
 
 #### Demo Protection Mechanisms
 
-| Protection | Status | Description |
-|------------|--------|-------------|
-| **Data Isolation** | ✅ Active | Cannot access production organizations |
-| **Workspace Lock** | ✅ Active | Cannot access production workspaces |
-| **Tenant Lock** | ✅ Active | Cannot access production tenants |
-| **Auto-cleanup** | ✅ Active | Data deleted every 6 hours |
-| **Separate Domain** | ✅ Active | `demo.telemetryflow.id` |
-| **Read-only Production** | ✅ Active | No read access to production |
-| **Rate Limiting** | ✅ Active | API rate limits enforced |
-| **Resource Quotas** | ✅ Active | Limited metrics, logs, traces |
+| Protection               | Status    | Description                            |
+| ------------------------ | --------- | -------------------------------------- |
+| **Data Isolation**       | ✅ Active | Cannot access production organizations |
+| **Workspace Lock**       | ✅ Active | Cannot access production workspaces    |
+| **Tenant Lock**          | ✅ Active | Cannot access production tenants       |
+| **Auto-cleanup**         | ✅ Active | Data deleted every 6 hours             |
+| **Separate Domain**      | ✅ Active | `demo.telemetryflow.id`                |
+| **Read-only Production** | ✅ Active | No read access to production           |
+| **Rate Limiting**        | ✅ Active | API rate limits enforced               |
+| **Resource Quotas**      | ✅ Active | Limited metrics, logs, traces          |
 
 ### Permission Enforcement Flow
 
@@ -828,25 +837,28 @@ sequenceDiagram
 ### Permission Expansion
 
 **Before** (Wildcards):
+
 ```typescript
-permissions: ['metrics:*', 'logs:*']
+permissions: ["metrics:*", "logs:*"];
 ```
 
 **After** (Explicit):
+
 ```typescript
 permissions: [
-  'metrics:read',
-  'metrics:write',
-  'metrics:delete',
-  'metrics:export',
-  'logs:read',
-  'logs:write',
-  'logs:delete',
-  'logs:export'
-]
+  "metrics:read",
+  "metrics:write",
+  "metrics:delete",
+  "metrics:export",
+  "logs:read",
+  "logs:write",
+  "logs:delete",
+  "logs:export",
+];
 ```
 
 **Why?**
+
 - ✅ Explicit permissions for clarity
 - ✅ Better security auditing
 - ✅ Easier permission debugging
@@ -922,15 +934,15 @@ flowchart TD
 
 ### Permission Review Checklist
 
-| Check | Frequency | Owner | Action |
-|-------|-----------|-------|--------|
-| **Review role assignments** | Monthly | Administrator | Remove inactive users |
-| **Audit permission usage** | Quarterly | Super Admin | Identify over-privileged users |
-| **Check demo cleanup** | Weekly | DevOps | Verify auto-cleanup working |
-| **Review audit logs** | Weekly | Security Team | Identify suspicious activity |
-| **Password rotation** | 90 days | All users | Enforce password changes |
-| **MFA status check** | Monthly | Administrator | Ensure MFA enabled for admins |
-| **Demo org isolation** | Daily | System | Verify no production access |
+| Check                       | Frequency | Owner         | Action                         |
+| --------------------------- | --------- | ------------- | ------------------------------ |
+| **Review role assignments** | Monthly   | Administrator | Remove inactive users          |
+| **Audit permission usage**  | Quarterly | Super Admin   | Identify over-privileged users |
+| **Check demo cleanup**      | Weekly    | DevOps        | Verify auto-cleanup working    |
+| **Review audit logs**       | Weekly    | Security Team | Identify suspicious activity   |
+| **Password rotation**       | 90 days   | All users     | Enforce password changes       |
+| **MFA status check**        | Monthly   | Administrator | Ensure MFA enabled for admins  |
+| **Demo org isolation**      | Daily     | System        | Verify no production access    |
 
 ---
 
@@ -938,36 +950,45 @@ flowchart TD
 
 ### Database Structure
 
-| Database | Purpose | Tables |
-|----------|---------|--------|
-| **PostgreSQL** | IAM data storage | users, roles, permissions, role_permissions, user_roles, organizations, tenants, workspaces, regions, groups |
-| **ClickHouse** | Audit log storage | audit_logs, audit_logs_stats, audit_logs_user_activity |
+| Database       | Purpose           | Tables                                                                                                       |
+| -------------- | ----------------- | ------------------------------------------------------------------------------------------------------------ |
+| **PostgreSQL** | IAM data storage  | users, roles, permissions, role_permissions, user_roles, organizations, tenants, workspaces, regions, groups |
+| **ClickHouse** | Audit log storage | audit_logs, audit_logs_stats, audit_logs_user_activity                                                       |
+
+### Telemetry Components
+
+| Component              | Version             | Key Features                                                                                                                                           |
+| ---------------------- | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **TFO-Collector**      | v1.2.1 (OCB-native) | OTEL Core v1.58.0, Contrib v0.152.0, 4 custom TFO components (`tfootlp`, `tfo`, `tfoauth`, `tfoidentity`)                                              |
+| **TFO-Agent**          | v1.2.0 (Go 1.26)    | OTEL SDK v1.43.0, 15+ collectors, 39+ integrations, eBPF (28 metrics), Docker/cAdvisor (32 per-container metrics), DB Monitoring QAN (9 DB collectors) |
+| **Component Registry** | 3 registries        | Graph (260+), Stat Panel (158), DataTable (41) with composable bridge pattern                                                                          |
+| **TFQL**               | Query Language      | Unified query interface translating to PromQL, ClickHouse SQL, and Elasticsearch DSL                                                                   |
 
 ### Seed Files
 
-| Order | File | Purpose | Records |
-|-------|------|---------|---------|
-| 1 | `1704240000001-seed-iam-roles-permissions.ts` | Create 5 roles with explicit permissions | 5 roles, 22+ permissions |
-| 2 | `1704240000002-seed-auth-test-users.ts` | Create test users for each role | 5 users |
-| 3 | `1704240000003-seed-groups.ts` | Create user groups | 4 groups |
+| Order | File                                          | Purpose                                  | Records                  |
+| ----- | --------------------------------------------- | ---------------------------------------- | ------------------------ |
+| 1     | `1704240000001-seed-iam-roles-permissions.ts` | Create 5 roles with explicit permissions | 5 roles, 22+ permissions |
+| 2     | `1704240000002-seed-auth-test-users.ts`       | Create test users for each role          | 5 users                  |
+| 3     | `1704240000003-seed-groups.ts`                | Create user groups                       | 4 groups                 |
 
 ### Permission Enforcement Components
 
-| Component | Location | Purpose |
-|-----------|----------|---------|
-| **Guards** | `@RequirePermissions()` decorator | Checks user permissions before controller execution |
-| **Decorators** | `@CurrentUser()` | Extracts authenticated user from request |
-| **Repositories** | Auto-scoping queries | Automatically filters by organization/tenant |
-| **Audit** | ClickHouse service | Logs all actions to audit_logs table |
+| Component        | Location                          | Purpose                                             |
+| ---------------- | --------------------------------- | --------------------------------------------------- |
+| **Guards**       | `@RequirePermissions()` decorator | Checks user permissions before controller execution |
+| **Decorators**   | `@CurrentUser()`                  | Extracts authenticated user from request            |
+| **Repositories** | Auto-scoping queries              | Automatically filters by organization/tenant        |
+| **Audit**        | ClickHouse service                | Logs all actions to audit_logs table                |
 
 ### Multi-Tenancy Implementation
 
-| Level | Implementation | Example |
-|-------|----------------|---------|
-| **Organization** | Query filter | `WHERE organizationId = :orgId` |
-| **Tenant** | Repository scoping | `findByTenant(tenantId)` |
-| **Workspace** | Resource filtering | `WHERE workspaceId = :wsId` |
-| **Demo** | Separate organization | `organizationId = 'org-demo'` |
+| Level            | Implementation        | Example                         |
+| ---------------- | --------------------- | ------------------------------- |
+| **Organization** | Query filter          | `WHERE organizationId = :orgId` |
+| **Tenant**       | Repository scoping    | `findByTenant(tenantId)`        |
+| **Workspace**    | Resource filtering    | `WHERE workspaceId = :wsId`     |
+| **Demo**         | Separate organization | `organizationId = 'org-demo'`   |
 
 ### Security Request Flow
 
@@ -1039,9 +1060,9 @@ Password: Demo@123456
 
 ### API Access
 
-All users can access the API at: **http://localhost:3100/api/v2**
+All users can access the API at: **http://localhost:3000/api/v2**
 
-Use Swagger UI at **http://localhost:3100/docs** to test different permission levels and see which endpoints are accessible for each role.
+Use Swagger UI at **http://localhost:3000/docs** to test different permission levels and see which endpoints are accessible for each role.
 
 ### Testing Permissions
 
@@ -1074,32 +1095,32 @@ bash scripts/bootstrap.sh --dev
 
 ### Multi-Tenancy Isolation Features
 
-| Feature | Description | Implementation |
-|---------|-------------|----------------|
-| **Organization-level** | Data isolated by organization | Query filters: `WHERE organizationId = :orgId` |
-| **Tenant-level** | Query filtering per tenant | Automatic tenant scoping in repositories |
-| **Workspace-level** | Resource scoping per workspace | Workspace-based access control |
-| **Demo isolation** | Complete separation from production | Separate organization with auto-cleanup |
+| Feature                | Description                         | Implementation                                 |
+| ---------------------- | ----------------------------------- | ---------------------------------------------- |
+| **Organization-level** | Data isolated by organization       | Query filters: `WHERE organizationId = :orgId` |
+| **Tenant-level**       | Query filtering per tenant          | Automatic tenant scoping in repositories       |
+| **Workspace-level**    | Resource scoping per workspace      | Workspace-based access control                 |
+| **Demo isolation**     | Complete separation from production | Separate organization with auto-cleanup        |
 
 ### Demo Environment Protection Details
 
-| Feature | Description | Status |
-|---------|-------------|--------|
-| **Auto-cleanup** | Data deleted every 6 hours | ✅ Implemented |
-| **Production isolation** | Cannot access production orgs | ✅ Enforced |
-| **Workspace isolation** | Cannot access production workspaces | ✅ Enforced |
-| **Tenant isolation** | Cannot access production tenants | ✅ Enforced |
-| **Separate domain** | `demo.telemetryflow.id` | ✅ Configured |
+| Feature                  | Description                         | Status         |
+| ------------------------ | ----------------------------------- | -------------- |
+| **Auto-cleanup**         | Data deleted every 6 hours          | ✅ Implemented |
+| **Production isolation** | Cannot access production orgs       | ✅ Enforced    |
+| **Workspace isolation**  | Cannot access production workspaces | ✅ Enforced    |
+| **Tenant isolation**     | Cannot access production tenants    | ✅ Enforced    |
+| **Separate domain**      | `demo.telemetryflow.id`             | ✅ Configured  |
 
 ### Permission Enforcement Layers
 
-| Layer | Mechanism | Description |
-|-------|-----------|-------------|
-| **Authentication** | JWT tokens | Validates user identity |
-| **Authorization** | `@RequirePermissions()` decorator | Checks user permissions before execution |
-| **Scoping** | Query filters | Automatically filters by organization/tenant |
-| **Audit** | ClickHouse audit_logs | Logs all actions with user context |
-| **Validation** | Guards & Interceptors | Validates request data and permissions |
+| Layer              | Mechanism                         | Description                                  |
+| ------------------ | --------------------------------- | -------------------------------------------- |
+| **Authentication** | JWT tokens                        | Validates user identity                      |
+| **Authorization**  | `@RequirePermissions()` decorator | Checks user permissions before execution     |
+| **Scoping**        | Query filters                     | Automatically filters by organization/tenant |
+| **Audit**          | ClickHouse audit_logs             | Logs all actions with user context           |
+| **Validation**     | Guards & Interceptors             | Validates request data and permissions       |
 
 ---
 
@@ -1130,20 +1151,23 @@ pie title Permission Distribution
 
 ### Key Features
 
-| Feature | Status | Description |
-|---------|--------|-------------|
-| **5-Tier Hierarchy** | ✅ Complete | Super Admin → Admin → Developer → Viewer, Demo |
-| **60+ Permissions** | ✅ Complete | Granular permission system |
-| **Multi-Tenancy** | ✅ Complete | Organization, Workspace, Tenant isolation |
-| **Demo Environment** | ✅ Complete | Isolated demo org with auto-cleanup |
-| **Audit Logging** | ✅ Complete | All actions logged for compliance |
-| **MFA Support** | ✅ Complete | Optional MFA for all roles |
-| **Auto-Cleanup** | ✅ Complete | Demo data deleted every 6 hours |
-| **Explicit Permissions** | ✅ Complete | No wildcards, all explicit |
+| Feature                  | Status      | Description                                                        |
+| ------------------------ | ----------- | ------------------------------------------------------------------ |
+| **5-Tier Hierarchy**     | ✅ Complete | Super Admin → Admin → Developer → Viewer, Demo                     |
+| **60+ Permissions**      | ✅ Complete | Granular permission system                                         |
+| **Multi-Tenancy**        | ✅ Complete | Organization, Workspace, Tenant isolation                          |
+| **Demo Environment**     | ✅ Complete | Isolated demo org with auto-cleanup                                |
+| **Audit Logging**        | ✅ Complete | All actions logged for compliance                                  |
+| **MFA Support**          | ✅ Complete | Optional MFA for all roles (Argon2id hashed backup codes)          |
+| **Auto-Cleanup**         | ✅ Complete | Demo data deleted every 6 hours                                    |
+| **Explicit Permissions** | ✅ Complete | No wildcards, all explicit                                         |
+| **API Key Auth**         | ✅ Complete | AWS-style dual keys (tfk-_/tfs-_) with Argon2id hashing            |
+| **DB Monitoring**        | ✅ Complete | QAN with 9 DB collectors for PostgreSQL, MySQL, MongoDB, etc.      |
+| **TFQL**                 | ✅ Complete | Unified query language (PromQL, ClickHouse SQL, Elasticsearch DSL) |
 
 ---
 
 - **Document**: 06-RBAC-SYSTEM-PLATFORM.md
-- **Version**: 3.0 (Complete Platform + Core Integration)
-- **Date**: 2025-12-12
+- **Version**: 4.0 (Complete Platform + Core Integration)
+- **Date**: 2026-05-14
 - **Status**: ✅ Complete

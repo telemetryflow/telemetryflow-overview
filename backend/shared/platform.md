@@ -4,7 +4,7 @@
 - **Category**: Backend / Shared Modules
 - **Status**: Production Ready
 - **Priority:** 🔥 MEDIUM - Platform Statistics
-- **Version**: 1.1.2-CE
+- **Version**: 1.4.0
 
 ---
 
@@ -121,7 +121,7 @@ export class GetPlatformStatsHandler {
 
   async execute(query: GetPlatformStatsQuery): Promise<PlatformStats> {
     // Check cache first
-    const cached = await this.cacheService.get<PlatformStats>('platform:stats');
+    const cached = await this.cacheService.get<PlatformStats>("platform:stats");
     if (cached) {
       return cached;
     }
@@ -130,7 +130,7 @@ export class GetPlatformStatsHandler {
     const stats = await this.repository.getPlatformStats();
 
     // Cache for 5 minutes
-    await this.cacheService.set('platform:stats', stats, 300);
+    await this.cacheService.set("platform:stats", stats, 300);
 
     return stats;
   }
@@ -159,7 +159,7 @@ export class PlatformStatsRepository implements IPlatformStatsRepository {
     // Fetch platform counts from PostgreSQL
     const [users, agents, monitors] = await Promise.all([
       this.userRepo.count({ where: { is_active: true } }),
-      this.agentRepo.count({ where: { status: 'ACTIVE' } }),
+      this.agentRepo.count({ where: { status: "ACTIVE" } }),
       this.monitorRepo.count({ where: { is_active: true } }),
     ]);
 
@@ -180,15 +180,15 @@ export class PlatformStatsRepository implements IPlatformStatsRepository {
   private async getTelemetryStats(): Promise<TelemetryStats> {
     // Query ClickHouse for telemetry counts
     const metricsCount = await this.clickhouse.query<{ count: number }>(
-      'SELECT COUNT(*) as count FROM telemetry_metrics',
+      "SELECT COUNT(*) as count FROM telemetry_metrics",
     );
 
     const logsCount = await this.clickhouse.query<{ count: number }>(
-      'SELECT COUNT(*) as count FROM telemetry_logs',
+      "SELECT COUNT(*) as count FROM telemetry_logs",
     );
 
     const tracesCount = await this.clickhouse.query<{ count: number }>(
-      'SELECT COUNT(*) as count FROM telemetry_traces',
+      "SELECT COUNT(*) as count FROM telemetry_traces",
     );
 
     return {
@@ -204,21 +204,23 @@ export class PlatformStatsRepository implements IPlatformStatsRepository {
 
 ## API Endpoint
 
-| Method | Endpoint | Description | Permission |
-|--------|----------|-------------|------------|
-| `GET` | `/api/v1/platform/stats` | Get platform statistics | `PLATFORM_READ` |
+| Method | Endpoint                 | Description             | Permission      |
+| ------ | ------------------------ | ----------------------- | --------------- |
+| `GET`  | `/api/v1/platform/stats` | Get platform statistics | `PLATFORM_READ` |
 
 ---
 
 ## Request/Response Example
 
 **Request:**
+
 ```http
 GET /api/v1/platform/stats
 Authorization: Bearer <jwt_token>
 ```
 
 **Response:**
+
 ```json
 {
   "telemetry": {
@@ -241,12 +243,12 @@ Authorization: Bearer <jwt_token>
 
 ```typescript
 // shared/platform/presentation/controllers/PlatformStats.controller.ts
-@Controller('platform')
+@Controller("platform")
 export class PlatformStatsController {
   constructor(private readonly commandBus: CommandBus) {}
 
-  @Get('stats')
-  @RequirePermissions('PLATFORM_READ')
+  @Get("stats")
+  @RequirePermissions("PLATFORM_READ")
   async getStats(): Promise<PlatformStatsResponse> {
     const query = new GetPlatformStatsQuery();
     const stats = await this.commandBus.execute(query);
@@ -262,18 +264,18 @@ export class PlatformStatsController {
 
 ```typescript
 // Cache platform stats for 5 minutes
-const CACHE_KEY = 'platform:stats';
+const CACHE_KEY = "platform:stats";
 const CACHE_TTL = 300; // 5 minutes
 
 // Cache invalidation on entity changes
 const invalidateEvents = [
-  'UserCreatedEvent',
-  'UserDeletedEvent',
-  'AgentCreatedEvent',
-  'AgentDeletedEvent',
-  'MonitorCreatedEvent',
-  'MonitorDeletedEvent',
-  'MetricReceivedEvent', // High frequency - invalidate on batch
+  "UserCreatedEvent",
+  "UserDeletedEvent",
+  "AgentCreatedEvent",
+  "AgentDeletedEvent",
+  "MonitorCreatedEvent",
+  "MonitorDeletedEvent",
+  "MetricReceivedEvent", // High frequency - invalidate on batch
 ];
 ```
 
@@ -282,6 +284,7 @@ const invalidateEvents = [
 ## Performance Optimization
 
 **Materialized Views in ClickHouse:**
+
 ```sql
 -- Pre-aggregate telemetry counts
 CREATE MATERIALIZED VIEW telemetry_counts_hourly
@@ -356,15 +359,15 @@ async getHealth(): Promise<HealthResponse> {
 
 ```typescript
 // Platform metrics tracked
-- platform.users.total (gauge)
-- platform.users.active (gauge)
-- platform.agents.total (gauge)
-- platform.agents.active (gauge)
-- platform.monitors.total (gauge)
-- platform.telemetry.metrics.total (counter)
-- platform.telemetry.logs.total (counter)
-- platform.telemetry.traces.total (counter)
-- platform.stats.query.duration (histogram)
+-platform.users.total(gauge) -
+  platform.users.active(gauge) -
+  platform.agents.total(gauge) -
+  platform.agents.active(gauge) -
+  platform.monitors.total(gauge) -
+  platform.telemetry.metrics.total(counter) -
+  platform.telemetry.logs.total(counter) -
+  platform.telemetry.traces.total(counter) -
+  platform.stats.query.duration(histogram);
 ```
 
 ---
@@ -379,5 +382,5 @@ async getHealth(): Promise<HealthResponse> {
 
 ---
 
-- **Last Updated**: January 01st, 2026
+- **Last Updated**: May 14th, 2026
 - **Maintained By**: DevOpsCorner Indonesia

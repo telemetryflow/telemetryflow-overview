@@ -4,7 +4,7 @@
 - **Category**: Backend / Business Modules
 - **Status**: Production Ready
 - **Priority:** 🔥 HIGH - Core Platform Functionality
-- **Version**: 1.1.2-CE
+- **Version**: 1.4.0
 
 ---
 
@@ -26,7 +26,7 @@ The **Visual Query Builder module** provides a **no-code interface** for creatin
 export interface QueryDefinition {
   id: string;
   name: string;
-  dataType: 'metrics' | 'logs' | 'traces';
+  dataType: "metrics" | "logs" | "traces";
 
   filters: QueryFilter[];
   aggregation?: Aggregation;
@@ -39,7 +39,7 @@ export interface QueryDefinition {
 
 export interface QueryFilter {
   field: string;
-  operator: 'equals' | 'contains' | 'gt' | 'lt' | 'in';
+  operator: "equals" | "contains" | "gt" | "lt" | "in";
   value: any;
 }
 ```
@@ -48,13 +48,13 @@ export interface QueryFilter {
 
 ## API Endpoints
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `POST` | `/api/v1/queries` | Create query |
-| `GET` | `/api/v1/queries` | List saved queries |
-| `POST` | `/api/v1/queries/:id/execute` | Execute query |
+| Method | Endpoint                      | Description        |
+| ------ | ----------------------------- | ------------------ |
+| `POST` | `/api/v2/queries`             | Create query       |
+| `GET`  | `/api/v2/queries`             | List saved queries |
+| `POST` | `/api/v2/queries/:id/execute` | Execute query      |
 
 ---
 
-- **Last Updated**: January 01st, 2026
+- **Last Updated**: May 14th, 2026
 - **Maintained By**: DevOpsCorner Indonesia

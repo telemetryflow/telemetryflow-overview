@@ -4,7 +4,7 @@
 - **Category**: Backend / Shared Modules
 - **Status**: Production Ready
 - **Priority:** 🔥 HIGH - Security
-- **Version**: 1.1.2-CE
+- **Version**: 1.4.0
 
 ---
 
@@ -81,7 +81,12 @@ export class CORSConfiguration extends AggregateRoot<CORSConfigId> {
     );
 
     config.addDomainEvent(
-      new CORSConfigCreatedEvent(id.value, tenantId.getValue(), name, new Date()),
+      new CORSConfigCreatedEvent(
+        id.value,
+        tenantId.getValue(),
+        name,
+        new Date(),
+      ),
     );
 
     return config;
@@ -100,7 +105,12 @@ export class CORSConfiguration extends AggregateRoot<CORSConfigId> {
     this._updatedAt = new Date();
 
     this.addDomainEvent(
-      new CORSConfigUpdatedEvent(this.id.value, this._tenantId.getValue(), name, new Date()),
+      new CORSConfigUpdatedEvent(
+        this.id.value,
+        this._tenantId.getValue(),
+        name,
+        new Date(),
+      ),
     );
   }
 
@@ -227,13 +237,13 @@ export class ValidateOriginHandler {
       if (pattern === origin) return true;
 
       // Wildcard match (*.example.com)
-      if (pattern.startsWith('*')) {
+      if (pattern.startsWith("*")) {
         const domain = pattern.substring(1); // Remove *
         if (origin.endsWith(domain)) return true;
       }
 
       // Allow all (*)
-      if (pattern === '*') return true;
+      if (pattern === "*") return true;
     }
 
     return false;
@@ -245,21 +255,22 @@ export class ValidateOriginHandler {
 
 ## API Endpoints
 
-| Method | Endpoint | Description | Permission |
-|--------|----------|-------------|------------|
-| `POST` | `/api/v1/cors` | Create CORS config | `CORS_CREATE` |
-| `GET` | `/api/v1/cors` | List CORS configs | `CORS_READ` |
-| `GET` | `/api/v1/cors/:id` | Get CORS config | `CORS_READ` |
-| `PATCH` | `/api/v1/cors/:id` | Update CORS config | `CORS_UPDATE` |
-| `DELETE` | `/api/v1/cors/:id` | Delete CORS config | `CORS_DELETE` |
-| `POST` | `/api/v1/cors/:id/activate` | Activate config | `CORS_UPDATE` |
-| `POST` | `/api/v1/cors/:id/deactivate` | Deactivate config | `CORS_UPDATE` |
+| Method   | Endpoint                      | Description        | Permission    |
+| -------- | ----------------------------- | ------------------ | ------------- |
+| `POST`   | `/api/v1/cors`                | Create CORS config | `CORS_CREATE` |
+| `GET`    | `/api/v1/cors`                | List CORS configs  | `CORS_READ`   |
+| `GET`    | `/api/v1/cors/:id`            | Get CORS config    | `CORS_READ`   |
+| `PATCH`  | `/api/v1/cors/:id`            | Update CORS config | `CORS_UPDATE` |
+| `DELETE` | `/api/v1/cors/:id`            | Delete CORS config | `CORS_DELETE` |
+| `POST`   | `/api/v1/cors/:id/activate`   | Activate config    | `CORS_UPDATE` |
+| `POST`   | `/api/v1/cors/:id/deactivate` | Deactivate config  | `CORS_UPDATE` |
 
 ---
 
 ## Request/Response Examples
 
 **Create CORS Configuration:**
+
 ```http
 POST /api/v1/cors
 Authorization: Bearer <jwt_token>
@@ -280,6 +291,7 @@ X-Tenant-ID: tenant_123
 ```
 
 **Response:**
+
 ```json
 {
   "corsConfigId": "550e8400-e29b-41d4-a716-446655440000",
@@ -305,20 +317,20 @@ X-Tenant-ID: tenant_123
 ```typescript
 // Default CORS for development
 const developmentCORS = {
-  name: 'Development',
-  origins: ['http://localhost:3000', 'http://localhost:5173'],
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  headers: ['Content-Type', 'Authorization', 'X-Tenant-ID'],
+  name: "Development",
+  origins: ["http://localhost:3000", "http://localhost:5173"],
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+  headers: ["Content-Type", "Authorization", "X-Tenant-ID"],
   credentials: true,
   maxAge: 86400,
 };
 
 // Default CORS for production
 const productionCORS = {
-  name: 'Production',
-  origins: ['https://app.telemetryflow.id'],
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  headers: ['Content-Type', 'Authorization', 'X-Tenant-ID'],
+  name: "Production",
+  origins: ["https://app.telemetryflow.id"],
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  headers: ["Content-Type", "Authorization", "X-Tenant-ID"],
   credentials: true,
   maxAge: 86400,
 };
@@ -339,20 +351,20 @@ export class CORSGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
     const origin = request.headers.origin;
-    const tenantId = request.headers['x-tenant-id'];
+    const tenantId = request.headers["x-tenant-id"];
 
     if (!origin) return true; // No origin header = same-origin request
 
     // Check cache first
     const cacheKey = `cors:${tenantId}:${origin}`;
     const cached = await this.cacheService.get(cacheKey);
-    if (cached !== null) return cached === 'allowed';
+    if (cached !== null) return cached === "allowed";
 
     // Validate origin
     const allowed = await this.corsService.validateOrigin(origin, tenantId);
 
     // Cache result for 5 minutes
-    await this.cacheService.set(cacheKey, allowed ? 'allowed' : 'blocked', 300);
+    await this.cacheService.set(cacheKey, allowed ? "allowed" : "blocked", 300);
 
     return allowed;
   }
@@ -366,14 +378,14 @@ export class CORSGuard implements CanActivate {
 ```typescript
 // CORS validation results cached in Redis
 const cacheConfig = {
-  keyPattern: 'cors:{tenantId}:{origin}',
+  keyPattern: "cors:{tenantId}:{origin}",
   ttl: 300, // 5 minutes
 
   // Cache invalidation on CORS config changes
   invalidateOn: [
-    'CORSConfigCreatedEvent',
-    'CORSConfigUpdatedEvent',
-    'CORSConfigDeletedEvent',
+    "CORSConfigCreatedEvent",
+    "CORSConfigUpdatedEvent",
+    "CORSConfigDeletedEvent",
   ],
 };
 ```
@@ -382,7 +394,7 @@ const cacheConfig = {
 
 ## Security Best Practices
 
-1. **Never use wildcard (*) in production** for credentials=true
+1. **Never use wildcard (\*) in production** for credentials=true
 2. **Validate origin strictly** - exact match or pattern match only
 3. **Limit allowed methods** - only enable what's needed
 4. **Restrict allowed headers** - whitelist only required headers
@@ -395,45 +407,45 @@ const cacheConfig = {
 ## Testing
 
 ```typescript
-describe('CORSConfiguration', () => {
-  it('should allow valid origin', async () => {
+describe("CORSConfiguration", () => {
+  it("should allow valid origin", async () => {
     const config = CORSConfiguration.create(
       tenantId,
-      'Test Config',
-      ['https://app.example.com'],
-      ['GET', 'POST'],
-      ['Content-Type'],
+      "Test Config",
+      ["https://app.example.com"],
+      ["GET", "POST"],
+      ["Content-Type"],
     );
 
-    const allowed = config.validateOrigin('https://app.example.com');
+    const allowed = config.validateOrigin("https://app.example.com");
     expect(allowed).toBe(true);
   });
 
-  it('should block invalid origin', async () => {
+  it("should block invalid origin", async () => {
     const config = CORSConfiguration.create(
       tenantId,
-      'Test Config',
-      ['https://app.example.com'],
-      ['GET', 'POST'],
-      ['Content-Type'],
+      "Test Config",
+      ["https://app.example.com"],
+      ["GET", "POST"],
+      ["Content-Type"],
     );
 
-    const allowed = config.validateOrigin('https://malicious.com');
+    const allowed = config.validateOrigin("https://malicious.com");
     expect(allowed).toBe(false);
   });
 
-  it('should support wildcard patterns', async () => {
+  it("should support wildcard patterns", async () => {
     const config = CORSConfiguration.create(
       tenantId,
-      'Test Config',
-      ['https://*.example.com'],
-      ['GET', 'POST'],
-      ['Content-Type'],
+      "Test Config",
+      ["https://*.example.com"],
+      ["GET", "POST"],
+      ["Content-Type"],
     );
 
-    expect(config.validateOrigin('https://app.example.com')).toBe(true);
-    expect(config.validateOrigin('https://api.example.com')).toBe(true);
-    expect(config.validateOrigin('https://example.com')).toBe(false);
+    expect(config.validateOrigin("https://app.example.com")).toBe(true);
+    expect(config.validateOrigin("https://api.example.com")).toBe(true);
+    expect(config.validateOrigin("https://example.com")).toBe(false);
   });
 });
 ```
@@ -448,5 +460,5 @@ describe('CORSConfiguration', () => {
 
 ---
 
-- **Last Updated**: January 01st, 2026
+- **Last Updated**: May 14th, 2026
 - **Maintained By**: DevOpsCorner Indonesia

@@ -1,7 +1,7 @@
 # Shared Module: Queue (BullMQ Job Processing)
 
-- **Version:** 1.1.2-CE
-- **Last Updated:** January 01st, 2026
+- **Version:** 1.4.0
+- **Last Updated:** May 14th, 2026
 - **Status:** ✅ Production Ready
 - **Priority:** 🔥 CRITICAL - Async Processing Infrastructure
 
@@ -138,6 +138,7 @@ flowchart LR
 ```
 
 **Configuration:**
+
 ```typescript
 {
   name: 'otlp-ingestion',
@@ -164,12 +165,13 @@ flowchart LR
 ```
 
 **Job Data:**
+
 ```typescript
 interface OtlpIngestionJobData {
-  type: 'metrics' | 'logs' | 'traces' | 'profiler' | 'exemplars';
+  type: "metrics" | "logs" | "traces" | "profiler" | "exemplars";
   workspaceId: string;
   tenantId: string;
-  data: any;  // OTLP payload
+  data: any; // OTLP payload
   timestamp: Date;
 }
 ```
@@ -199,6 +201,7 @@ sequenceDiagram
 ```
 
 **Configuration:**
+
 ```typescript
 {
   name: 'alert-evaluation',
@@ -217,6 +220,7 @@ sequenceDiagram
 ```
 
 **Job Data:**
+
 ```typescript
 interface AlertEvaluationJobData {
   ruleId: string;
@@ -228,6 +232,7 @@ interface AlertEvaluationJobData {
 ### 3. Aggregation Queue
 
 **Configuration:**
+
 ```typescript
 {
   name: 'aggregation',
@@ -246,9 +251,10 @@ interface AlertEvaluationJobData {
 ```
 
 **Job Data:**
+
 ```typescript
 interface AggregationJobData {
-  type: 'hourly' | 'daily';
+  type: "hourly" | "daily";
   tableName: string;
   startTime: Date;
   endTime: Date;
@@ -259,6 +265,7 @@ interface AggregationJobData {
 ### 4. Cleanup Queue
 
 **Configuration:**
+
 ```typescript
 {
   name: 'cleanup',
@@ -277,6 +284,7 @@ interface AggregationJobData {
 ```
 
 **Job Data:**
+
 ```typescript
 interface CleanupJobData {
   dataType?: string;
@@ -289,6 +297,7 @@ interface CleanupJobData {
 ### 5. Notification Queue
 
 **Configuration:**
+
 ```typescript
 {
   name: 'notification',
@@ -311,12 +320,13 @@ interface CleanupJobData {
 ```
 
 **Job Data:**
+
 ```typescript
 interface NotificationJobData {
   alertRuleId?: string;
   alertHistoryId?: string;
   channels?: string[];
-  type?: 'email' | 'slack' | 'webhook' | 'audit_event';
+  type?: "email" | "slack" | "webhook" | "audit_event";
   to?: string;
   subject?: string;
   message?: string;
@@ -352,13 +362,13 @@ graph TB
     style P4 fill:#95a5a6
 ```
 
-| Queue | Priority | Justification |
-|-------|----------|---------------|
-| **OTLP Ingestion** | HIGH (2) | Real-time data ingestion, core functionality |
-| **Alert Evaluation** | HIGH (2) | Time-sensitive, user-facing alerts |
-| **Aggregation** | MEDIUM (3) | Can tolerate slight delay |
-| **Notification** | MEDIUM (3) | Important but not time-critical |
-| **Cleanup** | LOW (4) | Background task, can run during off-peak |
+| Queue                | Priority   | Justification                                |
+| -------------------- | ---------- | -------------------------------------------- |
+| **OTLP Ingestion**   | HIGH (2)   | Real-time data ingestion, core functionality |
+| **Alert Evaluation** | HIGH (2)   | Time-sensitive, user-facing alerts           |
+| **Aggregation**      | MEDIUM (3) | Can tolerate slight delay                    |
+| **Notification**     | MEDIUM (3) | Important but not time-critical              |
+| **Cleanup**          | LOW (4)    | Background task, can run during off-peak     |
 
 ---
 
@@ -383,13 +393,13 @@ graph LR
 
 **Backoff Configuration:**
 
-| Queue | Initial Delay | Max Attempts | Total Wait |
-|-------|---------------|--------------|------------|
-| **OTLP Ingestion** | 1s | 3 | 7s |
-| **Alert Evaluation** | 2s | 3 | 14s |
-| **Aggregation** | 5s | 3 | 35s |
-| **Cleanup** | 10s | 2 | 30s |
-| **Notification** | 3s | 5 | 93s |
+| Queue                | Initial Delay | Max Attempts | Total Wait |
+| -------------------- | ------------- | ------------ | ---------- |
+| **OTLP Ingestion**   | 1s            | 3            | 7s         |
+| **Alert Evaluation** | 2s            | 3            | 14s        |
+| **Aggregation**      | 5s            | 3            | 35s        |
+| **Cleanup**          | 10s           | 2            | 30s        |
+| **Notification**     | 3s            | 5            | 93s        |
 
 ---
 
@@ -443,16 +453,18 @@ export class QueueService implements OnModuleInit, OnModuleDestroy {
     });
 
     // Worker event handlers
-    worker.on('completed', (job) => {
+    worker.on("completed", (job) => {
       this.logger.debug(`Job completed: ${queueName}/${job.id}`);
     });
 
-    worker.on('failed', (job, err) => {
+    worker.on("failed", (job, err) => {
       this.logger.error(`Job failed: ${queueName}/${job?.id} - ${err.message}`);
     });
 
     this.workers.set(queueName, worker);
-    this.logger.log(`✓ Worker registered: ${queueName} (concurrency: ${config.concurrency})`);
+    this.logger.log(
+      `✓ Worker registered: ${queueName} (concurrency: ${config.concurrency})`,
+    );
   }
 
   /**
@@ -463,7 +475,7 @@ export class QueueService implements OnModuleInit, OnModuleDestroy {
     options?: JobsOptions,
   ): Promise<Job> {
     const queue = this.queues.get(QueueName.OTLP_INGESTION);
-    return queue.add('ingest', data, options);
+    return queue.add("ingest", data, options);
   }
 
   /**
@@ -499,7 +511,7 @@ export class QueueService implements OnModuleInit, OnModuleDestroy {
 // otlp-ingestion.processor.ts
 @Processor(QueueName.OTLP_INGESTION)
 export class OtlpIngestionProcessor {
-  @Process('ingest')
+  @Process("ingest")
   async processOtlpIngestion(job: Job<OtlpIngestionJobData>) {
     const { type, workspaceId, tenantId, data } = job.data;
 
@@ -546,23 +558,23 @@ graph LR
     style F fill:#27ae60
 ```
 
-| Queue | Workers | Rate Limit | Actual Throughput |
-|-------|---------|------------|-------------------|
-| **OTLP Ingestion** | 10 | 1000/sec | 800-1200/sec |
-| **Alert Evaluation** | 5 | 100/sec | 80-120/sec |
-| **Aggregation** | 3 | 50/sec | 40-60/sec |
-| **Cleanup** | 2 | 10/sec | 5-10/sec |
-| **Notification** | 5 | 100/sec | 50-100/sec |
+| Queue                | Workers | Rate Limit | Actual Throughput |
+| -------------------- | ------- | ---------- | ----------------- |
+| **OTLP Ingestion**   | 10      | 1000/sec   | 800-1200/sec      |
+| **Alert Evaluation** | 5       | 100/sec    | 80-120/sec        |
+| **Aggregation**      | 3       | 50/sec     | 40-60/sec         |
+| **Cleanup**          | 2       | 10/sec     | 5-10/sec          |
+| **Notification**     | 5       | 100/sec    | 50-100/sec        |
 
 ### Latency
 
-| Queue | Job Wait | Processing | Total Latency |
-|-------|----------|------------|---------------|
-| **OTLP Ingestion** | 10ms | 100ms | 110ms |
-| **Alert Evaluation** | 50ms | 150ms | 200ms |
-| **Aggregation** | 200ms | 5s | 5.2s |
-| **Cleanup** | 1s | 10s | 11s |
-| **Notification** | 100ms | 2s | 2.1s |
+| Queue                | Job Wait | Processing | Total Latency |
+| -------------------- | -------- | ---------- | ------------- |
+| **OTLP Ingestion**   | 10ms     | 100ms      | 110ms         |
+| **Alert Evaluation** | 50ms     | 150ms      | 200ms         |
+| **Aggregation**      | 200ms    | 5s         | 5.2s          |
+| **Cleanup**          | 1s       | 10s        | 11s           |
+| **Notification**     | 100ms    | 2s         | 2.1s          |
 
 ---
 
@@ -570,15 +582,15 @@ graph LR
 
 ### Admin Endpoints
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/admin/queues` | GET | List all queues with stats |
-| `/admin/queues/:name/stats` | GET | Get queue statistics |
-| `/admin/queues/:name/pause` | POST | Pause queue |
-| `/admin/queues/:name/resume` | POST | Resume queue |
-| `/admin/queues/:name/clean` | POST | Clean old jobs |
-| `/admin/queues/:name/failed` | GET | List failed jobs |
-| `/admin/queues/:name/retry/:jobId` | POST | Retry failed job |
+| Endpoint                           | Method | Description                |
+| ---------------------------------- | ------ | -------------------------- |
+| `/admin/queues`                    | GET    | List all queues with stats |
+| `/admin/queues/:name/stats`        | GET    | Get queue statistics       |
+| `/admin/queues/:name/pause`        | POST   | Pause queue                |
+| `/admin/queues/:name/resume`       | POST   | Resume queue               |
+| `/admin/queues/:name/clean`        | POST   | Clean old jobs             |
+| `/admin/queues/:name/failed`       | GET    | List failed jobs           |
+| `/admin/queues/:name/retry/:jobId` | POST   | Retry failed job           |
 
 ### Queue Statistics Response
 
@@ -631,10 +643,10 @@ QUEUE_ALERT_RATE_LIMIT=100
 ```typescript
 export function getQueueConnectionConfig(): QueueConnectionConfig {
   return {
-    host: process.env.REDIS_HOST || 'localhost',
-    port: parseInt(process.env.REDIS_PORT || '6379', 10),
+    host: process.env.REDIS_HOST || "localhost",
+    port: parseInt(process.env.REDIS_PORT || "6379", 10),
     password: process.env.REDIS_PASSWORD || undefined,
-    db: parseInt(process.env.REDIS_QUEUE_DB || '2', 10),
+    db: parseInt(process.env.REDIS_QUEUE_DB || "2", 10),
     connectTimeout: 10000,
     maxRetriesPerRequest: 3,
     enableOfflineQueue: false,
@@ -650,6 +662,7 @@ export function getQueueConnectionConfig(): QueueConnectionConfig {
 ### When to Use Queues
 
 ✅ **Good Use Cases:**
+
 - Long-running operations (> 1 second)
 - External API calls (email, webhooks)
 - Batch processing
@@ -657,6 +670,7 @@ export function getQueueConnectionConfig(): QueueConnectionConfig {
 - Retryable operations
 
 ❌ **Avoid Queues For:**
+
 - Simple, fast operations (< 100ms)
 - Real-time responses required
 - Operations requiring immediate feedback
@@ -667,16 +681,16 @@ export function getQueueConnectionConfig(): QueueConnectionConfig {
 ```typescript
 // ✅ Good: Specific job types
 await queueService.addOtlpIngestionJob({
-  type: 'metrics',
-  workspaceId: 'ws-123',
-  tenantId: 'tenant-123',
+  type: "metrics",
+  workspaceId: "ws-123",
+  tenantId: "tenant-123",
   data: otlpPayload,
-  timestamp: new Date()
+  timestamp: new Date(),
 });
 
 // ❌ Bad: Generic job type
-await queueService.addJob('process-data', {
-  stuff: 'unclear what this is'
+await queueService.addJob("process-data", {
+  stuff: "unclear what this is",
 });
 ```
 
@@ -703,10 +717,12 @@ graph TB
 ## Testing
 
 ### Unit Tests
+
 - `QueueService.spec.ts` - Service logic
 - `queue.config.spec.ts` - Configuration
 
 ### Integration Tests
+
 - `queue-processing.spec.ts` - Job processing
 - `queue-retry.spec.ts` - Retry logic
 

@@ -4,7 +4,7 @@
 - **Category**: Backend / Business Modules
 - **Status**: Production Ready
 - **Priority:** 🔥 CRITICAL - Security Foundation
-- **Version**: 1.1.2-CE
+- **Version**: 1.4.0
 
 ---
 
@@ -247,7 +247,7 @@ sequenceDiagram
 export class Auth extends AggregateRoot {
   private readonly _id: AuthId;
   private readonly _userId: UserId;
-  private _credentials: Credentials;  // Value Object with password hash
+  private _credentials: Credentials; // Value Object with password hash
   private _mfaEnabled: boolean;
   private _mfaSecret?: MFASecret;
   private _emailVerified: boolean;
@@ -258,12 +258,12 @@ export class Auth extends AggregateRoot {
     userId: UserId,
     email: string,
     password: string,
-    passwordPolicyService: PasswordPolicyService
+    passwordPolicyService: PasswordPolicyService,
   ): Auth {
     // Business Rule: Password must meet strength requirements
     const validationResult = passwordPolicyService.validatePassword(password);
     if (!validationResult.isValid) {
-      throw new DomainError(validationResult.errors.join(', '));
+      throw new DomainError(validationResult.errors.join(", "));
     }
 
     // Business Rule: Email must be unique (checked in handler)
@@ -284,11 +284,11 @@ export class Auth extends AggregateRoot {
 
   validatePassword(
     plainPassword: string,
-    passwordPolicyService: PasswordPolicyService
+    passwordPolicyService: PasswordPolicyService,
   ): boolean {
     return passwordPolicyService.verifyPassword(
       plainPassword,
-      this._credentials.passwordHash
+      this._credentials.passwordHash,
     );
   }
 
@@ -301,10 +301,13 @@ export class Auth extends AggregateRoot {
   verifyEmail(token: string): void {
     // Business Rule: Token must match and not be expired
     if (this._verificationToken !== token) {
-      throw new DomainError('Invalid verification token');
+      throw new DomainError("Invalid verification token");
     }
-    if (!this._verificationTokenExpiry || new Date() > this._verificationTokenExpiry) {
-      throw new DomainError('Verification token expired');
+    if (
+      !this._verificationTokenExpiry ||
+      new Date() > this._verificationTokenExpiry
+    ) {
+      throw new DomainError("Verification token expired");
     }
 
     this._emailVerified = true;
@@ -377,6 +380,7 @@ flowchart TD
 ```
 
 **Password Requirements:**
+
 - ✅ Minimum 12 characters
 - ✅ At least 1 uppercase letter
 - ✅ At least 1 lowercase letter
@@ -386,6 +390,7 @@ flowchart TD
 - ✅ Hashed using Argon2id (OWASP recommended)
 
 **Argon2id Configuration:**
+
 ```typescript
 {
   type: argon2.argon2id,
@@ -419,6 +424,7 @@ stateDiagram-v2
 ```
 
 **Lockout Rules:**
+
 - 🔒 Lock after 5 failed attempts
 - ⏱️ Lockout duration: 15 minutes (900 seconds)
 - ✅ Reset counter on successful login
@@ -426,13 +432,13 @@ stateDiagram-v2
 
 ### Token Security
 
-| Token Type | Lifetime | Storage | Revocation |
-|------------|----------|---------|------------|
-| **Access Token** | 15 minutes | Client (memory) | Blacklist on logout |
-| **Refresh Token** | 7 days | Client (secure cookie) | Blacklist on refresh |
-| **Verification Token** | 24 hours | Database | Single-use |
-| **Reset Token** | 1 hour | Database | Single-use |
-| **MFA Temp Token** | 5 minutes | Client | Blacklist after MFA |
+| Token Type             | Lifetime   | Storage                | Revocation           |
+| ---------------------- | ---------- | ---------------------- | -------------------- |
+| **Access Token**       | 15 minutes | Client (memory)        | Blacklist on logout  |
+| **Refresh Token**      | 7 days     | Client (secure cookie) | Blacklist on refresh |
+| **Verification Token** | 24 hours   | Database               | Single-use           |
+| **Reset Token**        | 1 hour     | Database               | Single-use           |
+| **MFA Temp Token**     | 5 minutes  | Client                 | Blacklist after MFA  |
 
 ---
 
@@ -513,21 +519,21 @@ TTL: 7 days (604800 seconds)
 
 ### Endpoint Summary
 
-| Endpoint | Method | Auth | Description |
-|----------|--------|------|-------------|
-| `/auth/login` | POST | Public | Email/password login |
-| `/auth/register` | POST | Public | Create account |
-| `/auth/verify-email` | POST | Public | Verify email with token |
-| `/auth/forgot-password` | POST | Public | Request password reset |
-| `/auth/reset-password` | POST | Public | Reset password with token |
-| `/auth/mfa/validate` | POST | Public | Complete MFA challenge |
-| `/auth/refresh` | POST | Public | Refresh access token |
-| `/auth/logout` | POST | JWT | Invalidate session |
-| `/auth/me` | GET | JWT | Get current user |
-| `/auth/change-password` | POST | JWT | Change password |
-| `/auth/password/status` | GET | JWT | Check password expiry |
-| `/auth/settings/mfa/enable` | POST | JWT | Enable MFA |
-| `/auth/settings/mfa/disable` | POST | JWT | Disable MFA |
+| Endpoint                     | Method | Auth   | Description               |
+| ---------------------------- | ------ | ------ | ------------------------- |
+| `/auth/login`                | POST   | Public | Email/password login      |
+| `/auth/register`             | POST   | Public | Create account            |
+| `/auth/verify-email`         | POST   | Public | Verify email with token   |
+| `/auth/forgot-password`      | POST   | Public | Request password reset    |
+| `/auth/reset-password`       | POST   | Public | Reset password with token |
+| `/auth/mfa/validate`         | POST   | Public | Complete MFA challenge    |
+| `/auth/refresh`              | POST   | Public | Refresh access token      |
+| `/auth/logout`               | POST   | JWT    | Invalidate session        |
+| `/auth/me`                   | GET    | JWT    | Get current user          |
+| `/auth/change-password`      | POST   | JWT    | Change password           |
+| `/auth/password/status`      | GET    | JWT    | Check password expiry     |
+| `/auth/settings/mfa/enable`  | POST   | JWT    | Enable MFA                |
+| `/auth/settings/mfa/disable` | POST   | JWT    | Disable MFA               |
 
 ---
 
@@ -623,15 +629,18 @@ graph TB
 ## Testing
 
 ### Unit Tests
+
 - `Auth.aggregate.spec.ts` - Domain logic
 - `PasswordPolicyService.spec.ts` - Password validation
 - `AccountLockoutService.spec.ts` - Lockout logic
 
 ### Integration Tests
+
 - `auth-flow.spec.ts` - Complete login flow
 - `mfa-flow.spec.ts` - MFA validation
 
 ### E2E Tests
+
 - `authentication.e2e.spec.ts` - Full auth lifecycle
 
 ---

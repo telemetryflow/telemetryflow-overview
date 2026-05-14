@@ -4,7 +4,7 @@
 - **Category**: Backend / Business Modules
 - **Status**: Production Ready
 - **Priority:** 🔥 HIGH - Core Monitoring Functionality
-- **Version**: 1.1.2-CE
+- **Version**: 1.4.0
 
 ---
 
@@ -142,17 +142,17 @@ sequenceDiagram
 
 ### Endpoint Details
 
-| Endpoint | Method | Auth | Permission | Description |
-|----------|--------|------|------------|-------------|
-| `/alert-rules` | POST | JWT | `alerts:write` | Create alert rule |
-| `/alert-rules` | GET | JWT | `alerts:read` | List alert rules |
-| `/alert-rules/:id` | GET | JWT | `alerts:read` | Get rule details |
-| `/alert-rules/:id` | PUT | JWT | `alerts:write` | Update rule |
-| `/alert-rules/:id` | DELETE | JWT | `alerts:delete` | Delete rule |
-| `/alert-rules/:id/trigger` | POST | JWT | `alerts:write` | Manual trigger |
-| `/alert-rules/:id/pause` | POST | JWT | `alerts:write` | Pause rule |
-| `/alert-rules/:id/resume` | POST | JWT | `alerts:write` | Resume rule |
-| `/alert-history` | GET | JWT | `alerts:read` | Query alert history |
+| Endpoint                   | Method | Auth | Permission      | Description         |
+| -------------------------- | ------ | ---- | --------------- | ------------------- |
+| `/alert-rules`             | POST   | JWT  | `alerts:write`  | Create alert rule   |
+| `/alert-rules`             | GET    | JWT  | `alerts:read`   | List alert rules    |
+| `/alert-rules/:id`         | GET    | JWT  | `alerts:read`   | Get rule details    |
+| `/alert-rules/:id`         | PUT    | JWT  | `alerts:write`  | Update rule         |
+| `/alert-rules/:id`         | DELETE | JWT  | `alerts:delete` | Delete rule         |
+| `/alert-rules/:id/trigger` | POST   | JWT  | `alerts:write`  | Manual trigger      |
+| `/alert-rules/:id/pause`   | POST   | JWT  | `alerts:write`  | Pause rule          |
+| `/alert-rules/:id/resume`  | POST   | JWT  | `alerts:write`  | Resume rule         |
+| `/alert-history`           | GET    | JWT  | `alerts:read`   | Query alert history |
 
 ---
 
@@ -165,24 +165,24 @@ sequenceDiagram
 export class AlertRule extends AggregateRoot {
   private readonly _id: AlertRuleId;
   private _name: string;
-  private _type: AlertRuleType;  // metric, log, trace
-  private _severity: AlertSeverity;  // critical, warning, info
-  private _status: AlertStatus;  // active, paused, disabled
+  private _type: AlertRuleType; // metric, log, trace
+  private _severity: AlertSeverity; // critical, warning, info
+  private _status: AlertStatus; // active, paused, disabled
 
   // Query filters
   private _serviceName?: string;
   private _metricName?: string;
-  private _condition: AlertCondition;  // above, below, equals
+  private _condition: AlertCondition; // above, below, equals
   private _thresholdValue?: number;
 
   // Time window
-  private _evaluationWindow: number;  // 300 seconds
-  private _evaluationInterval: number;  // 60 seconds
+  private _evaluationWindow: number; // 300 seconds
+  private _evaluationInterval: number; // 60 seconds
 
   // Alert fatigue prevention
-  private _cooldownPeriod: number;  // 300 seconds
-  private _maxAlertsPerHour: number;  // 10
-  private _deduplicationWindow: number;  // 600 seconds
+  private _cooldownPeriod: number; // 300 seconds
+  private _maxAlertsPerHour: number; // 10
+  private _deduplicationWindow: number; // 600 seconds
   private _alertGroupingEnabled: boolean;
 
   static create(props: AlertRuleProps): AlertRule {
@@ -193,8 +193,8 @@ export class AlertRule extends AggregateRoot {
 
   trigger(value?: number, context?: Record<string, any>): void {
     // Business Rule: Cannot trigger inactive alert
-    if (this._status !== 'active') {
-      throw new DomainError('Cannot trigger an inactive alert rule');
+    if (this._status !== "active") {
+      throw new DomainError("Cannot trigger an inactive alert rule");
     }
 
     const now = new Date();
@@ -205,13 +205,13 @@ export class AlertRule extends AggregateRoot {
         (now.getTime() - this._lastTriggeredAt.getTime()) / 1000;
 
       if (timeSinceLastTrigger < this._cooldownPeriod) {
-        throw new DomainError('Alert rule is in cooldown period');
+        throw new DomainError("Alert rule is in cooldown period");
       }
     }
 
     // Business Rule: Suppression check
     if (this._suppressUntil && now < this._suppressUntil) {
-      throw new DomainError('Alert rule is suppressed');
+      throw new DomainError("Alert rule is suppressed");
     }
 
     this._lastTriggeredAt = now;
@@ -220,17 +220,17 @@ export class AlertRule extends AggregateRoot {
   }
 
   pause(): void {
-    if (this._status === 'disabled') {
-      throw new DomainError('Cannot pause a disabled alert rule');
+    if (this._status === "disabled") {
+      throw new DomainError("Cannot pause a disabled alert rule");
     }
-    this._status = 'paused';
+    this._status = "paused";
   }
 
   resume(): void {
-    if (this._status === 'disabled') {
-      throw new DomainError('Cannot resume a disabled alert rule');
+    if (this._status === "disabled") {
+      throw new DomainError("Cannot resume a disabled alert rule");
     }
-    this._status = 'active';
+    this._status = "active";
   }
 }
 ```
@@ -424,14 +424,14 @@ flowchart TD
 
 ### Prevention Features
 
-| Feature | Configuration | Behavior |
-|---------|---------------|----------|
-| **Cooldown Period** | Default: 300s (5 min) | Minimum time between consecutive triggers |
-| **Max Alerts/Hour** | Default: 10 | Auto-suppress if limit exceeded |
-| **Deduplication** | Window: 600s (10 min) | Suppress duplicate alerts |
-| **Auto-Resolve** | Timeout: 3600s (1 hour) | Auto-resolve inactive alerts |
-| **Alert Grouping** | Optional | Group similar alerts together |
-| **Manual Suppression** | Until timestamp | User-controlled silence period |
+| Feature                | Configuration           | Behavior                                  |
+| ---------------------- | ----------------------- | ----------------------------------------- |
+| **Cooldown Period**    | Default: 300s (5 min)   | Minimum time between consecutive triggers |
+| **Max Alerts/Hour**    | Default: 10             | Auto-suppress if limit exceeded           |
+| **Deduplication**      | Window: 600s (10 min)   | Suppress duplicate alerts                 |
+| **Auto-Resolve**       | Timeout: 3600s (1 hour) | Auto-resolve inactive alerts              |
+| **Alert Grouping**     | Optional                | Group similar alerts together             |
+| **Manual Suppression** | Until timestamp         | User-controlled silence period            |
 
 **Example Configuration:**
 
@@ -497,6 +497,7 @@ graph LR
 ### Channel Configuration
 
 **Email:**
+
 ```typescript
 {
   channel: "email",
@@ -509,6 +510,7 @@ graph LR
 ```
 
 **Slack:**
+
 ```typescript
 {
   channel: "slack",
@@ -521,6 +523,7 @@ graph LR
 ```
 
 **Webhook:**
+
 ```typescript
 {
   channel: "webhook",
@@ -562,12 +565,12 @@ graph LR
     style G fill:#27ae60
 ```
 
-| Metric | Performance | Notes |
-|--------|-------------|-------|
-| **Rule Evaluation** | 100-200ms | Depends on ClickHouse query |
-| **Notification Delivery** | 500ms-2s | Varies by channel |
-| **Max Rules per Tenant** | 1000+ | No practical limit |
-| **Evaluation Throughput** | 100 rules/sec | With 5 workers |
+| Metric                    | Performance   | Notes                       |
+| ------------------------- | ------------- | --------------------------- |
+| **Rule Evaluation**       | 100-200ms     | Depends on ClickHouse query |
+| **Notification Delivery** | 500ms-2s      | Varies by channel           |
+| **Max Rules per Tenant**  | 1000+         | No practical limit          |
+| **Evaluation Throughput** | 100 rules/sec | With 5 workers              |
 
 ---
 
@@ -644,15 +647,18 @@ graph TB
 ## Testing
 
 ### Unit Tests
+
 - `AlertRule.aggregate.spec.ts` - Business rule validation
 - `AlertSeverity.vo.spec.ts` - Value object validation
 - `CreateAlertRule.handler.spec.ts` - Command handler logic
 
 ### Integration Tests
+
 - `alert-evaluation.spec.ts` - Full evaluation pipeline
 - `notification-delivery.spec.ts` - Multi-channel delivery
 
 ### E2E Tests
+
 - `alert-lifecycle.e2e.spec.ts` - Complete alert flow
 
 ---

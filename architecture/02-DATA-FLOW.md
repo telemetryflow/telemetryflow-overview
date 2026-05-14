@@ -1,7 +1,7 @@
 # Data Flow Architecture
 
-- **Version:** 1.1.2-CE
-- **Last Updated:** January 01st, 2026
+- **Version:** 1.4.0
+- **Last Updated:** May 14, 2026
 - **Status:** ✅ Production Ready
 
 ---
@@ -22,11 +22,13 @@
 ## Overview
 
 TelemetryFlow implements a comprehensive data flow architecture that handles:
+
 - **Ingestion**: 15,000+ OTLP metrics/logs/traces per second
 - **Storage**: Dual database strategy (PostgreSQL + ClickHouse)
 - **Caching**: Multi-level (L1 in-memory + L2 Redis)
-- **Async Processing**: BullMQ with 5 specialized queues
+- **Async Processing**: BullMQ with 6 specialized queues
 - **Real-time**: WebSocket for live dashboard updates
+- **Query Language**: TFQL (TelemetryFlow Query Language) - unified query interface for metrics, logs, and traces
 
 ```mermaid
 graph TB
@@ -183,6 +185,7 @@ graph LR
 ### Data Transformation Details
 
 **Metrics Transformation:**
+
 ```typescript
 // OTLP Protocol
 resourceMetrics[i].scopeMetrics[j].metrics[k].sum.dataPoints[m]
@@ -200,6 +203,7 @@ resourceMetrics[i].scopeMetrics[j].metrics[k].sum.dataPoints[m]
 ```
 
 **Logs Transformation:**
+
 ```typescript
 // OTLP Protocol
 resourceLogs[i].scopeLogs[j].logRecords[k]
@@ -220,6 +224,7 @@ resourceLogs[i].scopeLogs[j].logRecords[k]
 ```
 
 **Traces Transformation:**
+
 ```typescript
 // OTLP Protocol
 resourceSpans[i].scopeSpans[j].spans[k]
@@ -348,7 +353,7 @@ sequenceDiagram
 
     Service->>DB: Find user by email
     DB-->>Service: User entity
-    Service->>Service: Compare password<br/>(bcrypt, 10 rounds)
+    Service->>Service: Compare password<br/>(Argon2id hash verification)
 
     alt Password Incorrect
         Service->>Lockout: recordFailedAttempt(userId)
@@ -489,6 +494,7 @@ graph TB
 ### Database-Level Tenant Filtering
 
 **PostgreSQL** (Metadata):
+
 ```sql
 -- User query (automatically filtered)
 SELECT * FROM users
@@ -509,6 +515,7 @@ WHERE ur.user_id = $1
 ```
 
 **ClickHouse** (Telemetry):
+
 ```sql
 -- Metrics query (tenant-filtered with indexes)
 SELECT
@@ -586,15 +593,15 @@ sequenceDiagram
 
 ### Cache Key Strategy
 
-| Resource | L1 TTL | L2 TTL | Key Pattern | Invalidation Trigger |
-|----------|--------|--------|-------------|----------------------|
-| **Metrics** | 1min | 30min | `metrics:{tenant}:{query_hash}` | New data ingested (every 10min) |
-| **Logs** | 1min | 5min | `logs:{tenant}:{query_hash}` | New data ingested (every 1min) |
-| **Traces** | 1min | 30min | `trace:{tenant}:{traceId}` | New spans ingested |
-| **Dashboards** | 5min | 1hr | `dashboard:{tenant}:{dashboardId}` | Dashboard updated |
-| **Users** | 5min | 30min | `user:{userId}` | User profile updated |
-| **Permissions** | 5min | 5min | `rbac:permissions:{userId}` | Role/permission changed |
-| **API Keys** | 1min | 5min | `apikey:{keyId}` | API key rotated/revoked |
+| Resource        | L1 TTL | L2 TTL | Key Pattern                        | Invalidation Trigger            |
+| --------------- | ------ | ------ | ---------------------------------- | ------------------------------- |
+| **Metrics**     | 1min   | 30min  | `metrics:{tenant}:{query_hash}`    | New data ingested (every 10min) |
+| **Logs**        | 1min   | 5min   | `logs:{tenant}:{query_hash}`       | New data ingested (every 1min)  |
+| **Traces**      | 1min   | 30min  | `trace:{tenant}:{traceId}`         | New spans ingested              |
+| **Dashboards**  | 5min   | 1hr    | `dashboard:{tenant}:{dashboardId}` | Dashboard updated               |
+| **Users**       | 5min   | 30min  | `user:{userId}`                    | User profile updated            |
+| **Permissions** | 5min   | 5min   | `rbac:permissions:{userId}`        | Role/permission changed         |
+| **API Keys**    | 1min   | 5min   | `apikey:{keyId}`                   | API key rotated/revoked         |
 
 ---
 
@@ -613,17 +620,19 @@ graph TB
     subgraph "Queue Service"
         B1[OTLP_INGESTION<br/>Priority: HIGH]
         B2[ALERT_EVALUATION<br/>Priority: HIGH]
-        B3[AGGREGATION<br/>Priority: MEDIUM]
-        B4[CLEANUP<br/>Priority: LOW]
+        B3[TELEMETRY_PROCESSING<br/>Priority: MEDIUM]
+        B4[DOMAIN_EVENTS<br/>Priority: HIGH]
         B5[NOTIFICATION<br/>Priority: MEDIUM]
+        B6[REPORTS<br/>Priority: MEDIUM]
     end
 
-    subgraph "Workers 10 concurrent"
-        C1[OTLP Processor]
-        C2[Alert Processor]
-        C3[Aggregation Processor]
-        C4[Cleanup Processor]
-        C5[Notification Processor]
+    subgraph "Workers"
+        C1[OTLP Processor<br/>10 concurrent]
+        C2[Alert Processor<br/>5 concurrent]
+        C3[Telemetry Processor<br/>10 concurrent]
+        C4[Domain Events Processor<br/>5 concurrent]
+        C5[Notification Processor<br/>3 concurrent]
+        C6[Reports Processor<br/>3 concurrent]
     end
 
     subgraph "Backends"
@@ -636,26 +645,30 @@ graph TB
     A1 --> B1
     A2 --> B2
     A3 --> B3
-    A3 --> B4
 
     B1 --> C1
     B2 --> C2
     B3 --> C3
     B4 --> C4
     B2 --> C5
+    A3 --> B6
+
+    B6 --> C6
 
     C1 --> D1
     C2 --> D1
     C2 --> D2
     C3 --> D1
-    C4 --> D1
+    C4 --> D2
     C5 --> D4
+    C6 --> D1
 
     D3 -.->|Queue Backend| B1
     D3 -.->|Queue Backend| B2
     D3 -.->|Queue Backend| B3
     D3 -.->|Queue Backend| B4
     D3 -.->|Queue Backend| B5
+    D3 -.->|Queue Backend| B6
 ```
 
 ### Job Retry Strategy
@@ -680,13 +693,14 @@ graph LR
 
 **Backoff Timing Examples:**
 
-| Queue | Attempt 1 | Attempt 2 | Attempt 3 | Attempt 4 | Attempt 5 |
-|-------|-----------|-----------|-----------|-----------|-----------|
-| **OTLP** | 1s | 4s | 9s | - | - |
-| **Alert** | 2s | 8s | 18s | - | - |
-| **Aggregation** | 5s | 20s | 45s | - | - |
-| **Cleanup** | 10s | 40s | - | - | - |
-| **Notification** | 3s | 12s | 27s | 48s | 75s |
+| Queue                    | Attempt 1 | Attempt 2 | Attempt 3 | Attempt 4 | Attempt 5 |
+| ------------------------ | --------- | --------- | --------- | --------- | --------- |
+| **OTLP**                 | 1s        | 4s        | 9s        | -         | -         |
+| **Alert**                | 2s        | 8s        | 18s       | -         | -         |
+| **Telemetry Processing** | 5s        | 20s       | 45s       | -         | -         |
+| **Domain Events**        | 1s        | 4s        | 9s        | -         | -         |
+| **Notification**         | 3s        | 12s       | 27s       | 48s       | 75s       |
+| **Reports**              | 5s        | 20s       | 45s       | -         | -         |
 
 ---
 
@@ -720,27 +734,27 @@ sequenceDiagram
 
 ### WebSocket Event Types
 
-| Event | Direction | Payload | Frequency |
-|-------|-----------|---------|-----------|
-| **metrics:new** | Server → Client | `{count, timestamp, services[]}` | Every 10s (batch) |
-| **logs:new** | Server → Client | `{logs[], count}` | Real-time |
-| **alert:triggered** | Server → Client | `{ruleId, severity, message}` | Real-time |
-| **dashboard:updated** | Server → Client | `{dashboardId}` | On update |
-| **subscribe:dashboard** | Client → Server | `{dashboardId}` | On dashboard open |
-| **unsubscribe:dashboard** | Client → Server | `{dashboardId}` | On dashboard close |
+| Event                     | Direction       | Payload                          | Frequency          |
+| ------------------------- | --------------- | -------------------------------- | ------------------ |
+| **metrics:new**           | Server → Client | `{count, timestamp, services[]}` | Every 10s (batch)  |
+| **logs:new**              | Server → Client | `{logs[], count}`                | Real-time          |
+| **alert:triggered**       | Server → Client | `{ruleId, severity, message}`    | Real-time          |
+| **dashboard:updated**     | Server → Client | `{dashboardId}`                  | On update          |
+| **subscribe:dashboard**   | Client → Server | `{dashboardId}`                  | On dashboard open  |
+| **unsubscribe:dashboard** | Client → Server | `{dashboardId}`                  | On dashboard close |
 
 ---
 
 ## Performance Metrics
 
-| Flow | Target Latency | Actual (p95) | Cache Hit Rate |
-|------|----------------|--------------|----------------|
-| **OTLP Ingestion** | < 200ms | 150ms | N/A (async) |
-| **Query (cached)** | < 10ms | 5ms | 75% (L1+L2) |
-| **Query (uncached)** | < 500ms | 300ms | 25% |
-| **Authentication** | < 100ms | 80ms | 60% (permissions) |
-| **WebSocket Latency** | < 50ms | 30ms | N/A |
-| **Queue Processing** | < 2s | 1.5s | N/A |
+| Flow                  | Target Latency | Actual (p95) | Cache Hit Rate    |
+| --------------------- | -------------- | ------------ | ----------------- |
+| **OTLP Ingestion**    | < 200ms        | 150ms        | N/A (async)       |
+| **Query (cached)**    | < 10ms         | 5ms          | 75% (L1+L2)       |
+| **Query (uncached)**  | < 500ms        | 300ms        | 25%               |
+| **Authentication**    | < 100ms        | 80ms         | 60% (permissions) |
+| **WebSocket Latency** | < 50ms         | 30ms         | N/A               |
+| **Queue Processing**  | < 2s           | 1.5s         | N/A               |
 
 ---
 
@@ -779,5 +793,5 @@ graph LR
 
 ---
 
-- **Last Updated:** January 01st, 2026
+- **Last Updated:** May 14, 2026
 - **Maintained By:** DevOpsCorner Indonesia

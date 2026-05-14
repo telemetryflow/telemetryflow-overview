@@ -1,6 +1,6 @@
 # State Management with Pinia
 
-- **Version**: 1.1.2-CE
+- **Version**: 1.4.0
 - **Library**: Pinia 3.0.4
 - **Pattern**: Composition API Stores
 - **Status**: ✅ Production Ready
@@ -53,13 +53,13 @@ graph TB
 ### Composition API Style
 
 ```typescript
-import { defineStore } from 'pinia';
-import { ref, computed } from 'vue';
+import { defineStore } from "pinia";
+import { ref, computed } from "vue";
 
-export const useMyStore = defineStore('myStore', () => {
+export const useMyStore = defineStore("myStore", () => {
   // State (ref)
   const count = ref(0);
-  const name = ref('John');
+  const name = ref("John");
 
   // Getters (computed)
   const doubleCount = computed(() => count.value * 2);
@@ -71,7 +71,7 @@ export const useMyStore = defineStore('myStore', () => {
   }
 
   async function fetchData() {
-    const data = await api.get('/data');
+    const data = await api.get("/data");
     count.value = data.count;
   }
 
@@ -96,133 +96,137 @@ export const useMyStore = defineStore('myStore', () => {
 
 ```typescript
 // modules/auth/application/stores/auth-store.ts
-import { defineStore } from 'pinia';
-import { ref, computed } from 'vue';
-import type { User } from '@/modules/auth/domain/entities/User';
-import type { AuthApi } from '@/modules/auth/infrastructure/api/auth-api';
+import { defineStore } from "pinia";
+import { ref, computed } from "vue";
+import type { User } from "@/modules/auth/domain/entities/User";
+import type { AuthApi } from "@/modules/auth/infrastructure/api/auth-api";
 
-export const useAuthStore = defineStore('auth', () => {
-  // ========================================
-  // State
-  // ========================================
-  const user = ref<User | null>(null);
-  const token = ref<string | null>(null);
-  const refreshToken = ref<string | null>(null);
-  const isAuthenticated = ref(false);
-  const loading = ref(false);
+export const useAuthStore = defineStore(
+  "auth",
+  () => {
+    // ========================================
+    // State
+    // ========================================
+    const user = ref<User | null>(null);
+    const token = ref<string | null>(null);
+    const refreshToken = ref<string | null>(null);
+    const isAuthenticated = ref(false);
+    const loading = ref(false);
 
-  // Infrastructure dependency
-  let authApi: AuthApi | null = null;
+    // Infrastructure dependency
+    let authApi: AuthApi | null = null;
 
-  // ========================================
-  // Getters
-  // ========================================
-  const userFullName = computed(() => {
-    if (!user.value) return '';
-    return `${user.value.firstName} ${user.value.lastName}`;
-  });
+    // ========================================
+    // Getters
+    // ========================================
+    const userFullName = computed(() => {
+      if (!user.value) return "";
+      return `${user.value.firstName} ${user.value.lastName}`;
+    });
 
-  const userId = computed(() => user.value?.id || null);
+    const userId = computed(() => user.value?.id || null);
 
-  // ========================================
-  // Actions
-  // ========================================
-  function setAuthApi(api: AuthApi) {
-    authApi = api;
-  }
-
-  async function login(email: string, password: string) {
-    if (!authApi) throw new Error('AuthApi not initialized');
-
-    loading.value = true;
-    try {
-      const response = await authApi.login(email, password);
-
-      token.value = response.access_token;
-      refreshToken.value = response.refresh_token;
-      user.value = response.user;
-      isAuthenticated.value = true;
-
-      // Persist tokens
-      localStorage.setItem('token', response.access_token);
-      localStorage.setItem('refreshToken', response.refresh_token);
-
-      // Emit domain event
-      eventBus.emit('user.logged_in', {
-        userId: user.value.id,
-        email: user.value.email,
-      });
-
-      return true;
-    } catch (error) {
-      console.error('[AuthStore] Login failed:', error);
-      throw error;
-    } finally {
-      loading.value = false;
+    // ========================================
+    // Actions
+    // ========================================
+    function setAuthApi(api: AuthApi) {
+      authApi = api;
     }
-  }
 
-  async function logout() {
-    if (!authApi) throw new Error('AuthApi not initialized');
+    async function login(email: string, password: string) {
+      if (!authApi) throw new Error("AuthApi not initialized");
 
-    try {
-      await authApi.logout();
-    } catch (error) {
-      console.error('[AuthStore] Logout failed:', error);
-    } finally {
-      // Clear state regardless
-      token.value = null;
-      refreshToken.value = null;
-      user.value = null;
-      isAuthenticated.value = false;
-
-      localStorage.removeItem('token');
-      localStorage.removeItem('refreshToken');
-
-      eventBus.emit('user.logged_out', {});
-    }
-  }
-
-  async function initializeFromStorage() {
-    const storedToken = localStorage.getItem('token');
-    if (storedToken) {
-      token.value = storedToken;
-      isAuthenticated.value = true;
-
-      // Fetch user profile
+      loading.value = true;
       try {
-        const profile = await authApi!.getProfile();
-        user.value = profile;
+        const response = await authApi.login(email, password);
+
+        token.value = response.access_token;
+        refreshToken.value = response.refresh_token;
+        user.value = response.user;
+        isAuthenticated.value = true;
+
+        // Persist tokens
+        localStorage.setItem("token", response.access_token);
+        localStorage.setItem("refreshToken", response.refresh_token);
+
+        // Emit domain event
+        eventBus.emit("user.logged_in", {
+          userId: user.value.id,
+          email: user.value.email,
+        });
+
+        return true;
       } catch (error) {
-        // Token invalid, clear state
-        await logout();
+        console.error("[AuthStore] Login failed:", error);
+        throw error;
+      } finally {
+        loading.value = false;
       }
     }
-  }
 
-  return {
-    // State
-    user,
-    token,
-    isAuthenticated,
-    loading,
+    async function logout() {
+      if (!authApi) throw new Error("AuthApi not initialized");
 
-    // Getters
-    userFullName,
-    userId,
+      try {
+        await authApi.logout();
+      } catch (error) {
+        console.error("[AuthStore] Logout failed:", error);
+      } finally {
+        // Clear state regardless
+        token.value = null;
+        refreshToken.value = null;
+        user.value = null;
+        isAuthenticated.value = false;
 
-    // Actions
-    setAuthApi,
-    login,
-    logout,
-    initializeFromStorage,
-  };
-}, {
-  persist: {
-    storage: localStorage,
-    paths: ['token', 'refreshToken', 'user'],
+        localStorage.removeItem("token");
+        localStorage.removeItem("refreshToken");
+
+        eventBus.emit("user.logged_out", {});
+      }
+    }
+
+    async function initializeFromStorage() {
+      const storedToken = localStorage.getItem("token");
+      if (storedToken) {
+        token.value = storedToken;
+        isAuthenticated.value = true;
+
+        // Fetch user profile
+        try {
+          const profile = await authApi!.getProfile();
+          user.value = profile;
+        } catch (error) {
+          // Token invalid, clear state
+          await logout();
+        }
+      }
+    }
+
+    return {
+      // State
+      user,
+      token,
+      isAuthenticated,
+      loading,
+
+      // Getters
+      userFullName,
+      userId,
+
+      // Actions
+      setAuthApi,
+      login,
+      logout,
+      initializeFromStorage,
+    };
   },
-});
+  {
+    persist: {
+      storage: localStorage,
+      paths: ["token", "refreshToken", "user"],
+    },
+  },
+);
 ```
 
 ---
@@ -233,12 +237,12 @@ export const useAuthStore = defineStore('auth', () => {
 
 ```typescript
 // modules/telemetry/application/stores/metric-store.ts
-import { defineStore } from 'pinia';
-import { ref, computed } from 'vue';
-import type { Metric } from '@/modules/telemetry/domain/entities/Metric';
-import type { MetricRepository } from '@/modules/telemetry/infrastructure/repositories/metric-repository';
+import { defineStore } from "pinia";
+import { ref, computed } from "vue";
+import type { Metric } from "@/modules/telemetry/domain/entities/Metric";
+import type { MetricRepository } from "@/modules/telemetry/infrastructure/repositories/metric-repository";
 
-export const useMetricStore = defineStore('metric', () => {
+export const useMetricStore = defineStore("metric", () => {
   // ========================================
   // State
   // ========================================
@@ -249,7 +253,7 @@ export const useMetricStore = defineStore('metric', () => {
 
   // Filters
   const filters = ref({
-    metricName: '',
+    metricName: "",
     startTime: null as Date | null,
     endTime: null as Date | null,
     labels: {} as Record<string, string>,
@@ -265,7 +269,10 @@ export const useMetricStore = defineStore('metric', () => {
 
   const filteredMetrics = computed(() => {
     return metrics.value.filter((metric) => {
-      if (filters.value.metricName && !metric.name.includes(filters.value.metricName)) {
+      if (
+        filters.value.metricName &&
+        !metric.name.includes(filters.value.metricName)
+      ) {
         return false;
       }
       return true;
@@ -281,11 +288,11 @@ export const useMetricStore = defineStore('metric', () => {
   // ========================================
   function setRepository(repo: MetricRepository) {
     repository = repo;
-    console.log('[MetricStore] Repository injected');
+    console.log("[MetricStore] Repository injected");
   }
 
   async function fetchMetrics(query: MetricQuery) {
-    if (!repository) throw new Error('MetricRepository not initialized');
+    if (!repository) throw new Error("MetricRepository not initialized");
 
     loading.value = true;
     error.value = null;
@@ -293,8 +300,9 @@ export const useMetricStore = defineStore('metric', () => {
     try {
       metrics.value = await repository.findAll(query);
     } catch (err) {
-      error.value = err instanceof Error ? err.message : 'Failed to fetch metrics';
-      console.error('[MetricStore] Fetch failed:', err);
+      error.value =
+        err instanceof Error ? err.message : "Failed to fetch metrics";
+      console.error("[MetricStore] Fetch failed:", err);
       throw err;
     } finally {
       loading.value = false;
@@ -302,7 +310,7 @@ export const useMetricStore = defineStore('metric', () => {
   }
 
   async function fetchMetricById(id: string) {
-    if (!repository) throw new Error('MetricRepository not initialized');
+    if (!repository) throw new Error("MetricRepository not initialized");
 
     loading.value = true;
     try {
@@ -310,7 +318,8 @@ export const useMetricStore = defineStore('metric', () => {
       selectedMetric.value = metric;
       return metric;
     } catch (err) {
-      error.value = err instanceof Error ? err.message : 'Failed to fetch metric';
+      error.value =
+        err instanceof Error ? err.message : "Failed to fetch metric";
       throw err;
     } finally {
       loading.value = false;
@@ -362,12 +371,12 @@ export const useMetricStore = defineStore('metric', () => {
 
 ```typescript
 // modules/iam/application/stores/user-store.ts
-import { defineStore } from 'pinia';
-import { ref, computed } from 'vue';
-import type { User } from '@/modules/iam/domain/entities/User';
-import type { UserRepository } from '@/modules/iam/infrastructure/repositories/user-repository';
+import { defineStore } from "pinia";
+import { ref, computed } from "vue";
+import type { User } from "@/modules/iam/domain/entities/User";
+import type { UserRepository } from "@/modules/iam/infrastructure/repositories/user-repository";
 
-export const useUserStore = defineStore('user', () => {
+export const useUserStore = defineStore("user", () => {
   // State
   const users = ref<User[]>([]);
   const loading = ref(false);
@@ -382,7 +391,9 @@ export const useUserStore = defineStore('user', () => {
 
   // Getters
   const activeUsers = computed(() => users.value.filter((u) => u.isActive));
-  const totalPages = computed(() => Math.ceil(totalCount.value / pageSize.value));
+  const totalPages = computed(() =>
+    Math.ceil(totalCount.value / pageSize.value),
+  );
 
   // Actions
   function setRepository(repo: UserRepository) {
@@ -390,7 +401,7 @@ export const useUserStore = defineStore('user', () => {
   }
 
   async function fetchUsers(query: UserQuery = {}) {
-    if (!repository) throw new Error('UserRepository not initialized');
+    if (!repository) throw new Error("UserRepository not initialized");
 
     loading.value = true;
     try {
@@ -408,7 +419,7 @@ export const useUserStore = defineStore('user', () => {
   }
 
   async function createUser(userData: CreateUserDto) {
-    if (!repository) throw new Error('UserRepository not initialized');
+    if (!repository) throw new Error("UserRepository not initialized");
 
     const user = await repository.create(userData);
     users.value.push(user);
@@ -416,7 +427,7 @@ export const useUserStore = defineStore('user', () => {
   }
 
   async function updateUser(id: string, userData: UpdateUserDto) {
-    if (!repository) throw new Error('UserRepository not initialized');
+    if (!repository) throw new Error("UserRepository not initialized");
 
     const updated = await repository.update(id, userData);
     const index = users.value.findIndex((u) => u.id === id);
@@ -427,7 +438,7 @@ export const useUserStore = defineStore('user', () => {
   }
 
   async function deleteUser(id: string) {
-    if (!repository) throw new Error('UserRepository not initialized');
+    if (!repository) throw new Error("UserRepository not initialized");
 
     await repository.delete(id);
     users.value = users.value.filter((u) => u.id !== id);
@@ -462,10 +473,10 @@ export const useUserStore = defineStore('user', () => {
 ### 1. Basic Store Template
 
 ```typescript
-import { defineStore } from 'pinia';
-import { ref, computed } from 'vue';
+import { defineStore } from "pinia";
+import { ref, computed } from "vue";
 
-export const useMyStore = defineStore('myStore', () => {
+export const useMyStore = defineStore("myStore", () => {
   // ========================================
   // State
   // ========================================
@@ -493,7 +504,7 @@ export const useMyStore = defineStore('myStore', () => {
   }
 
   async function fetchItems(query: QueryParams) {
-    if (!repository) throw new Error('Repository not initialized');
+    if (!repository) throw new Error("Repository not initialized");
 
     loading.value = true;
     error.value = null;
@@ -501,7 +512,7 @@ export const useMyStore = defineStore('myStore', () => {
     try {
       items.value = await repository.findAll(query);
     } catch (err) {
-      error.value = err instanceof Error ? err.message : 'Fetch failed';
+      error.value = err instanceof Error ? err.message : "Fetch failed";
       throw err;
     } finally {
       loading.value = false;
@@ -546,8 +557,8 @@ export const useMyStore = defineStore('myStore', () => {
 
 ```vue
 <script setup lang="ts">
-import { onMounted } from 'vue';
-import { useMyStore } from '@/stores/my-store';
+import { onMounted } from "vue";
+import { useMyStore } from "@/stores/my-store";
 
 const myStore = useMyStore();
 
@@ -556,7 +567,7 @@ onMounted(async () => {
 });
 
 async function handleCreate() {
-  const newItem = { name: 'New Item', isActive: true };
+  const newItem = { name: "New Item", isActive: true };
   myStore.addItem(newItem);
 }
 
@@ -591,8 +602,8 @@ function handleDelete(id: string) {
 
 ```typescript
 // store/index.ts
-import { createPinia } from 'pinia';
-import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
+import { createPinia } from "pinia";
+import piniaPluginPersistedstate from "pinia-plugin-persistedstate";
 
 const pinia = createPinia();
 pinia.use(piniaPluginPersistedstate);
@@ -600,17 +611,21 @@ pinia.use(piniaPluginPersistedstate);
 export default pinia;
 
 // Usage in store
-export const useAuthStore = defineStore('auth', () => {
-  const token = ref<string | null>(null);
-  const user = ref<User | null>(null);
+export const useAuthStore = defineStore(
+  "auth",
+  () => {
+    const token = ref<string | null>(null);
+    const user = ref<User | null>(null);
 
-  return { token, user };
-}, {
-  persist: {
-    storage: localStorage,
-    paths: ['token', 'user'], // Only persist these fields
+    return { token, user };
   },
-});
+  {
+    persist: {
+      storage: localStorage,
+      paths: ["token", "user"], // Only persist these fields
+    },
+  },
+);
 ```
 
 ---
@@ -620,8 +635,9 @@ export const useAuthStore = defineStore('auth', () => {
 ### 1. Dependency Injection
 
 **✅ Good:**
+
 ```typescript
-export const useMyStore = defineStore('myStore', () => {
+export const useMyStore = defineStore("myStore", () => {
   let repository: MyRepository | null = null;
 
   function setRepository(repo: MyRepository) {
@@ -629,7 +645,7 @@ export const useMyStore = defineStore('myStore', () => {
   }
 
   async function fetchData() {
-    if (!repository) throw new Error('Repository not initialized');
+    if (!repository) throw new Error("Repository not initialized");
     return await repository.findAll();
   }
 
@@ -638,10 +654,11 @@ export const useMyStore = defineStore('myStore', () => {
 ```
 
 **❌ Bad:**
-```typescript
-import { myRepository } from '@/repositories'; // Direct import
 
-export const useMyStore = defineStore('myStore', () => {
+```typescript
+import { myRepository } from "@/repositories"; // Direct import
+
+export const useMyStore = defineStore("myStore", () => {
   async function fetchData() {
     return await myRepository.findAll(); // Tight coupling
   }
@@ -655,6 +672,7 @@ export const useMyStore = defineStore('myStore', () => {
 ### 2. Error Handling
 
 **✅ Good:**
+
 ```typescript
 async function fetchData() {
   loading.value = true;
@@ -663,8 +681,8 @@ async function fetchData() {
   try {
     data.value = await repository.findAll();
   } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Unknown error';
-    console.error('[Store] Fetch failed:', err);
+    error.value = err instanceof Error ? err.message : "Unknown error";
+    console.error("[Store] Fetch failed:", err);
     throw err; // Re-throw for component to handle
   } finally {
     loading.value = false;
@@ -673,6 +691,7 @@ async function fetchData() {
 ```
 
 **❌ Bad:**
+
 ```typescript
 async function fetchData() {
   data.value = await repository.findAll(); // No error handling
@@ -684,6 +703,7 @@ async function fetchData() {
 ### 3. Type Safety
 
 **✅ Good:**
+
 ```typescript
 interface User {
   id: string;
@@ -696,6 +716,7 @@ const users = ref<User[]>([]);
 ```
 
 **❌ Bad:**
+
 ```typescript
 const users = ref([]); // No type information
 ```
@@ -705,6 +726,7 @@ const users = ref([]); // No type information
 ### 4. Computed Properties for Derived State
 
 **✅ Good:**
+
 ```typescript
 const items = ref<Item[]>([]);
 
@@ -716,6 +738,7 @@ const itemCount = computed(() => items.value.length);
 ```
 
 **❌ Bad:**
+
 ```typescript
 const items = ref<Item[]>([]);
 const activeItems = ref<Item[]>([]); // Duplicate state
@@ -727,17 +750,33 @@ function updateActiveItems() {
 
 ---
 
-### 5. Store Composition
+### 5. Registry Composables
+
+Stores often work alongside registry composables to provide data to UI components:
+
+```typescript
+// Registry composables bridge registries and stores
+const { chartData } = useGraphFromRegistry("MET10001"); // → ChartSeries[]
+const panels = useStatPanelsFromRegistry(["MET20001"], valueMap); // → StatPanelConfig[]
+const { columns } = useDataTableFromRegistry("MET30001"); // → columns + RegistryPaginationConfig
+const { runQuery } = useQueryPanel(); // → TFQL query UI
+```
+
+Note: `useDataTableFromRegistry` uses `RegistryPaginationConfig` (not `PaginationConfig`) to avoid name conflicts with Naive UI.
+
+---
+
+### 6. Store Composition
 
 ```typescript
 // Using multiple stores together
-export const useCartStore = defineStore('cart', () => {
+export const useCartStore = defineStore("cart", () => {
   const authStore = useAuthStore(); // Access other stores
   const productStore = useProductStore();
 
   async function addToCart(productId: string) {
     if (!authStore.isAuthenticated) {
-      throw new Error('User not authenticated');
+      throw new Error("User not authenticated");
     }
 
     const product = await productStore.fetchProduct(productId);
@@ -758,5 +797,5 @@ export const useCartStore = defineStore('cart', () => {
 
 ---
 
-- **Last Updated:** January 01st, 2026
+- **Last Updated:** May 14, 2026
 - **Maintained By:** DevOpsCorner Indonesia

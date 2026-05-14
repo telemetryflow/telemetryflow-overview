@@ -1,7 +1,7 @@
 # Environment Configuration Guide
 
-- **Version:** 1.1.2-CE
-- **Last Updated:** December 13, 2025
+- **Version:** 1.4.0
+- **Last Updated:** May 14, 2026
 - **Status:** ✅ Production Ready
 
 ---
@@ -27,7 +27,7 @@
 
 **TelemetryFlow Platform** uses environment variables for configuration across all components. This guide covers all configuration options for development, staging, and production environments.
 
-###  Configuration Architecture
+### Configuration Architecture
 
 ```mermaid
 graph TB
@@ -74,13 +74,13 @@ graph TB
 
 ### File Locations
 
-| File | Location | Purpose |
-|------|----------|---------|
-| `.env.example` | `/backend/.env.example` | Backend configuration template |
-| `.env` | `/backend/.env` | Backend environment variables (DO NOT commit) |
-| `.env.example` | `/frontend/.env.example` | Frontend configuration template |
-| `.env` | `/frontend/.env` | Frontend environment variables (DO NOT commit) |
-| `docker-compose.yml` | `/docker-compose.yml` | Docker services configuration |
+| File                 | Location                 | Purpose                                        |
+| -------------------- | ------------------------ | ---------------------------------------------- |
+| `.env.example`       | `/backend/.env.example`  | Backend configuration template                 |
+| `.env`               | `/backend/.env`          | Backend environment variables (DO NOT commit)  |
+| `.env.example`       | `/frontend/.env.example` | Frontend configuration template                |
+| `.env`               | `/frontend/.env`         | Frontend environment variables (DO NOT commit) |
+| `docker-compose.yml` | `/docker-compose.yml`    | Docker services configuration                  |
 
 ### Creating Configuration Files
 
@@ -109,7 +109,7 @@ vim .env
 # APPLICATION CONFIGURATION
 #================================================================================================
 NODE_ENV=development              # Environment: development | staging | production
-PORT=3100                         # Backend API port
+PORT=3000                         # Backend API port
 FRONTEND_PORT=3101                # Frontend dev server port
 LOG_LEVEL=info                    # Logging level: error | warn | info | debug | verbose
 TZ="UTC"                          # Timezone (UTC recommended for consistency)
@@ -168,6 +168,7 @@ POSTGRES_PASSWORD=telemetryflow123 # Database password (CHANGE IN PRODUCTION!)
 ```
 
 **Production Security:**
+
 - Use separate read/write users
 - Enable SSL/TLS connections
 - Restrict network access with `pg_hba.conf`
@@ -205,6 +206,7 @@ CLICKHOUSE_PASSWORD=telemetryflow     # Password (CHANGE IN PRODUCTION!)
 ```
 
 **ClickHouse Best Practices:**
+
 - Enable compression (LZ4 for speed, ZSTD for storage)
 - Set appropriate TTL for data retention
 - Configure max memory per query
@@ -232,6 +234,7 @@ REDIS_QUEUE_DB=2                  # BullMQ queue storage
 ```
 
 **Production Redis:**
+
 - Enable password authentication (`requirepass`)
 - Set eviction policy to `noeviction` (critical for BullMQ)
 - Configure persistence (RDB + AOF)
@@ -357,7 +360,7 @@ LOG_FILE_JSON=true                # Use JSON format
 # Grafana Loki Integration (Log Aggregation)
 #------------------------------------------------------------------------------------------------
 LOKI_ENABLED=false                # Enable Loki transport
-LOKI_HOST=http://loki:3100        # Loki server endpoint
+LOKI_HOST=http://loki:3100        # Loki server endpoint (Loki default port, not backend)
 LOKI_LABELS_APP=telemetryflow     # App label
 LOKI_LABELS_ENV=development       # Environment label
 ```
@@ -468,7 +471,7 @@ QUEUE_DEBUG=false                 # Enable queue debug logging
 # OPENTELEMETRY CONFIGURATION
 #================================================================================================
 OTEL_SERVICE_NAME=telemetryflow_platform
-SERVICE_VERSION=1.1.2-CE
+SERVICE_VERSION=1.4.0
 SERVICE_NAMESPACE=devopscorner
 SERVICE_TEAM=platform
 
@@ -503,6 +506,13 @@ TELEMETRY_REALTIME_TYPES=metrics,logs,traces
 AGENT_HEARTBEAT_INTERVAL=60       # Seconds between heartbeats
 AGENT_INACTIVE_THRESHOLD=15       # Minutes before marking inactive
 AGENT_CLEANUP_DAYS=30             # Days before deleting inactive agents
+
+# TFO Agent Authentication (tfk-*/tfs-* key format)
+TELEMETRYFLOW_API_KEY_ID=         # API Key ID (tfk-* for platform, tfs-* for service)
+TELEMETRYFLOW_API_KEY_SECRET=     # API Key Secret
+TELEMETRYFLOW_WORKSPACE_ID=       # Workspace UUID
+TELEMETRYFLOW_TENANT_ID=          # Tenant UUID
+TELEMETRYFLOW_API_ENDPOINT=       # Platform API endpoint (e.g., https://api.telemetryflow.id)
 ```
 
 ### Default Tenant Configuration
@@ -554,7 +564,7 @@ SMTP_PASSWORD=
 SMTP_FROM="TelemetryFlow <noreply@telemetryflow.id>"
 
 # Application URL (used in email templates)
-APP_URL=http://0.0.0.0:3100
+APP_URL=http://0.0.0.0:3000
 ```
 
 ---
@@ -656,7 +666,7 @@ CONTAINER_PORTAINER=telemetryflow_portainer
 # Port Mappings
 #------------------------------------------------------------------------------------------------
 # Core Services
-PORT_BACKEND=3100
+PORT_BACKEND=3000
 PORT_FRONTEND=3101
 PORT_POSTGRES=5432
 PORT_CLICKHOUSE_HTTP=8123
@@ -694,7 +704,7 @@ PORT_PORTAINER=5212
 # Network Subnet: 172.150.0.0/16
 
 # Core Services
-CONTAINER_IP_BACKEND=172.150.150.50
+CONTAINER_IP_BACKEND=172.150.150.50  # Backend API on port 3000
 CONTAINER_IP_FRONTEND=172.150.150.60
 CONTAINER_IP_POSTGRES=172.150.150.20
 CONTAINER_IP_CLICKHOUSE=172.150.150.10
@@ -837,4 +847,4 @@ npm run config:validate
 
 ---
 
-**Version:** 1.1.2-CE | **Maintained By:** DevOpsCorner Indonesia
+**Version:** 1.4.0 | **Maintained By:** DevOpsCorner Indonesia

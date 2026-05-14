@@ -1,6 +1,6 @@
 # Docker Compose Deployment
 
-- **Version**: 1.1.2-CE
+- **Version**: 1.4.0
 - **Docker Compose**: 3.4.0
 - **Status**: ✅ Production Ready
 
@@ -28,7 +28,7 @@ TelemetryFlow uses **Docker Compose** for local development and production deplo
 ```mermaid
 graph TB
     subgraph "Core Services"
-        BACKEND[Backend<br/>NestJS<br/>:3100]
+        BACKEND[Backend<br/>NestJS<br/>:3000]
         FRONTEND[Frontend<br/>Vue 3<br/>:3101]
     end
 
@@ -43,7 +43,7 @@ graph TB
     end
 
     subgraph "Monitoring (Optional)"
-        OTEL[OTEL Collector<br/>:4317]
+        OTEL[TFO Collector<br/>OCB-native<br/>:4318]
         PROMETHEUS[Prometheus<br/>:9090]
         LOKI[Loki<br/>:3110]
         OPENSEARCH[OpenSearch<br/>:9200]
@@ -73,18 +73,21 @@ graph TB
 ## Prerequisites
 
 **Required:**
+
 - Docker Engine 20.10+
 - Docker Compose 2.0+
 - 8GB RAM minimum
 - 20GB disk space
 
 **Recommended:**
+
 - Docker Engine 24.0+
 - Docker Compose 2.20+
 - 16GB RAM
 - 50GB SSD storage
 
 **Installation:**
+
 ```bash
 # Install Docker (Ubuntu/Debian)
 curl -fsSL https://get.docker.com | bash
@@ -120,6 +123,7 @@ nano .env
 ```
 
 **Minimal `.env` for development:**
+
 ```bash
 # Application
 NODE_ENV=development
@@ -144,11 +148,13 @@ MFA_ENCRYPTION_KEY=your-32-char-encryption-key-here
 ### 3. Start Services
 
 **Development (Core + Monitoring):**
+
 ```bash
 docker compose --profile dev --profile monitoring up -d
 ```
 
 **Production (Core Only):**
+
 ```bash
 docker compose up -d
 ```
@@ -163,22 +169,22 @@ docker compose ps
 docker compose logs -f backend
 
 # Check health
-curl http://localhost:3100/health
+curl http://localhost:3000/health
 ```
 
 ### 5. Access Application
 
-| Service | URL | Credentials |
-|---------|-----|-------------|
-| **Frontend** | http://localhost:3101 | - |
-| **Backend API** | http://localhost:3100 | - |
-| **PostgreSQL** | localhost:5432 | telemetryflow / telemetryflow123 |
-| **ClickHouse** | http://localhost:8123 | default / telemetryflow123 |
-| **Redis** | localhost:6379 | (no password) |
-| **PgAdmin** (dev) | http://localhost:8114 | admin@telemetryflow.id / Admin@123456 |
-| **Portainer** (dev) | http://localhost:5212 | (create on first login) |
-| **OpenSearch** (mon) | http://localhost:9200 | - |
-| **Prometheus** (mon) | http://localhost:9090 | - |
+| Service              | URL                   | Credentials                           |
+| -------------------- | --------------------- | ------------------------------------- |
+| **Frontend**         | http://localhost:3101 | -                                     |
+| **Backend API**      | http://localhost:3000 | -                                     |
+| **PostgreSQL**       | localhost:5432        | telemetryflow / telemetryflow123      |
+| **ClickHouse**       | http://localhost:8123 | default / telemetryflow123            |
+| **Redis**            | localhost:6379        | (no password)                         |
+| **PgAdmin** (dev)    | http://localhost:8114 | admin@telemetryflow.id / Admin@123456 |
+| **Portainer** (dev)  | http://localhost:5212 | (create on first login)               |
+| **OpenSearch** (mon) | http://localhost:9200 | -                                     |
+| **Prometheus** (mon) | http://localhost:9090 | -                                     |
 
 ---
 
@@ -189,6 +195,7 @@ Docker Compose uses **profiles** to organize services:
 ### Core Services (Always Running)
 
 No profile required:
+
 - `backend` - NestJS API
 - `frontend` - Vue 3 SPA
 - `postgres` - PostgreSQL database
@@ -197,6 +204,7 @@ No profile required:
 - `nats` - Event streaming
 
 **Start core services:**
+
 ```bash
 docker compose up -d
 ```
@@ -204,10 +212,12 @@ docker compose up -d
 ### Development Profile
 
 Profile: `dev`
+
 - `pgadmin` - PostgreSQL management UI
 - `portainer` - Docker management UI
 
 **Start with dev tools:**
+
 ```bash
 docker compose --profile dev up -d
 ```
@@ -215,7 +225,8 @@ docker compose --profile dev up -d
 ### Monitoring Profile
 
 Profile: `monitoring`
-- `otel-collector` - OpenTelemetry collector
+
+- `tfo-collector` - TelemetryFlow OCB-native collector (4 custom components)
 - `prometheus` - Metrics monitoring
 - `loki` - Log aggregation
 - `opensearch` - Full-text log search
@@ -223,6 +234,7 @@ Profile: `monitoring`
 - `fluentbit` - Log forwarding
 
 **Start with monitoring:**
+
 ```bash
 docker compose --profile monitoring up -d
 ```
@@ -246,7 +258,7 @@ docker compose --profile dev --profile monitoring up -d
 #================================================================================================
 NODE_ENV=production                    # development | production
 TZ=UTC                                 # Timezone
-VERSION=1.1.2-CE                       # Platform version
+VERSION=1.4.0                        # Platform version
 
 #================================================================================================
 # POSTGRESQL
@@ -292,7 +304,7 @@ PORT_NATS_MONITORING=8222
 #================================================================================================
 # BACKEND (NestJS)
 #================================================================================================
-PORT_BACKEND=3100
+PORT_BACKEND=3000
 CONTAINER_BACKEND=telemetryflow_backend
 CONTAINER_IP_BACKEND=172.150.150.50
 
@@ -332,13 +344,13 @@ FLUENTBIT_ENABLED=false
 PORT_FRONTEND=3101
 CONTAINER_FRONTEND=telemetryflow_frontend
 CONTAINER_IP_FRONTEND=172.150.150.60
-VITE_API_BASE_URL=http://localhost:3100/api/v1
+VITE_API_BASE_URL=http://localhost:3000/api/v2
 
 #================================================================================================
 # MONITORING (Optional - Profile: monitoring)
 #================================================================================================
-# OTEL Collector
-OTEL_VERSION=0.88.0
+# TFO Collector (OCB-native)
+OTEL_VERSION=1.2.1
 PORT_OTEL_GRPC=4317
 PORT_OTEL_HTTP=4318
 PORT_OTEL_METRICS=8888
@@ -394,13 +406,15 @@ DATA_PORTAINER=/opt/data/docker/telemetryflow-platform/portainer
 ### Core Services
 
 **Backend (NestJS):**
+
 - **Image**: Built from `deploy/docker/Dockerfile.backend`
-- **Port**: 3100
+- **Port**: 3000
 - **Dependencies**: postgres, clickhouse, redis
 - **Health Check**: `GET /health` (30s interval)
 - **Restart**: unless-stopped
 
 **Frontend (Vue 3):**
+
 - **Image**: Built from `deploy/docker/Dockerfile.frontend`
 - **Port**: 3101 (mapped to 80 inside container)
 - **Dependencies**: backend
@@ -408,6 +422,7 @@ DATA_PORTAINER=/opt/data/docker/telemetryflow-platform/portainer
 - **Restart**: unless-stopped
 
 **PostgreSQL:**
+
 - **Image**: postgres:15-alpine
 - **Port**: 5432
 - **Volume**: vol_postgres_data
@@ -415,6 +430,7 @@ DATA_PORTAINER=/opt/data/docker/telemetryflow-platform/portainer
 - **Data**: User accounts, RBAC, configuration
 
 **ClickHouse:**
+
 - **Image**: clickhouse/clickhouse-server:23
 - **Ports**: 8123 (HTTP), 9000 (Native)
 - **Volume**: vol_clickhouse
@@ -422,13 +438,15 @@ DATA_PORTAINER=/opt/data/docker/telemetryflow-platform/portainer
 - **Data**: Metrics, logs, traces
 
 **Redis:**
+
 - **Image**: redis:7-alpine
 - **Port**: 6379
 - **Volume**: vol_redis_data
 - **Config**: `config/redis/redis.conf`
-- **Usage**: Session (DB 0), Cache (DB 1), Queue (DB 2)
+- **Usage**: Session (DB 0), Cache (DB 0), Queue (DB 1)
 
 **NATS:**
+
 - **Image**: nats:2.10-alpine
 - **Ports**: 4222 (client), 8222 (monitoring)
 - **Config**: `config/nats/nats-server.conf`
@@ -438,25 +456,25 @@ DATA_PORTAINER=/opt/data/docker/telemetryflow-platform/portainer
 
 ## Port Mapping
 
-| Service | Internal Port | External Port | Protocol | Description |
-|---------|---------------|---------------|----------|-------------|
-| **Backend** | 3100 | 3100 | HTTP | REST API |
-| **Frontend** | 80 | 3101 | HTTP | Web UI |
-| **PostgreSQL** | 5432 | 5432 | TCP | Database |
-| **ClickHouse HTTP** | 8123 | 8123 | HTTP | Query API |
-| **ClickHouse TCP** | 9000 | 9000 | TCP | Native protocol |
-| **Redis** | 6379 | 6379 | TCP | Cache/Queue |
-| **NATS Client** | 4222 | 4222 | TCP | Event streaming |
-| **NATS Monitor** | 8222 | 8222 | HTTP | Health/metrics |
-| **OTEL gRPC** | 4317 | 4317 | gRPC | OTLP receiver |
-| **OTEL HTTP** | 4318 | 4318 | HTTP | OTLP receiver |
-| **Prometheus** | 9090 | 9090 | HTTP | Metrics UI |
-| **Loki** | 3100 | 3110 | HTTP | Log API |
-| **OpenSearch** | 9200 | 9200 | HTTP | Search API |
-| **OpenSearch Dashboard** | 5601 | 5601 | HTTP | UI |
-| **FluentBit** | 24224 | 24224 | TCP | Log receiver |
-| **PgAdmin** | 80 | 8114 | HTTP | DB admin |
-| **Portainer** | 9000 | 5212 | HTTP | Docker UI |
+| Service                  | Internal Port | External Port | Protocol | Description                              |
+| ------------------------ | ------------- | ------------- | -------- | ---------------------------------------- |
+| **Backend**              | 3000          | 3000          | HTTP     | REST API                                 |
+| **Frontend**             | 80            | 3101          | HTTP     | Web UI                                   |
+| **PostgreSQL**           | 5432          | 5432          | TCP      | Database                                 |
+| **ClickHouse HTTP**      | 8123          | 8123          | HTTP     | Query API                                |
+| **ClickHouse TCP**       | 9000          | 9000          | TCP      | Native protocol                          |
+| **Redis**                | 6379          | 6379          | TCP      | Cache/Queue                              |
+| **NATS Client**          | 4222          | 4222          | TCP      | Event streaming                          |
+| **NATS Monitor**         | 8222          | 8222          | HTTP     | Health/metrics                           |
+| **OTEL gRPC**            | 4317          | 4317          | gRPC     | TFO Collector OTLP receiver              |
+| **OTEL HTTP**            | 4318          | 4318          | HTTP     | TFO Collector OTLP receiver (v1/v2 dual) |
+| **Prometheus**           | 9090          | 9090          | HTTP     | Metrics UI                               |
+| **Loki**                 | 3100          | 3110          | HTTP     | Log API                                  |
+| **OpenSearch**           | 9200          | 9200          | HTTP     | Search API                               |
+| **OpenSearch Dashboard** | 5601          | 5601          | HTTP     | UI                                       |
+| **FluentBit**            | 24224         | 24224         | TCP      | Log receiver                             |
+| **PgAdmin**              | 80            | 8114          | HTTP     | DB admin                                 |
+| **Portainer**            | 9000          | 5212          | HTTP     | Docker UI                                |
 
 ---
 
@@ -478,6 +496,7 @@ docker compose exec postgres pg_dump -U telemetryflow telemetryflow > backup.sql
 
 # Backup ClickHouse (specific table)
 docker compose exec clickhouse clickhouse-client --query="SELECT * FROM telemetryflow_db.telemetry_metrics FORMAT TabSeparated" > metrics_backup.tsv
+# Note: All ClickHouse tables use the telemetryflow_db database
 
 # Backup Redis
 docker compose exec redis redis-cli --rdb /data/dump.rdb
@@ -641,7 +660,7 @@ REDIS_MAX_MEMORY=256mb
 
 ```bash
 # Check port usage
-sudo lsof -i :3100
+sudo lsof -i :3000
 
 # Change port in .env
 PORT_BACKEND=3200
@@ -708,7 +727,7 @@ docker system prune -a --volumes
 
 - [ ] Change all default passwords
 - [ ] Set strong JWT_SECRET and SESSION_SECRET
-- [ ] Use specific CORS_ORIGIN (not *)
+- [ ] Use specific CORS_ORIGIN (not \*)
 - [ ] Enable Redis password
 - [ ] Enable ClickHouse authentication
 - [ ] Use HTTPS for frontend
@@ -746,5 +765,5 @@ docker compose up -d --scale backend=3
 
 ---
 
-- **Last Updated:** January 01st, 2026
+- **Last Updated:** May 14, 2026
 - **Maintained By:** DevOpsCorner Indonesia

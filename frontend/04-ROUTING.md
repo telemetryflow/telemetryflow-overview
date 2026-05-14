@@ -1,6 +1,6 @@
 # Vue Router Configuration
 
-- **Version**: 1.1.2-CE
+- **Version**: 1.4.0
 - **Library**: Vue Router 4.6.3
 - **Mode**: History (HTML5)
 - **Status**: ✅ Production Ready
@@ -48,20 +48,24 @@ graph TB
 
 ```typescript
 // router/index.ts
-import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router';
-import { setupRouterGuard } from './guard/route';
-import { createRouteModules } from './routes/modules';
+import {
+  createRouter,
+  createWebHistory,
+  type RouteRecordRaw,
+} from "vue-router";
+import { setupRouterGuard } from "./guard/route";
+import { createRouteModules } from "./routes/modules";
 
 const routes: RouteRecordRaw[] = [
   {
-    path: '/',
-    redirect: '/dashboard',
+    path: "/",
+    redirect: "/dashboard",
   },
   ...createRouteModules(),
 ];
 
 const router = createRouter({
-  history: createWebHistory(import.meta.env.VITE_BASE_URL || '/'),
+  history: createWebHistory(import.meta.env.VITE_BASE_URL || "/"),
   routes,
   scrollBehavior: () => ({ left: 0, top: 0 }),
 });
@@ -115,52 +119,52 @@ export function createRouteModules(): RouteRecordRaw[] {
   return [
     // Auth Routes
     {
-      path: '/login',
-      name: 'Login',
-      component: () => import('@/modules/auth/presentation/views/Login.vue'),
+      path: "/login",
+      name: "Login",
+      component: () => import("@/modules/auth/presentation/views/Login.vue"),
       meta: {
-        title: 'Login',
+        title: "Login",
         requiresAuth: false,
-        layout: 'blank',
+        layout: "blank",
       },
     },
     {
-      path: '/register',
-      name: 'Register',
-      component: () => import('@/modules/auth/presentation/views/Register.vue'),
+      path: "/register",
+      name: "Register",
+      component: () => import("@/modules/auth/presentation/views/Register.vue"),
       meta: {
-        title: 'Register',
+        title: "Register",
         requiresAuth: false,
-        layout: 'blank',
+        layout: "blank",
       },
     },
 
     // Dashboard Routes
     {
-      path: '/dashboard',
-      name: 'Dashboard',
-      component: () => import('@/views/dashboard/Index.vue'),
+      path: "/dashboard",
+      name: "Dashboard",
+      component: () => import("@/views/dashboard/Index.vue"),
       meta: {
-        title: 'Dashboard',
+        title: "Dashboard",
         requiresAuth: true,
-        permissions: ['DASHBOARD_READ'],
+        permissions: ["DASHBOARD_READ"],
       },
       children: [
         {
-          path: 'overview',
-          name: 'DashboardOverview',
-          component: () => import('@/views/dashboard/Overview.vue'),
+          path: "overview",
+          name: "DashboardOverview",
+          component: () => import("@/views/dashboard/Overview.vue"),
           meta: {
-            title: 'Dashboard Overview',
+            title: "Dashboard Overview",
             requiresAuth: true,
           },
         },
         {
-          path: 'widgets',
-          name: 'DashboardWidgets',
-          component: () => import('@/views/dashboard/Widgets.vue'),
+          path: "widgets",
+          name: "DashboardWidgets",
+          component: () => import("@/views/dashboard/Widgets.vue"),
           meta: {
-            title: 'Dashboard Widgets',
+            title: "Dashboard Widgets",
             requiresAuth: true,
           },
         },
@@ -169,42 +173,45 @@ export function createRouteModules(): RouteRecordRaw[] {
 
     // Telemetry Routes
     {
-      path: '/telemetry',
-      name: 'Telemetry',
-      component: () => import('@/layouts/TelemetryLayout.vue'),
+      path: "/telemetry",
+      name: "Telemetry",
+      component: () => import("@/layouts/TelemetryLayout.vue"),
       meta: {
-        title: 'Telemetry',
+        title: "Telemetry",
         requiresAuth: true,
       },
       children: [
         {
-          path: 'metrics',
-          name: 'Metrics',
-          component: () => import('@/modules/telemetry/presentation/views/Metrics.vue'),
+          path: "metrics",
+          name: "Metrics",
+          component: () =>
+            import("@/modules/telemetry/presentation/views/Metrics.vue"),
           meta: {
-            title: 'Metrics',
+            title: "Metrics",
             requiresAuth: true,
-            permissions: ['TELEMETRY_READ'],
+            permissions: ["TELEMETRY_READ"],
           },
         },
         {
-          path: 'logs',
-          name: 'Logs',
-          component: () => import('@/modules/telemetry/presentation/views/Logs.vue'),
+          path: "logs",
+          name: "Logs",
+          component: () =>
+            import("@/modules/telemetry/presentation/views/Logs.vue"),
           meta: {
-            title: 'Logs',
+            title: "Logs",
             requiresAuth: true,
-            permissions: ['TELEMETRY_READ'],
+            permissions: ["TELEMETRY_READ"],
           },
         },
         {
-          path: 'traces',
-          name: 'Traces',
-          component: () => import('@/modules/telemetry/presentation/views/Traces.vue'),
+          path: "traces",
+          name: "Traces",
+          component: () =>
+            import("@/modules/telemetry/presentation/views/Traces.vue"),
           meta: {
-            title: 'Traces',
+            title: "Traces",
             requiresAuth: true,
-            permissions: ['TELEMETRY_READ'],
+            permissions: ["TELEMETRY_READ"],
           },
         },
       ],
@@ -212,53 +219,55 @@ export function createRouteModules(): RouteRecordRaw[] {
 
     // IAM Routes
     {
-      path: '/iam',
-      name: 'IAM',
-      component: () => import('@/layouts/AdminLayout.vue'),
+      path: "/iam",
+      name: "IAM",
+      component: () => import("@/layouts/AdminLayout.vue"),
       meta: {
-        title: 'IAM',
+        title: "IAM",
         requiresAuth: true,
-        roles: ['ADMIN', 'DEVELOPER'],
+        roles: ["ADMIN", "DEVELOPER"],
       },
       children: [
         {
-          path: 'users',
-          name: 'Users',
-          component: () => import('@/modules/iam/presentation/views/Users.vue'),
+          path: "users",
+          name: "Users",
+          component: () => import("@/modules/iam/presentation/views/Users.vue"),
           meta: {
-            title: 'Users',
+            title: "Users",
             requiresAuth: true,
-            permissions: ['USER_READ'],
+            permissions: ["USER_READ"],
           },
         },
         {
-          path: 'roles',
-          name: 'Roles',
-          component: () => import('@/modules/iam/presentation/views/Roles.vue'),
+          path: "roles",
+          name: "Roles",
+          component: () => import("@/modules/iam/presentation/views/Roles.vue"),
           meta: {
-            title: 'Roles',
+            title: "Roles",
             requiresAuth: true,
-            permissions: ['ROLE_READ'],
+            permissions: ["ROLE_READ"],
           },
         },
         {
-          path: 'workspaces',
-          name: 'Workspaces',
-          component: () => import('@/modules/iam/presentation/views/Workspaces.vue'),
+          path: "workspaces",
+          name: "Workspaces",
+          component: () =>
+            import("@/modules/iam/presentation/views/Workspaces.vue"),
           meta: {
-            title: 'Workspaces',
+            title: "Workspaces",
             requiresAuth: true,
-            permissions: ['WORKSPACE_READ'],
+            permissions: ["WORKSPACE_READ"],
           },
         },
         {
-          path: 'tenants',
-          name: 'Tenants',
-          component: () => import('@/modules/iam/presentation/views/Tenants.vue'),
+          path: "tenants",
+          name: "Tenants",
+          component: () =>
+            import("@/modules/iam/presentation/views/Tenants.vue"),
           meta: {
-            title: 'Tenants',
+            title: "Tenants",
             requiresAuth: true,
-            permissions: ['TENANT_READ'],
+            permissions: ["TENANT_READ"],
           },
         },
       ],
@@ -266,32 +275,33 @@ export function createRouteModules(): RouteRecordRaw[] {
 
     // Monitoring Routes
     {
-      path: '/monitoring',
-      name: 'Monitoring',
-      component: () => import('@/layouts/DashboardLayout.vue'),
+      path: "/monitoring",
+      name: "Monitoring",
+      component: () => import("@/layouts/DashboardLayout.vue"),
       meta: {
-        title: 'Monitoring',
+        title: "Monitoring",
         requiresAuth: true,
       },
       children: [
         {
-          path: 'monitors',
-          name: 'Monitors',
-          component: () => import('@/modules/monitoring/presentation/views/Monitors.vue'),
+          path: "monitors",
+          name: "Monitors",
+          component: () =>
+            import("@/modules/monitoring/presentation/views/Monitors.vue"),
           meta: {
-            title: 'Uptime Monitors',
+            title: "Uptime Monitors",
             requiresAuth: true,
-            permissions: ['MONITOR_READ'],
+            permissions: ["MONITOR_READ"],
           },
         },
         {
-          path: 'alerts',
-          name: 'Alerts',
-          component: () => import('@/views/monitoring/Alerts.vue'),
+          path: "alerts",
+          name: "Alerts",
+          component: () => import("@/views/monitoring/Alerts.vue"),
           meta: {
-            title: 'Alerts',
+            title: "Alerts",
             requiresAuth: true,
-            permissions: ['ALERT_READ'],
+            permissions: ["ALERT_READ"],
           },
         },
       ],
@@ -299,11 +309,11 @@ export function createRouteModules(): RouteRecordRaw[] {
 
     // 404 Not Found
     {
-      path: '/:pathMatch(.*)*',
-      name: 'NotFound',
-      component: () => import('@/views/errors/NotFound.vue'),
+      path: "/:pathMatch(.*)*",
+      name: "NotFound",
+      component: () => import("@/views/errors/NotFound.vue"),
       meta: {
-        title: '404 Not Found',
+        title: "404 Not Found",
         requiresAuth: false,
       },
     },
@@ -319,9 +329,9 @@ export function createRouteModules(): RouteRecordRaw[] {
 
 ```typescript
 // router/guard/route.ts
-import { Router } from 'vue-router';
-import { useAuthStore } from '@/modules/auth/application/stores/auth-store';
-import { usePermissionStore } from '@/modules/iam/application/stores/permission-store';
+import { Router } from "vue-router";
+import { useAuthStore } from "@/modules/auth/application/stores/auth-store";
+import { usePermissionStore } from "@/modules/iam/application/stores/permission-store";
 
 export function setupRouterGuard(router: Router) {
   router.beforeEach(async (to, from, next) => {
@@ -330,9 +340,9 @@ export function setupRouterGuard(router: Router) {
 
     // 1. Check authentication
     if (to.meta.requiresAuth && !authStore.isAuthenticated) {
-      console.log('[Router] Redirecting to login - not authenticated');
+      console.log("[Router] Redirecting to login - not authenticated");
       next({
-        path: '/login',
+        path: "/login",
         query: { redirect: to.fullPath }, // Save intended destination
       });
       return;
@@ -344,8 +354,8 @@ export function setupRouterGuard(router: Router) {
       const allowedRoles = to.meta.roles as string[];
 
       if (!allowedRoles.includes(userRole)) {
-        console.log('[Router] Access denied - insufficient role');
-        next('/403'); // Forbidden
+        console.log("[Router] Access denied - insufficient role");
+        next("/403"); // Forbidden
         return;
       }
     }
@@ -356,8 +366,8 @@ export function setupRouterGuard(router: Router) {
       const hasPermission = permissionStore.hasPermissions(requiredPermissions);
 
       if (!hasPermission) {
-        console.log('[Router] Access denied - missing permissions');
-        next('/403'); // Forbidden
+        console.log("[Router] Access denied - missing permissions");
+        next("/403"); // Forbidden
         return;
       }
     }
@@ -376,14 +386,14 @@ export function setupRouterGuard(router: Router) {
 
     // Track page view (analytics)
     if (window.gtag) {
-      window.gtag('config', 'GA_MEASUREMENT_ID', {
+      window.gtag("config", "GA_MEASUREMENT_ID", {
         page_path: to.path,
       });
     }
   });
 
   router.onError((error) => {
-    console.error('[Router] Navigation error:', error);
+    console.error("[Router] Navigation error:", error);
   });
 }
 ```
@@ -396,9 +406,9 @@ export function setupRouterGuard(router: Router) {
 
 ```typescript
 // typings/router.d.ts
-import 'vue-router';
+import "vue-router";
 
-declare module 'vue-router' {
+declare module "vue-router" {
   interface RouteMeta {
     /** Page title */
     title?: string;
@@ -413,7 +423,7 @@ declare module 'vue-router' {
     permissions?: string[];
 
     /** Layout to use */
-    layout?: 'default' | 'blank' | 'admin';
+    layout?: "default" | "blank" | "admin";
 
     /** Hide in breadcrumbs */
     hideBreadcrumb?: boolean;
@@ -510,30 +520,30 @@ onMounted(() => {
 ### Programmatic Navigation
 
 ```typescript
-import { useRouter, useRoute } from 'vue-router';
+import { useRouter, useRoute } from "vue-router";
 
 const router = useRouter();
 const route = useRoute();
 
 // Navigate to route
-router.push('/dashboard');
-router.push({ name: 'Dashboard' });
-router.push({ path: '/users/123' });
+router.push("/dashboard");
+router.push({ name: "Dashboard" });
+router.push({ path: "/users/123" });
 
 // Navigate with query params
 router.push({
-  path: '/search',
-  query: { q: 'vue' },
+  path: "/search",
+  query: { q: "vue" },
 });
 
 // Navigate with params
 router.push({
-  name: 'UserDetail',
-  params: { userId: '123' },
+  name: "UserDetail",
+  params: { userId: "123" },
 });
 
 // Replace current route (no history entry)
-router.replace('/dashboard');
+router.replace("/dashboard");
 
 // Go back/forward
 router.back();
@@ -553,13 +563,15 @@ console.log(route.query); // { q: 'vue' }
 ### 1. Use Named Routes
 
 **✅ Good:**
+
 ```typescript
-router.push({ name: 'Dashboard' });
+router.push({ name: "Dashboard" });
 ```
 
 **❌ Bad:**
+
 ```typescript
-router.push('/dashboard');
+router.push("/dashboard");
 ```
 
 ---
@@ -567,6 +579,7 @@ router.push('/dashboard');
 ### 2. Lazy Load Routes
 
 **✅ Good:**
+
 ```typescript
 {
   path: '/dashboard',
@@ -575,6 +588,7 @@ router.push('/dashboard');
 ```
 
 **❌ Bad:**
+
 ```typescript
 import Dashboard from '@/views/dashboard/Index.vue';
 
@@ -589,6 +603,7 @@ import Dashboard from '@/views/dashboard/Index.vue';
 ### 3. Use Route Props
 
 **✅ Good:**
+
 ```typescript
 {
   path: '/users/:userId',
@@ -601,6 +616,7 @@ const props = defineProps<{ userId: string }>();
 ```
 
 **❌ Bad:**
+
 ```typescript
 // Component
 const route = useRoute();
@@ -612,13 +628,14 @@ const userId = route.params.userId; // Tight coupling
 ### 4. Centralize Navigation Guards
 
 **✅ Good:**
+
 ```typescript
 // router/guard/route.ts
 export function setupRouterGuard(router: Router) {
   router.beforeEach(async (to, from, next) => {
     // Centralized auth check
     if (to.meta.requiresAuth && !authStore.isAuthenticated) {
-      next('/login');
+      next("/login");
       return;
     }
     next();
@@ -627,12 +644,13 @@ export function setupRouterGuard(router: Router) {
 ```
 
 **❌ Bad:**
+
 ```vue
 <!-- Every component -->
 <script setup>
 onMounted(() => {
   if (!authStore.isAuthenticated) {
-    router.push('/login');
+    router.push("/login");
   }
 });
 </script>
@@ -664,10 +682,12 @@ onMounted(() => {
 </template>
 
 <style scoped>
-.fade-enter-active, .fade-leave-active {
+.fade-enter-active,
+.fade-leave-active {
   transition: opacity 0.3s;
 }
-.fade-enter-from, .fade-leave-to {
+.fade-enter-from,
+.fade-leave-to {
   opacity: 0;
 }
 </style>
@@ -689,7 +709,7 @@ const router = createRouter({
 
     // Scroll to anchor
     if (to.hash) {
-      return { el: to.hash, behavior: 'smooth' };
+      return { el: to.hash, behavior: "smooth" };
     }
 
     // Scroll to top
@@ -708,5 +728,5 @@ const router = createRouter({
 
 ---
 
-- **Last Updated:** January 01st, 2026
+- **Last Updated:** May 14, 2026
 - **Maintained By:** DevOpsCorner Indonesia

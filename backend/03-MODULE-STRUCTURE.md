@@ -1,7 +1,7 @@
 # Module Structure Guide (LEGO Pattern)
 
-- **Version:** 1.1.2-CE
-- **Last Updated:** January 01st, 2026
+- **Version:** 1.4.0
+- **Last Updated:** May 2026
 - **Status:** ✅ Complete
 
 ---
@@ -23,7 +23,7 @@
 
 ## Introduction
 
-TelemetryFlow uses a **standardized module structure** called the **LEGO Pattern** to ensure consistency, maintainability, and scalability across all 15 business modules.
+TelemetryFlow uses a **standardized module structure** called the **LEGO Pattern** to ensure consistency, maintainability, and scalability across all 25+ business modules.
 
 ### Why LEGO Pattern?
 
@@ -97,6 +97,7 @@ graph TB
 ```
 
 **Key Principles:**
+
 1. ✅ **Uniform Structure** - Every module looks the same
 2. ✅ **Clear Boundaries** - Explicit interfaces between layers
 3. ✅ **Loose Coupling** - Modules communicate via events
@@ -275,9 +276,10 @@ graph LR
 ```
 
 **Example Controller:**
+
 ```typescript
 // presentation/controllers/metrics.controller.ts
-@Controller('api/v2/telemetry/metrics')
+@Controller("api/v2/telemetry/metrics")
 @UseGuards(JwtAuthGuard, TenantContextGuard)
 export class MetricsController {
   constructor(
@@ -286,7 +288,7 @@ export class MetricsController {
   ) {}
 
   @Post()
-  @ApiOperation({ summary: 'Ingest metrics via OTLP' })
+  @ApiOperation({ summary: "Ingest metrics via OTLP" })
   async ingestMetrics(
     @Body() dto: IngestMetricsDto,
     @TenantContext() tenantContext: TenantContext,
@@ -297,7 +299,7 @@ export class MetricsController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'Query metrics time series' })
+  @ApiOperation({ summary: "Query metrics time series" })
   async queryMetrics(
     @Query() dto: QueryMetricsDto,
     @TenantContext() tenantContext: TenantContext,
@@ -339,26 +341,25 @@ graph TB
 ```
 
 **Example Command Handler:**
+
 ```typescript
 // application/handlers/ingest-metrics-from-otlp.handler.ts
 @CommandHandler(IngestMetricsFromOtlpCommand)
-export class IngestMetricsFromOtlpHandler
-  implements ICommandHandler<IngestMetricsFromOtlpCommand> {
-
+export class IngestMetricsFromOtlpHandler implements ICommandHandler<IngestMetricsFromOtlpCommand> {
   constructor(
     private readonly queueService: QueueService,
     private readonly logger: WinstonLogger,
   ) {}
 
   async execute(command: IngestMetricsFromOtlpCommand): Promise<void> {
-    this.logger.info('Ingesting metrics from OTLP', {
+    this.logger.info("Ingesting metrics from OTLP", {
       tenantId: command.tenantContext.tenantId.value,
       metricCount: command.metrics.length,
     });
 
     // Queue for async processing (prevents HTTP timeout)
-    await this.queueService.addJob('otlp-ingestion', {
-      type: 'metrics',
+    await this.queueService.addJob("otlp-ingestion", {
+      type: "metrics",
       data: command.metrics,
       tenantContext: command.tenantContext,
     });
@@ -398,6 +399,7 @@ graph TB
 ```
 
 **Example Aggregate:**
+
 ```typescript
 // domain/aggregates/Metric.aggregate.ts
 export class Metric extends AggregateRoot {
@@ -408,7 +410,7 @@ export class Metric extends AggregateRoot {
   static create(props: MetricProps): Metric {
     // Business Rule: Counter metrics must be monotonic
     if (props.metricType.isCounter() && props.isMonotonic === false) {
-      throw new DomainError('Counter metrics must be monotonic');
+      throw new DomainError("Counter metrics must be monotonic");
     }
 
     const metric = new Metric(props);
@@ -419,7 +421,7 @@ export class Metric extends AggregateRoot {
   updateValue(newValue: MetricValue): void {
     // Business Rule: Counters cannot decrease
     if (this._metricType.isCounter() && newValue.isLessThan(this._value)) {
-      throw new DomainError('Counter values cannot decrease');
+      throw new DomainError("Counter values cannot decrease");
     }
     this._value = newValue;
     this.apply(new MetricValueUpdated(this));
@@ -457,6 +459,7 @@ graph TB
 ```
 
 **Example Repository:**
+
 ```typescript
 // infrastructure/persistence/clickhouse/repositories/metric.repository.ts
 @Injectable()
@@ -469,13 +472,13 @@ export class MetricRepository implements IMetricRepository {
 
   async save(metric: Metric): Promise<void> {
     const schema = this.mapper.toClickHouseSchema(metric);
-    await this.clickhouse.insert('telemetry_metrics', [schema]);
+    await this.clickhouse.insert("telemetry_metrics", [schema]);
     await this.cache.invalidate(`metrics:${metric.tenantId}`);
   }
 
   async findById(id: MetricId): Promise<Metric | null> {
     const row = await this.clickhouse.query(
-      'SELECT * FROM telemetry_metrics WHERE id = {id:String}',
+      "SELECT * FROM telemetry_metrics WHERE id = {id:String}",
       { id: id.value },
     );
     return row ? this.mapper.toDomain(row) : null;
@@ -519,24 +522,24 @@ graph TB
 
 ### File Suffix Guide
 
-| Suffix | Usage | Example |
-|--------|-------|---------|
-| `.aggregate.ts` | Aggregate Roots | `Metric.aggregate.ts` |
-| `.vo.ts` | Value Objects | `MetricName.vo.ts` |
-| `.event.ts` | Domain Events | `MetricIngested.event.ts` |
-| `.command.ts` | CQRS Commands | `IngestMetrics.command.ts` |
-| `.query.ts` | CQRS Queries | `GetMetrics.query.ts` |
-| `.handler.ts` | Command/Query/Event Handlers | `IngestMetrics.handler.ts` |
-| `.controller.ts` | REST Controllers | `metrics.controller.ts` |
-| `.dto.ts` | Data Transfer Objects | `ingest-metrics.dto.ts` |
-| `.service.ts` | Application/Domain Services | `metrics.service.ts` |
-| `.repository.ts` | Repository Implementations | `metric.repository.ts` |
-| `.interface.ts` | Repository Interfaces | `metric.repository.interface.ts` |
-| `.mapper.ts` | Data Mappers | `metric.mapper.ts` |
-| `.guard.ts` | Auth Guards | `api-key-auth.guard.ts` |
-| `.decorator.ts` | Custom Decorators | `tenant-context.decorator.ts` |
-| `.schema.ts` | Database Schemas | `001-metrics.schema.ts` |
-| `.module.ts` | NestJS Modules | `400-telemetry.module.ts` |
+| Suffix           | Usage                        | Example                          |
+| ---------------- | ---------------------------- | -------------------------------- |
+| `.aggregate.ts`  | Aggregate Roots              | `Metric.aggregate.ts`            |
+| `.vo.ts`         | Value Objects                | `MetricName.vo.ts`               |
+| `.event.ts`      | Domain Events                | `MetricIngested.event.ts`        |
+| `.command.ts`    | CQRS Commands                | `IngestMetrics.command.ts`       |
+| `.query.ts`      | CQRS Queries                 | `GetMetrics.query.ts`            |
+| `.handler.ts`    | Command/Query/Event Handlers | `IngestMetrics.handler.ts`       |
+| `.controller.ts` | REST Controllers             | `metrics.controller.ts`          |
+| `.dto.ts`        | Data Transfer Objects        | `ingest-metrics.dto.ts`          |
+| `.service.ts`    | Application/Domain Services  | `metrics.service.ts`             |
+| `.repository.ts` | Repository Implementations   | `metric.repository.ts`           |
+| `.interface.ts`  | Repository Interfaces        | `metric.repository.interface.ts` |
+| `.mapper.ts`     | Data Mappers                 | `metric.mapper.ts`               |
+| `.guard.ts`      | Auth Guards                  | `api-key-auth.guard.ts`          |
+| `.decorator.ts`  | Custom Decorators            | `tenant-context.decorator.ts`    |
+| `.schema.ts`     | Database Schemas             | `001-metrics.schema.ts`          |
+| `.module.ts`     | NestJS Modules               | `400-telemetry.module.ts`        |
 
 ---
 
@@ -546,47 +549,44 @@ graph TB
 
 ```typescript
 // 400-telemetry/400-telemetry.module.ts
-import { Module } from '@nestjs/common';
-import { CqrsModule } from '@nestjs/cqrs';
+import { Module } from "@nestjs/common";
+import { CqrsModule } from "@nestjs/cqrs";
 
 // Presentation Layer
-import { MetricsController } from './presentation/controllers/metrics.controller';
-import { LogsController } from './presentation/controllers/logs.controller';
-import { TracesController } from './presentation/controllers/traces.controller';
+import { MetricsController } from "./presentation/controllers/metrics.controller";
+import { LogsController } from "./presentation/controllers/logs.controller";
+import { TracesController } from "./presentation/controllers/traces.controller";
 
 // Application Layer - Commands
-import { IngestMetricsFromOtlpHandler } from './application/handlers/ingest-metrics-from-otlp.handler';
-import { DeleteOldMetricsHandler } from './application/handlers/delete-old-metrics.handler';
+import { IngestMetricsFromOtlpHandler } from "./application/handlers/ingest-metrics-from-otlp.handler";
+import { DeleteOldMetricsHandler } from "./application/handlers/delete-old-metrics.handler";
 
 // Application Layer - Queries
-import { GetMetricTimeSeriesHandler } from './application/handlers/get-metric-timeseries.handler';
-import { GetMetricNamesHandler } from './application/handlers/get-metric-names.handler';
-import { GetLogsPaginatedHandler } from './application/handlers/get-logs-paginated.handler';
+import { GetMetricTimeSeriesHandler } from "./application/handlers/get-metric-timeseries.handler";
+import { GetMetricNamesHandler } from "./application/handlers/get-metric-names.handler";
+import { GetLogsPaginatedHandler } from "./application/handlers/get-logs-paginated.handler";
 
 // Application Layer - Event Handlers
-import { MetricIngestedHandler } from './application/events/metric-ingested.handler';
+import { MetricIngestedHandler } from "./application/events/metric-ingested.handler";
 
 // Application Layer - Services
-import { MetricsService } from './application/services/metrics.service';
-import { LogsService } from './application/services/logs.service';
-import { AggregationService } from './application/services/aggregation.service';
+import { MetricsService } from "./application/services/metrics.service";
+import { LogsService } from "./application/services/logs.service";
+import { AggregationService } from "./application/services/aggregation.service";
 
 // Infrastructure Layer
-import { MetricRepository } from './infrastructure/persistence/clickhouse/repositories/metric.repository';
-import { LogRepository } from './infrastructure/persistence/clickhouse/repositories/log.repository';
-import { TraceRepository } from './infrastructure/persistence/clickhouse/repositories/trace.repository';
-import { MetricMapper } from './infrastructure/mappers/metric.mapper';
-import { OtlpTransformer } from './infrastructure/clients/otlp-transformer.client';
+import { MetricRepository } from "./infrastructure/persistence/clickhouse/repositories/metric.repository";
+import { LogRepository } from "./infrastructure/persistence/clickhouse/repositories/log.repository";
+import { TraceRepository } from "./infrastructure/persistence/clickhouse/repositories/trace.repository";
+import { MetricMapper } from "./infrastructure/mappers/metric.mapper";
+import { OtlpTransformer } from "./infrastructure/clients/otlp-transformer.client";
 
 // Shared Modules
-import { CacheModule } from '@/shared/cache/cache.module';
-import { QueueModule } from '@/shared/queue/queue.module';
-import { ClickHouseModule } from '@/shared/clickhouse/clickhouse.module';
+import { CacheModule } from "@/shared/cache/cache.module";
+import { QueueModule } from "@/shared/queue/queue.module";
+import { ClickHouseModule } from "@/shared/clickhouse/clickhouse.module";
 
-const CommandHandlers = [
-  IngestMetricsFromOtlpHandler,
-  DeleteOldMetricsHandler,
-];
+const CommandHandlers = [IngestMetricsFromOtlpHandler, DeleteOldMetricsHandler];
 
 const QueryHandlers = [
   GetMetricTimeSeriesHandler,
@@ -594,42 +594,19 @@ const QueryHandlers = [
   GetLogsPaginatedHandler,
 ];
 
-const EventHandlers = [
-  MetricIngestedHandler,
-];
+const EventHandlers = [MetricIngestedHandler];
 
-const ApplicationServices = [
-  MetricsService,
-  LogsService,
-  AggregationService,
-];
+const ApplicationServices = [MetricsService, LogsService, AggregationService];
 
-const Repositories = [
-  MetricRepository,
-  LogRepository,
-  TraceRepository,
-];
+const Repositories = [MetricRepository, LogRepository, TraceRepository];
 
-const Mappers = [
-  MetricMapper,
-];
+const Mappers = [MetricMapper];
 
-const Clients = [
-  OtlpTransformer,
-];
+const Clients = [OtlpTransformer];
 
 @Module({
-  imports: [
-    CqrsModule,
-    CacheModule,
-    QueueModule,
-    ClickHouseModule,
-  ],
-  controllers: [
-    MetricsController,
-    LogsController,
-    TracesController,
-  ],
+  imports: [CqrsModule, CacheModule, QueueModule, ClickHouseModule],
+  controllers: [MetricsController, LogsController, TracesController],
   providers: [
     ...CommandHandlers,
     ...QueryHandlers,
@@ -639,10 +616,7 @@ const Clients = [
     ...Mappers,
     ...Clients,
   ],
-  exports: [
-    ...Repositories,
-    ...ApplicationServices,
-  ],
+  exports: [...Repositories, ...ApplicationServices],
 })
 export class TelemetryModule {}
 ```
@@ -878,4 +852,4 @@ graph TB
 
 - **File Location:** `./backend/03-MODULE-STRUCTURE.md`
 - **Maintained By:** DevOpsCorner Indonesia
-- **Last Updated:** January 01st, 2026
+- **Last Updated:** May 2026

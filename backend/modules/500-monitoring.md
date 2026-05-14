@@ -4,7 +4,7 @@
 - **Category**: Backend / Business Modules
 - **Status**: Production Ready
 - **Priority:** 🔥 HIGH - Platform Foundation
-- **Version**: 1.1.2-CE
+- **Version**: 1.4.0
 
 ---
 
@@ -71,22 +71,22 @@ graph TB
 ```typescript
 // domain/aggregates/Monitor.ts
 export enum MonitorType {
-  HTTP = 'HTTP(s)',
-  TCP_PORT = 'TCP Port',
-  PING = 'Ping',
-  DNS = 'DNS',
-  DOCKER_CONTAINER = 'Docker Container',
-  POSTGRES = 'PostgreSQL',
-  MYSQL_MARIADB = 'MySQL/MariaDB',
-  REDIS = 'Redis',
+  HTTP = "HTTP(s)",
+  TCP_PORT = "TCP Port",
+  PING = "Ping",
+  DNS = "DNS",
+  DOCKER_CONTAINER = "Docker Container",
+  POSTGRES = "PostgreSQL",
+  MYSQL_MARIADB = "MySQL/MariaDB",
+  REDIS = "Redis",
   // ... 14 total types
 }
 
 export enum MonitorStatus {
-  UP = 'UP',
-  DOWN = 'DOWN',
-  PAUSED = 'PAUSED',
-  UNKNOWN = 'UNKNOWN',
+  UP = "UP",
+  DOWN = "DOWN",
+  PAUSED = "PAUSED",
+  UNKNOWN = "UNKNOWN",
 }
 
 export class Monitor extends AggregateRoot<MonitorId> {
@@ -135,7 +135,9 @@ export class Monitor extends AggregateRoot<MonitorId> {
     if (this.status !== newStatus) {
       const oldStatus = this.status;
       this.status = newStatus;
-      this.addDomainEvent(new MonitorStatusChangedEvent(this, oldStatus, newStatus));
+      this.addDomainEvent(
+        new MonitorStatusChangedEvent(this, oldStatus, newStatus),
+      );
     }
   }
 
@@ -271,17 +273,17 @@ sequenceDiagram
 
 ## API Endpoints
 
-| Method | Endpoint | Description | Required Permission |
-|--------|----------|-------------|---------------------|
-| `POST` | `/api/v1/monitors` | Create monitor | `monitors:write:workspace` |
-| `GET` | `/api/v1/monitors` | List monitors | `monitors:read:workspace` |
-| `GET` | `/api/v1/monitors/:id` | Get monitor details | `monitors:read:workspace` |
-| `PATCH` | `/api/v1/monitors/:id` | Update monitor | `monitors:write:workspace` |
-| `DELETE` | `/api/v1/monitors/:id` | Delete monitor | `monitors:delete:workspace` |
-| `POST` | `/api/v1/monitors/:id/pause` | Pause monitoring | `monitors:write:workspace` |
-| `POST` | `/api/v1/monitors/:id/resume` | Resume monitoring | `monitors:write:workspace` |
-| `GET` | `/api/v1/monitors/:id/checks` | Get check history | `monitors:read:workspace` |
-| `GET` | `/api/v1/monitors/:id/uptime` | Calculate uptime % | `monitors:read:workspace` |
+| Method   | Endpoint                      | Description         | Required Permission         |
+| -------- | ----------------------------- | ------------------- | --------------------------- |
+| `POST`   | `/api/v2/monitors`            | Create monitor      | `monitors:write:workspace`  |
+| `GET`    | `/api/v2/monitors`            | List monitors       | `monitors:read:workspace`   |
+| `GET`    | `/api/v2/monitors/:id`        | Get monitor details | `monitors:read:workspace`   |
+| `PATCH`  | `/api/v2/monitors/:id`        | Update monitor      | `monitors:write:workspace`  |
+| `DELETE` | `/api/v2/monitors/:id`        | Delete monitor      | `monitors:delete:workspace` |
+| `POST`   | `/api/v2/monitors/:id/pause`  | Pause monitoring    | `monitors:write:workspace`  |
+| `POST`   | `/api/v2/monitors/:id/resume` | Resume monitoring   | `monitors:write:workspace`  |
+| `GET`    | `/api/v2/monitors/:id/checks` | Get check history   | `monitors:read:workspace`   |
+| `GET`    | `/api/v2/monitors/:id/uptime` | Calculate uptime %  | `monitors:read:workspace`   |
 
 ---
 
@@ -307,5 +309,5 @@ UPTIME_CHECK_RETENTION_DAYS=90     # ClickHouse retention
 
 ---
 
-- **Last Updated**: January 01st, 2026
+- **Last Updated**: May 14th, 2026
 - **Maintained By**: DevOpsCorner Indonesia

@@ -99,7 +99,7 @@ curl -X POST https://api.anthropic.com/v1/messages \
   -H "x-api-key: $TELEMETRYFLOW_MCP_CLAUDE_API_KEY" \
   -H "anthropic-version: 2023-06-01" \
   -H "content-type: application/json" \
-  -d '{"model":"claude-3-haiku-20240307","max_tokens":10,"messages":[{"role":"user","content":"Hi"}]}'
+  -d '{"model":"claude-haiku-4-5-20251001","max_tokens":10,"messages":[{"role":"user","content":"Hi"}]}'
 ```
 
 ---
@@ -429,7 +429,7 @@ curl -X POST https://api.anthropic.com/v1/messages \
   -H "x-api-key: $TELEMETRYFLOW_MCP_CLAUDE_API_KEY" \
   -H "anthropic-version: 2023-06-01" \
   -H "content-type: application/json" \
-  -d '{"model":"claude-3-haiku-20240307","max_tokens":10,"messages":[{"role":"user","content":"Hi"}]}'
+  -d '{"model":"claude-haiku-4-5-20251001","max_tokens":10,"messages":[{"role":"user","content":"Hi"}]}'
 
 # Regenerate API key if needed
 # Visit: https://console.anthropic.com/settings/keys
@@ -475,6 +475,7 @@ security:
 claude:
   model: "claude-sonnet-4-20250514" # Correct
 
+
 # Available models:
 # - claude-opus-4-20250514
 # - claude-sonnet-4-20250514
@@ -495,6 +496,7 @@ claude:
 # Adjust token settings
 claude:
   max_tokens: 8192 # Increase limit
+
 
 # Or reduce input size
 # Chunk large inputs into smaller requests
@@ -836,7 +838,7 @@ tar -xzf tfo-mcp_*.tar.gz
 sudo mv tfo-mcp /usr/local/bin/
 
 # Docker
-docker pull devopscorner/tfo-mcp:latest
+docker pull telemetryflow/tfo-mcp:latest
 ```
 
 **Q: How do I check the API key is valid?**
@@ -846,7 +848,7 @@ curl -X POST https://api.anthropic.com/v1/messages \
   -H "x-api-key: $TELEMETRYFLOW_MCP_CLAUDE_API_KEY" \
   -H "anthropic-version: 2023-06-01" \
   -H "content-type: application/json" \
-  -d '{"model":"claude-3-haiku-20240307","max_tokens":10,"messages":[{"role":"user","content":"Hi"}]}'
+  -d '{"model":"claude-haiku-4-5-20251001","max_tokens":10,"messages":[{"role":"user","content":"Hi"}]}'
 ```
 
 **Q: How do I enable telemetry/tracing?**
@@ -910,7 +912,7 @@ When creating a GitHub issue, include:
 
 - TelemetryFlow MCP Version: `tfo-mcp version`
 - OS: macOS 14.0 / Ubuntu 22.04 / Windows 11
-- Go Version: go1.24
+- Go Version: go1.26
 
 ## Description
 

@@ -1,7 +1,7 @@
 # Backend Architecture Overview
 
-- **Version:** 1.1.2-CE
-- **Last Updated:** January 01st, 2026
+- **Version:** 1.4.0
+- **Last Updated:** May 2026
 - **Status:** ✅ Complete
 
 ---
@@ -24,7 +24,7 @@
 
 The TelemetryFlow backend is built as a **modular monolith** using **NestJS 11.x**, implementing **Domain-Driven Design (DDD)** and **CQRS** patterns. The architecture is designed for:
 
-- **Modularity:** 15 bounded contexts (business modules) + 10 shared modules
+- **Modularity:** 25+ bounded contexts (business modules) + 10 shared modules
 - **Scalability:** Each module can be extracted into a microservice
 - **Maintainability:** Clear separation of concerns with 4-layer architecture
 - **Observability:** Built-in OpenTelemetry instrumentation
@@ -35,7 +35,7 @@ The TelemetryFlow backend is built as a **modular monolith** using **NestJS 11.x
 ```mermaid
 graph LR
     subgraph "Backend Characteristics"
-        A[Modular Monolith<br/>15 Business Modules]
+        A[Modular Monolith<br/>25+ Business Modules]
         B[Domain-Driven Design<br/>DDD + CQRS]
         C[Event-Driven<br/>EventBus + BullMQ]
         D[Multi-Tenant<br/>Workspace + Tenant Isolation]
@@ -101,24 +101,24 @@ graph TB
 
 ### Key Dependencies
 
-| Category | Technology | Version | Purpose |
-|----------|------------|---------|---------|
-| **Framework** | NestJS | 11.x | Enterprise application framework |
-| **Language** | TypeScript | 5.9.3 | Type-safe development |
-| **Runtime** | Node.js | 18-20.x | JavaScript runtime |
-| **PostgreSQL ORM** | TypeORM | 0.3.x | Relational data persistence |
-| **ClickHouse** | @clickhouse/client | 1.x | Time-series data client |
-| **Redis** | ioredis | 5.x | Cache & queue backend |
-| **Queue** | BullMQ | 5.x | Async job processing |
-| **Validation** | class-validator | 0.14.x | DTO validation |
-| **Transformation** | class-transformer | 0.5.x | DTO transformation |
-| **CQRS** | @nestjs/cqrs | 11.x | Command/Query pattern |
-| **Scheduling** | @nestjs/schedule | 4.x | Cron jobs |
-| **Rate Limiting** | @nestjs/throttler | 6.x | API rate limiting |
-| **Authentication** | @nestjs/jwt | 11.x | JWT token management |
-| **Passport** | @nestjs/passport | 11.x | Auth strategies |
-| **Logging** | winston | 3.x | Structured logging |
-| **Telemetry** | @opentelemetry/api | 1.x | Observability |
+| Category           | Technology         | Version | Purpose                          |
+| ------------------ | ------------------ | ------- | -------------------------------- |
+| **Framework**      | NestJS             | 11.x    | Enterprise application framework |
+| **Language**       | TypeScript         | 5.9.3   | Type-safe development            |
+| **Runtime**        | Node.js            | 18-20.x | JavaScript runtime               |
+| **PostgreSQL ORM** | TypeORM            | 0.3.x   | Relational data persistence      |
+| **ClickHouse**     | @clickhouse/client | 1.x     | Time-series data client          |
+| **Redis**          | ioredis            | 5.x     | Cache & queue backend            |
+| **Queue**          | BullMQ             | 5.x     | Async job processing             |
+| **Validation**     | class-validator    | 0.14.x  | DTO validation                   |
+| **Transformation** | class-transformer  | 0.5.x   | DTO transformation               |
+| **CQRS**           | @nestjs/cqrs       | 11.x    | Command/Query pattern            |
+| **Scheduling**     | @nestjs/schedule   | 4.x     | Cron jobs                        |
+| **Rate Limiting**  | @nestjs/throttler  | 6.x     | API rate limiting                |
+| **Authentication** | @nestjs/jwt        | 11.x    | JWT token management             |
+| **Passport**       | @nestjs/passport   | 11.x    | Auth strategies                  |
+| **Logging**        | winston            | 3.x     | Structured logging               |
+| **Telemetry**      | @opentelemetry/api | 1.x     | Observability                    |
 
 ---
 
@@ -131,7 +131,7 @@ graph TB
     subgraph "Application Structure"
         App[App Module<br/>Root Module]
 
-        subgraph "15 Business Modules - Bounded Contexts"
+        subgraph "25+ Business Modules - Bounded Contexts"
             M1[100-core<br/>IAM & Multi-Tenancy]
             M2[200-auth<br/>Authentication]
             M3[300-api-keys<br/>API Keys]
@@ -145,8 +145,18 @@ graph TB
             M11[1100-agents<br/>Agents]
             M12[1200-status-page<br/>Status Pages]
             M13[1300-export<br/>Data Export]
-            M14[1400-query-builder<br/>Visual Query Builder]
+            M14[1400-query-builder<br/>TFQL Query Engine]
             M15[1500-retention-policy<br/>Data Retention]
+            M16[1600-notification<br/>Notification Hub]
+            M17[1700-kubernetes<br/>K8S Monitoring]
+            M18[1800-vm<br/>VM Monitoring]
+            M19[1900-service-map<br/>Service Map]
+            M20[2000-network-map<br/>Network Map]
+            M21[2100-llm<br/>AI/LLM Intelligence]
+            M22[2200-reporting<br/>Reporting]
+            M23[2300-db-monitoring<br/>DB Monitoring + QAN]
+            M24[2400-data-masking<br/>Data Masking]
+            M25[2500-tenancy<br/>Tenancy Management]
         end
 
         subgraph "10 Shared Modules - Infrastructure"
@@ -178,6 +188,16 @@ graph TB
     App --> M13
     App --> M14
     App --> M15
+    App --> M16
+    App --> M17
+    App --> M18
+    App --> M19
+    App --> M20
+    App --> M21
+    App --> M22
+    App --> M23
+    App --> M24
+    App --> M25
 
     M1 -.-> S1
     M2 -.-> S2
@@ -185,6 +205,8 @@ graph TB
     M4 -.-> S4
     M6 -.-> S5
     M8 -.-> S7
+    M17 -.-> S4
+    M23 -.-> S4
 
     style App fill:#4ecdc4
     style M1 fill:#45b7d1
@@ -251,12 +273,12 @@ classDiagram
 
 **Example Aggregates:**
 
-| Module | Aggregates | Value Objects |
-|--------|-----------|---------------|
-| **100-core** | User, Organization, Workspace, Tenant, Role | Email, TenantId, WorkspaceId, UserId |
-| **400-telemetry** | Metric, Log, Trace, Span | MetricName, Timestamp, Attributes |
-| **600-alerts** | AlertRule, Notification, Incident | Threshold, Channel, Severity |
-| **900-dashboard** | Dashboard, Widget | Layout, Query, Visualization |
+| Module            | Aggregates                                  | Value Objects                        |
+| ----------------- | ------------------------------------------- | ------------------------------------ |
+| **100-core**      | User, Organization, Workspace, Tenant, Role | Email, TenantId, WorkspaceId, UserId |
+| **400-telemetry** | Metric, Log, Trace, Span                    | MetricName, Timestamp, Attributes    |
+| **600-alerts**    | AlertRule, Notification, Incident           | Threshold, Channel, Severity         |
+| **900-dashboard** | Dashboard, Widget                           | Layout, Query, Visualization         |
 
 ### 3. CQRS (Command Query Responsibility Segregation)
 
@@ -289,6 +311,7 @@ graph LR
 ```
 
 **Benefits:**
+
 - ✅ Separate write and read optimization
 - ✅ Independent scaling of commands and queries
 - ✅ Event sourcing for audit trails
@@ -351,8 +374,21 @@ graph TB
         M1100[1100-agents<br/>Agent Management]
         M1200[1200-status-page<br/>Public Status Pages]
         M1300[1300-export<br/>Data Export]
-        M1400[1400-query-builder<br/>Visual Query Builder]
+        M1400[1400-query-builder<br/>TFQL Query Engine]
         M1500[1500-retention-policy<br/>Data Lifecycle]
+    end
+
+    subgraph "1600+: Monitoring & Intelligence"
+        M1600[1600-notification<br/>Notification Hub]
+        M1700[1700-kubernetes<br/>K8S Monitoring]
+        M1800[1800-vm<br/>VM Monitoring]
+        M1900[1900-service-map<br/>Service Map]
+        M2000[2000-network-map<br/>Network Map]
+        M2100[2100-llm<br/>AI/LLM Intelligence]
+        M2200[2200-reporting<br/>Reporting]
+        M2300[2300-db-monitoring<br/>DB Monitoring + QAN]
+        M2400[2400-data-masking<br/>Data Masking]
+        M2500[2500-tenancy<br/>Tenancy Management]
     end
 
     style M100 fill:#4ecdc4
@@ -369,6 +405,7 @@ pie title Module Distribution by Category
     "Telemetry & Monitoring (3)" : 3
     "Integrations (3)" : 3
     "Advanced Features (6)" : 6
+    "Monitoring & Intelligence (10)" : 10
 ```
 
 ### Core Module Hierarchy
@@ -456,18 +493,18 @@ graph TB
 
 ### Shared Module Summary
 
-| Module | Purpose | Key Features |
-|--------|---------|--------------|
-| **logger** | Structured logging with OTEL | Winston 3.x, JSON format, trace correlation |
-| **cache** | Multi-level caching | L1 in-memory (60s), L2 Redis (30min) |
-| **queue** | Async job processing | BullMQ, 5 queues, retry strategies |
-| **clickhouse** | ClickHouse client | Query builder, connection pooling |
-| **email** | Email notifications | Nodemailer, template engine |
-| **cors** | CORS configuration | Environment-based CORS rules |
-| **otel** | OpenTelemetry instrumentation | Auto-instrumentation, exporters |
-| **ui** | UI template rendering | Handlebars templates |
-| **platform** | Platform utilities | Common helpers, constants |
-| **messaging** | Event streaming | NATS messaging system |
+| Module         | Purpose                       | Key Features                                    |
+| -------------- | ----------------------------- | ----------------------------------------------- |
+| **logger**     | Structured logging with OTEL  | Winston 3.x, JSON format, trace correlation     |
+| **cache**      | Multi-level caching           | L1 in-memory (60s), L2 Redis DB 0 (1800s)       |
+| **queue**      | Async job processing          | BullMQ, 6 queues (Redis DB 1), retry strategies |
+| **clickhouse** | ClickHouse client             | Query builder, connection pooling               |
+| **email**      | Email notifications           | Nodemailer, template engine                     |
+| **cors**       | CORS configuration            | Environment-based CORS rules                    |
+| **otel**       | OpenTelemetry instrumentation | Auto-instrumentation, exporters                 |
+| **ui**         | UI template rendering         | Handlebars templates                            |
+| **platform**   | Platform utilities            | Common helpers, constants                       |
+| **messaging**  | Event streaming               | NATS domain events (mandatory)                  |
 
 ---
 
@@ -794,7 +831,7 @@ DB_DATABASE=telemetryflow
 # Database - ClickHouse
 CLICKHOUSE_HOST=localhost
 CLICKHOUSE_PORT=8123
-CLICKHOUSE_DATABASE=telemetry
+CLICKHOUSE_DATABASE=telemetryflow_db
 CLICKHOUSE_USERNAME=default
 CLICKHOUSE_PASSWORD=
 
@@ -843,18 +880,18 @@ touch src/modules/1600-new-feature/1600-new-feature.module.ts
 
 ```typescript
 // 1600-new-feature.module.ts
-import { Module } from '@nestjs/common';
-import { CqrsModule } from '@nestjs/cqrs';
+import { Module } from "@nestjs/common";
+import { CqrsModule } from "@nestjs/cqrs";
 
 // Presentation Layer
-import { NewFeatureController } from './presentation/controllers/new-feature.controller';
+import { NewFeatureController } from "./presentation/controllers/new-feature.controller";
 
 // Application Layer
-import { CreateFeatureHandler } from './application/handlers/create-feature.handler';
-import { GetFeatureHandler } from './application/handlers/get-feature.handler';
+import { CreateFeatureHandler } from "./application/handlers/create-feature.handler";
+import { GetFeatureHandler } from "./application/handlers/get-feature.handler";
 
 // Infrastructure Layer
-import { FeatureRepository } from './infrastructure/persistence/typeorm/repositories/feature.repository';
+import { FeatureRepository } from "./infrastructure/persistence/typeorm/repositories/feature.repository";
 
 const CommandHandlers = [CreateFeatureHandler];
 const QueryHandlers = [GetFeatureHandler];
@@ -903,13 +940,13 @@ graph TB
 
 ### Test Coverage Goals
 
-| Layer | Target Coverage | Current |
-|-------|----------------|---------|
-| **Domain Layer** | 90% | 85% |
-| **Application Layer** | 80% | 75% |
-| **Infrastructure Layer** | 70% | 65% |
-| **Presentation Layer** | 60% | 55% |
-| **Overall** | 75% | 70% |
+| Layer                    | Target Coverage | Current |
+| ------------------------ | --------------- | ------- |
+| **Domain Layer**         | 90%             | 85%     |
+| **Application Layer**    | 80%             | 75%     |
+| **Infrastructure Layer** | 70%             | 65%     |
+| **Presentation Layer**   | 60%             | 55%     |
+| **Overall**              | 75%             | 70%     |
 
 ---
 
@@ -918,20 +955,23 @@ graph TB
 ### 1. Module Independence
 
 ✅ **Good:**
+
 ```typescript
 // Module communicates via events
 this.eventBus.publish(new MetricIngested(metric));
 ```
 
 ❌ **Bad:**
+
 ```typescript
 // Direct cross-module dependency
-import { AlertService } from '../600-alerts/application/services/alert.service';
+import { AlertService } from "../600-alerts/application/services/alert.service";
 ```
 
 ### 2. Domain-First Development
 
 ✅ **Good:**
+
 ```typescript
 // Start with domain aggregate
 class Metric {
@@ -942,6 +982,7 @@ class Metric {
 ```
 
 ❌ **Bad:**
+
 ```typescript
 // Start with database schema
 @Entity()
@@ -953,6 +994,7 @@ class MetricEntity {
 ### 3. Use Value Objects
 
 ✅ **Good:**
+
 ```typescript
 class Email {
   private readonly value: string;
@@ -965,6 +1007,7 @@ class Email {
 ```
 
 ❌ **Bad:**
+
 ```typescript
 // Primitive obsession
 function createUser(email: string) {
@@ -1008,6 +1051,7 @@ graph LR
 ## Documentation Index
 
 ### Architecture Docs
+
 - [System Architecture](../architecture/01-SYSTEM-ARCHITECTURE.md) - High-level platform overview
 - [Data Flow](../architecture/02-DATA-FLOW.md) - Request/response flows
 - [Multi-Tenancy](../architecture/03-MULTI-TENANCY.md) - Tenant isolation
@@ -1015,12 +1059,14 @@ graph LR
 - [Performance](../architecture/05-PERFORMANCE.md) - Optimization strategies
 
 ### Backend Docs
+
 - **00-BACKEND-OVERVIEW.md** ← You are here
 - [01-TECH-STACK.md](./01-TECH-STACK.md) - Technology stack details
 - [02-DDD-CQRS.md](./02-DDD-CQRS.md) - DDD/CQRS implementation
 - [03-MODULE-STRUCTURE.md](./03-MODULE-STRUCTURE.md) - LEGO pattern guide
 
 ### Module Docs
+
 - [100-core](./modules/100-core.md) - IAM & Multi-Tenancy
 - [200-auth](./modules/200-auth.md) - Authentication
 - [400-telemetry](./modules/400-telemetry.md) - OTLP Ingestion
@@ -1031,4 +1077,4 @@ graph LR
 
 - **File Location:** `./backend/00-BACKEND-OVERVIEW.md`
 - **Maintained By:** DevOpsCorner Indonesia
-- **Last Updated:** January 01st, 2026
+- **Last Updated:** May 2026

@@ -7,7 +7,7 @@
 
   <h3>TelemetryFlow Platform - Overview Documentation</h3>
 
-[![Version](https://img.shields.io/badge/version-1.1.2--CE-orange.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.4.0-blue.svg)](CHANGELOG.md)
 [![License](https://img.shields.io/badge/license-Apache--2.0-green.svg)](LICENSE)
 [![NestJS](https://img.shields.io/badge/NestJS-11.x-E0234E?logo=nestjs)](https://nestjs.com/)
 [![Vue](https://img.shields.io/badge/Vue-3.5.24-4FC08D?logo=vue.js)](https://vuejs.org/)
@@ -35,6 +35,7 @@ We release patches for security vulnerabilities in the following versions:
 
 | Version | Supported          |
 | ------- | ------------------ |
+| 1.4.x   | :white_check_mark: |
 | 1.1.x   | :white_check_mark: |
 | 1.0.x   | :x:                |
 | < 1.0   | :x:                |
@@ -48,6 +49,7 @@ We take the security of TelemetryFlow Platform seriously. If you believe you hav
 **Please DO NOT report security vulnerabilities through public GitHub issues.**
 
 Instead, please report them via email to:
+
 - **Security Team**: security@telemetryflow.id
 - **Project Lead**: support@telemetryflow.id
 
@@ -83,6 +85,7 @@ Please include the following information in your report:
 ### For Users
 
 #### 1. Environment Variables
+
 ```bash
 # Never commit .env files
 echo ".env" >> .gitignore
@@ -92,6 +95,7 @@ pnpm run generate:secrets
 ```
 
 #### 2. Database Security
+
 ```bash
 # Use strong passwords
 POSTGRES_PASSWORD=<strong-random-password>
@@ -102,6 +106,7 @@ CLICKHOUSE_PASSWORD=<strong-random-password>
 ```
 
 #### 3. JWT Configuration
+
 ```bash
 # Use minimum 32 characters for secrets
 JWT_SECRET=<min-32-chars-random-string>
@@ -112,6 +117,7 @@ JWT_EXPIRES_IN=24h  # Adjust based on your needs
 ```
 
 #### 4. Production Deployment
+
 ```bash
 # Always use NODE_ENV=production
 NODE_ENV=production
@@ -128,6 +134,7 @@ LOG_LEVEL=warn
 #### 1. Code Security
 
 **Never commit:**
+
 - Passwords or API keys
 - Private keys or certificates
 - Database credentials
@@ -135,6 +142,7 @@ LOG_LEVEL=warn
 - Personal information
 
 **Always:**
+
 - Use environment variables for sensitive data
 - Validate all user inputs
 - Sanitize database queries
@@ -157,6 +165,7 @@ pnpm update
 #### 3. Code Review
 
 All code changes must:
+
 - Pass security review
 - Include tests for security-critical features
 - Follow OWASP security guidelines
@@ -169,7 +178,10 @@ All code changes must:
 - **JWT-based authentication** with secure token generation
 - **5-tier RBAC system** (Super Admin, Admin, Developer, Viewer, Demo)
 - **Permission-based access control** with 22+ granular permissions
-- **Password hashing** using Argon2 (industry standard)
+- **Password hashing** using Argon2id (industry standard)
+- **Dual API Key authentication**: `tfk-live-*` (key ID) + `tfs-secret-*` (key secret) with Argon2id hashing
+- **tfoauth extension** for API key management and validation in OTEL Collector
+- **tfoidentity extension** for tenant identity resolution
 - **Session management** with secure session secrets
 
 ### Data Protection
@@ -203,6 +215,7 @@ No security vulnerabilities have been reported yet.
 ### Security Advisories
 
 Security advisories will be published at:
+
 - GitHub Security Advisories
 - Project documentation
 - Release notes
@@ -212,6 +225,7 @@ Security advisories will be published at:
 ### Standards
 
 TelemetryFlow Platform follows:
+
 - **OWASP Top 10** security guidelines
 - **CWE/SANS Top 25** vulnerability prevention
 - **NIST Cybersecurity Framework** principles
@@ -219,22 +233,26 @@ TelemetryFlow Platform follows:
 ### Certifications
 
 Currently pursuing:
+
 - SOC 2 Type II compliance
 - ISO 27001 certification
 
 ## Security Contacts
 
 ### Primary Contact
+
 - **Email**: security@telemetryflow.id
 - **Response Time**: 48 hours
 
 ### Alternative Contact
+
 - **Email**: support@telemetryflow.id
 - **GitHub**: [@telemetryflow](https://github.com/telemetryflow)
 
 ## Bug Bounty Program
 
 We currently do not have a formal bug bounty program, but we:
+
 - Acknowledge security researchers in release notes
 - Provide public recognition for valid reports
 - Consider monetary rewards for critical vulnerabilities (case-by-case basis)
@@ -244,10 +262,11 @@ We currently do not have a formal bug bounty program, but we:
 ### Notification Channels
 
 Stay informed about security updates:
+
 - **GitHub Releases**: Watch repository for releases
 - **Security Advisories**: Enable GitHub security alerts
 - **Changelog**: Check [CHANGELOG.md](./CHANGELOG.md)
-- **Release Notes**: Review [docs/RELEASE_NOTES_*.md](./docs/)
+- **Release Notes**: Review [docs/RELEASE*NOTES*\*.md](./docs/)
 
 ### Update Process
 
@@ -303,17 +322,20 @@ pnpm test
 ## Additional Resources
 
 ### Documentation
+
 - [README.md](./README.md) - Project overview
 - [CONTRIBUTING.md](./CONTRIBUTING.md) - Contribution guidelines
 - [CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md) - Community standards
 
 ### Security Tools
+
 - [OWASP Top 10](https://owasp.org/www-project-top-ten/)
 - [npm audit](https://docs.npmjs.com/cli/v8/commands/npm-audit)
 - [Snyk](https://snyk.io/) - Vulnerability scanning
 - [SonarQube](https://www.sonarqube.org/) - Code quality & security
 
 ### Security Training
+
 - [OWASP WebGoat](https://owasp.org/www-project-webgoat/)
 - [PortSwigger Web Security Academy](https://portswigger.net/web-security)
 - [HackerOne Resources](https://www.hackerone.com/resources)
@@ -322,12 +344,12 @@ pnpm test
 
 We would like to thank the following security researchers for their contributions:
 
-*No security researchers have been acknowledged yet.*
+_No security researchers have been acknowledged yet._
 
 ---
 
-- **Last Updated**: January 01st, 2026
-- **Version**: 1.1.2-CE
+- **Last Updated**: May 14th, 2026
+- **Version**: 1.4.0
 - **Project**: TelemetryFlow Platform
 
-**Built with ❤️ by DevOpsCorner Indonesia**
+**Built with care by the TelemetryFlow Team**

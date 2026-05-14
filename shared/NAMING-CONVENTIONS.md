@@ -1,8 +1,8 @@
 # Naming Conventions
 
-- **Version**: 1.1.2-CE
+- **Version**: 1.4.0
 - **Standard**: TypeScript + NestJS + Go
-- **Status**: ✅ Enforced
+- **Status**: Enforced
 
 ---
 
@@ -32,45 +32,45 @@ Consistent naming conventions improve **code readability**, **maintainability**,
 
 **Pattern:** `{name}.{type}.ts`
 
-| File Type | Pattern | Example |
-|-----------|---------|---------|
-| **Controller** | `{module}.controller.ts` | `user.controller.ts` |
-| **Service** | `{module}.service.ts` | `user.service.ts` |
-| **Repository** | `{module}.repository.ts` | `user.repository.ts` |
-| **Entity** | `{name}.entity.ts` | `User.entity.ts` |
-| **DTO** | `{action}-{name}.dto.ts` | `create-user.dto.ts` |
-| **Guard** | `{name}.guard.ts` | `auth.guard.ts` |
-| **Interceptor** | `{name}.interceptor.ts` | `logging.interceptor.ts` |
-| **Middleware** | `{name}.middleware.ts` | `cors.middleware.ts` |
-| **Decorator** | `{name}.decorator.ts` | `current-user.decorator.ts` |
-| **Module** | `{module}.module.ts` | `user.module.ts` |
-| **Test** | `{name}.spec.ts` | `user.service.spec.ts` |
-| **E2E Test** | `{name}.e2e-spec.ts` | `user.e2e-spec.ts` |
+| File Type       | Pattern                  | Example                     |
+| --------------- | ------------------------ | --------------------------- |
+| **Controller**  | `{module}.controller.ts` | `user.controller.ts`        |
+| **Service**     | `{module}.service.ts`    | `user.service.ts`           |
+| **Repository**  | `{module}.repository.ts` | `user.repository.ts`        |
+| **Entity**      | `{name}.entity.ts`       | `User.entity.ts`            |
+| **DTO**         | `{action}-{name}.dto.ts` | `create-user.dto.ts`        |
+| **Guard**       | `{name}.guard.ts`        | `auth.guard.ts`             |
+| **Interceptor** | `{name}.interceptor.ts`  | `logging.interceptor.ts`    |
+| **Middleware**  | `{name}.middleware.ts`   | `cors.middleware.ts`        |
+| **Decorator**   | `{name}.decorator.ts`    | `current-user.decorator.ts` |
+| **Module**      | `{module}.module.ts`     | `user.module.ts`            |
+| **Test**        | `{name}.spec.ts`         | `user.service.spec.ts`      |
+| **E2E Test**    | `{name}.e2e-spec.ts`     | `user.e2e-spec.ts`          |
 
 **DDD Files:**
 
-| File Type | Pattern | Example |
-|-----------|---------|---------|
-| **Aggregate** | `{Name}.ts` or `{Name}.aggregate.ts` | `User.ts` |
-| **Value Object** | `{Name}Id.ts` or `{Name}.ts` | `UserId.ts` |
-| **Command** | `{Action}{Name}.command.ts` | `CreateUser.command.ts` |
-| **Query** | `Get{Name}.query.ts` | `GetUser.query.ts` |
-| **Handler** | `{CommandName}.handler.ts` | `CreateUser.handler.ts` |
-| **Event** | `{Name}{Action}Event.ts` | `UserCreatedEvent.ts` |
-| **Mapper** | `{name}-response.mapper.ts` | `user-response.mapper.ts` |
+| File Type        | Pattern                              | Example                   |
+| ---------------- | ------------------------------------ | ------------------------- |
+| **Aggregate**    | `{Name}.ts` or `{Name}.aggregate.ts` | `User.ts`                 |
+| **Value Object** | `{Name}Id.ts` or `{Name}.ts`         | `UserId.ts`               |
+| **Command**      | `{Action}{Name}.command.ts`          | `CreateUser.command.ts`   |
+| **Query**        | `Get{Name}.query.ts`                 | `GetUser.query.ts`        |
+| **Handler**      | `{CommandName}.handler.ts`           | `CreateUser.handler.ts`   |
+| **Event**        | `{Name}{Action}Event.ts`             | `UserCreatedEvent.ts`     |
+| **Mapper**       | `{name}-response.mapper.ts`          | `user-response.mapper.ts` |
 
 ### Frontend (Vue 3)
 
-| File Type | Pattern | Example |
-|-----------|---------|---------|
-| **Component** | `{Name}.vue` | `UserCard.vue` |
-| **View** | `{Name}.vue` | `Dashboard.vue` |
-| **Store** | `{module}-store.ts` | `user-store.ts` |
-| **Composable** | `use{Name}.ts` | `useAuth.ts` |
-| **API Client** | `{module}-api.ts` | `user-api.ts` |
+| File Type      | Pattern                  | Example              |
+| -------------- | ------------------------ | -------------------- |
+| **Component**  | `{Name}.vue`             | `UserCard.vue`       |
+| **View**       | `{Name}.vue`             | `Dashboard.vue`      |
+| **Store**      | `{module}-store.ts`      | `user-store.ts`      |
+| **Composable** | `use{Name}.ts`           | `useAuth.ts`         |
+| **API Client** | `{module}-api.ts`        | `user-api.ts`        |
 | **Repository** | `{module}-repository.ts` | `user-repository.ts` |
-| **Type** | `{Name}.ts` | `User.ts` |
-| **Test** | `{name}.spec.ts` | `UserCard.spec.ts` |
+| **Type**       | `{Name}.ts`              | `User.ts`            |
+| **Test**       | `{name}.spec.ts`         | `UserCard.spec.ts`   |
 
 ---
 
@@ -82,14 +82,14 @@ Consistent naming conventions improve **code readability**, **maintainability**,
 
 ```typescript
 // ✅ Good
-const userId = 'user_123';
-const userName = 'John Doe';
+const userId = "user_123";
+const userName = "John Doe";
 const isActive = true;
 const totalCount = 100;
 
 // ❌ Bad
-const user_id = 'user_123';
-const UserName = 'John Doe';
+const user_id = "user_123";
+const UserName = "John Doe";
 const is_active = true;
 ```
 
@@ -99,7 +99,7 @@ const is_active = true;
 // ✅ Good
 const MAX_RETRY_ATTEMPTS = 3;
 const DEFAULT_PAGE_SIZE = 20;
-const API_BASE_URL = 'http://localhost:3100';
+const API_BASE_URL = "http://localhost:3000";
 
 // ❌ Bad
 const maxRetryAttempts = 3;
@@ -110,14 +110,14 @@ const default_page_size = 20;
 
 ```typescript
 // ✅ Good
-const userRepository: UserRepository
-const createdAt: Date
-const isEmailVerified: boolean
+const userRepository: UserRepository;
+const createdAt: Date;
+const isEmailVerified: boolean;
 
 // ❌ Bad
-const repo: any
-const dt: Date
-const flag: boolean
+const repo: any;
+const dt: Date;
+const flag: boolean;
 ```
 
 ---
@@ -158,20 +158,20 @@ function active(user: User): boolean {}
 
 ### Verb Prefixes
 
-| Prefix | Meaning | Example |
-|--------|---------|---------|
-| **get** | Retrieve single item | `getUser()`, `getUserById()` |
-| **find** | Search/filter items | `findAll()`, `findByEmail()` |
-| **create** | Create new item | `createUser()`, `createOrganization()` |
-| **update** | Modify existing item | `updateUser()`, `updateProfile()` |
-| **delete** | Remove item | `deleteUser()`, `softDelete()` |
-| **remove** | Remove from collection | `removePermission()` |
-| **add** | Add to collection | `addRole()`, `addMember()` |
-| **is/has/can** | Boolean check | `isActive()`, `hasPermission()`, `canAccess()` |
-| **validate** | Validation | `validateEmail()`, `validateApiKey()` |
-| **transform** | Data transformation | `transformToDto()`, `mapToEntity()` |
-| **send** | Send data/message | `sendEmail()`, `sendNotification()` |
-| **fetch** | External data retrieval | `fetchFromApi()`, `fetchMetrics()` |
+| Prefix         | Meaning                 | Example                                        |
+| -------------- | ----------------------- | ---------------------------------------------- |
+| **get**        | Retrieve single item    | `getUser()`, `getUserById()`                   |
+| **find**       | Search/filter items     | `findAll()`, `findByEmail()`                   |
+| **create**     | Create new item         | `createUser()`, `createOrganization()`         |
+| **update**     | Modify existing item    | `updateUser()`, `updateProfile()`              |
+| **delete**     | Remove item             | `deleteUser()`, `softDelete()`                 |
+| **remove**     | Remove from collection  | `removePermission()`                           |
+| **add**        | Add to collection       | `addRole()`, `addMember()`                     |
+| **is/has/can** | Boolean check           | `isActive()`, `hasPermission()`, `canAccess()` |
+| **validate**   | Validation              | `validateEmail()`, `validateApiKey()`          |
+| **transform**  | Data transformation     | `transformToDto()`, `mapToEntity()`            |
+| **send**       | Send data/message       | `sendEmail()`, `sendNotification()`            |
+| **fetch**      | External data retrieval | `fetchFromApi()`, `fetchMetrics()`             |
 
 ---
 
@@ -241,11 +241,13 @@ export class CREATE_USER_DTO {}
 **Use `snake_case` for tables and columns:**
 
 #### Table Names
+
 - **Pattern:** Plural nouns in `snake_case`
 - **Examples:** `users`, `organizations`, `workspaces`, `tenants`, `alert_rules`, `api_keys`
 
 #### Primary Keys
-- **Pattern:** `{entity}_id` (singular entity name + _id)
+
+- **Pattern:** `{entity}_id` (singular entity name + \_id)
 - **Type:** UUID (preferred) or BIGINT
 - **Examples:**
   - Table `users` → Primary key `user_id`
@@ -256,6 +258,7 @@ export class CREATE_USER_DTO {}
 **❌ AVOID:** Generic `id` without entity name prefix
 
 #### Foreign Keys
+
 - **Pattern:** `{referenced_entity}_id`
 - **Examples:**
   - Reference to users → `user_id`
@@ -264,6 +267,7 @@ export class CREATE_USER_DTO {}
   - Reference to tenants → `tenant_id`
 
 #### Boolean Columns
+
 - **Pattern:** `is_{property}`, `has_{property}`, `{property}_enabled`
 - **Examples:**
   - `is_active`, `is_system`, `is_public`, `is_default`, `is_favorite`
@@ -273,6 +277,7 @@ export class CREATE_USER_DTO {}
 **❌ AVOID:** `status_active`, `active`, `enabled` without prefix
 
 #### Timestamp Columns
+
 - **Pattern:** `{action}_at` or `{state}_at`
 - **Type:** TIMESTAMP WITH TIME ZONE (timestamptz)
 - **Standard Columns:**
@@ -396,6 +401,7 @@ CREATE TABLE AlertRule (
 ```
 
 #### Junction Tables (Many-to-Many)
+
 - **Pattern:** `{entity1}_{entity2}` (alphabetical order)
 - **Examples:**
   - `role_permissions` (not `permission_roles`)
@@ -424,34 +430,53 @@ CREATE TABLE user_roles (
 
 ### ClickHouse Tables
 
-**Use `snake_case`, prefix with `telemetry_`:**
+**Use `snake_case`, `_v3` suffix, MUST use `${database}.tablename` prefix:**
 
 ```sql
--- ✅ Good
-CREATE TABLE telemetry_metrics (
-  timestamp DateTime64(3),
+-- ✅ Good - with database prefix and _v3 suffix
+CREATE TABLE ${database}.metrics_v3 (
+  timestamp DateTime64(9),
   metric_name LowCardinality(String),
-  metric_id UUID,
-  tenant_id UUID,
+  service_name LowCardinality(String),
+  organization_id String,
+  workspace_id String,
+  tenant_id String,
   value Float64,
-  created_at DateTime DEFAULT now()
+  unit String,
+  metric_type Enum8('gauge' = 1, 'counter' = 2, 'histogram' = 3, 'summary' = 4)
 ) ENGINE = MergeTree()
-ORDER BY (tenant_id, metric_name, timestamp);
+PARTITION BY toYYYYMM(timestamp)
+ORDER BY (tenant_id, workspace_id, metric_name, service_name, timestamp);
 
-CREATE TABLE telemetry_logs (
-  timestamp DateTime64(3),
+CREATE TABLE ${database}.logs_v3 (
+  timestamp DateTime64(9),
   severity_text LowCardinality(String),
-  log_body String,
-  tenant_id UUID
+  body String,
+  service_name LowCardinality(String),
+  trace_id String,
+  workspace_id String,
+  tenant_id String
 ) ENGINE = MergeTree()
-ORDER BY (tenant_id, timestamp);
+PARTITION BY toYYYYMM(timestamp)
+ORDER BY (tenant_id, workspace_id, service_name, timestamp);
 
--- ❌ Bad
-CREATE TABLE Metrics (
-  Timestamp DateTime64(3),
-  MetricName String,
-  TenantId UUID
-);
+CREATE TABLE ${database}.traces_v3 (
+  timestamp DateTime64(9),
+  trace_id String,
+  span_id String,
+  parent_span_id String,
+  span_name String,
+  service_name LowCardinality(String),
+  workspace_id String,
+  tenant_id String,
+  duration_nano UInt64
+) ENGINE = MergeTree()
+PARTITION BY toYYYYMM(timestamp)
+ORDER BY (tenant_id, trace_id, span_id);
+
+-- ❌ Bad - missing database prefix, wrong table names
+CREATE TABLE telemetry_metrics (  -- Wrong: should be ${database}.metrics_v3
+CREATE TABLE Metrics (            -- Wrong: PascalCase, no database prefix
 ```
 
 ### Indexes and Constraints
@@ -460,7 +485,7 @@ CREATE TABLE Metrics (
 -- ✅ Good - Indexes
 CREATE INDEX idx_users_email ON users(email);
 CREATE INDEX idx_users_organization ON users(organization_id);
-CREATE INDEX idx_metrics_tenant_time ON telemetry_metrics(tenant_id, timestamp);
+-- ClickHouse uses Bloom Filter / MinMax indexes (not traditional CREATE INDEX)
 
 -- ✅ Good - Constraints
 ALTER TABLE users ADD CONSTRAINT fk_users_organization
@@ -482,6 +507,7 @@ CREATE INDEX idx1 ON users(organization_id);
 **Pattern:** `{sequence}-{description}.ts`
 
 #### Naming Convention:
+
 - **Sequence:** 3-digit number (001, 002, 003)
 - **Description:** kebab-case, descriptive action
 - **Class Name:** PascalCase with timestamp
@@ -490,7 +516,7 @@ CREATE INDEX idx1 ON users(organization_id);
 // ✅ Good - Migration file naming
 // File: backend/src/modules/100-core/infrastructure/persistence/postgres/migrations/001-create-users-table.ts
 export class CreateUsersTable1732200000000 implements MigrationInterface {
-  name = 'CreateUsersTable1732200000000';
+  name = "CreateUsersTable1732200000000";
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
@@ -514,7 +540,7 @@ export class CreateUsersTable1732200000000 implements MigrationInterface {
 
 // File: 002-add-mfa-fields-to-users.ts
 export class AddMfaFieldsToUsers1732201000000 implements MigrationInterface {
-  name = 'AddMfaFieldsToUsers1732201000000';
+  name = "AddMfaFieldsToUsers1732201000000";
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
@@ -546,15 +572,15 @@ export class AddMfaFieldsToUsers1732201000000 implements MigrationInterface {
 
 #### Migration Action Patterns:
 
-| Pattern | Example |
-|---------|---------|
-| `create-{table}` | `001-create-users-table.ts` |
-| `add-{field}-to-{table}` | `002-add-mfa-fields-to-users.ts` |
-| `remove-{field}-from-{table}` | `003-remove-deprecated-fields-from-users.ts` |
-| `rename-{old}-to-{new}` | `004-rename-status-to-is-active.ts` |
-| `update-{table}-{description}` | `005-update-users-add-indexes.ts` |
-| `drop-{table}` | `006-drop-deprecated-sessions.ts` |
-| `alter-{table}-{description}` | `007-alter-users-change-email-length.ts` |
+| Pattern                        | Example                                      |
+| ------------------------------ | -------------------------------------------- |
+| `create-{table}`               | `001-create-users-table.ts`                  |
+| `add-{field}-to-{table}`       | `002-add-mfa-fields-to-users.ts`             |
+| `remove-{field}-from-{table}`  | `003-remove-deprecated-fields-from-users.ts` |
+| `rename-{old}-to-{new}`        | `004-rename-status-to-is-active.ts`          |
+| `update-{table}-{description}` | `005-update-users-add-indexes.ts`            |
+| `drop-{table}`                 | `006-drop-deprecated-sessions.ts`            |
+| `alter-{table}-{description}`  | `007-alter-users-change-email-length.ts`     |
 
 #### Module-Specific Migration Numbering:
 
@@ -565,6 +591,7 @@ Use the module number followed by a hyphen and sequence number. This provides cr
 **Pattern:** `{module-number}-{sequence}-{function_migration}.ts`
 
 **Format:**
+
 - **module-number**: The module's numeric identifier (100, 200, 300, etc.)
 - **sequence**: 3-digit sequence number (001, 002, 010, etc.)
 - **function_migration**: Descriptive action in kebab-case
@@ -616,6 +643,7 @@ Use the module number followed by a hyphen and sequence number. This provides cr
 ```
 
 **Benefits:**
+
 - ✅ **Crystal-clear module identification** - Module number is explicit
 - ✅ **No numbering conflicts** - Each module has isolated sequence
 - ✅ **Perfect sorting** - Files group by module naturally
@@ -623,11 +651,12 @@ Use the module number followed by a hyphen and sequence number. This provides cr
 - ✅ **Scalable** - Supports up to 999 migrations per module
 
 **Examples:**
+
 ```typescript
 // Module 200 (auth), sequence 010
 // File: 200-999-rename-id-to-session-id.ts
 export class RenameIdToSessionId1734134400000 implements MigrationInterface {
-  name = 'RenameIdToSessionId1734134400000';
+  name = "RenameIdToSessionId1734134400000";
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     // Migration code
@@ -637,7 +666,7 @@ export class RenameIdToSessionId1734134400000 implements MigrationInterface {
 // Module 600 (alerts), sequence 010
 // File: 600-999-rename-id-columns.ts
 export class RenameIdColumns1734134700000 implements MigrationInterface {
-  name = 'RenameIdColumns1734134700000';
+  name = "RenameIdColumns1734134700000";
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     // Migration code
@@ -646,6 +675,7 @@ export class RenameIdColumns1734134700000 implements MigrationInterface {
 ```
 
 **❌ AVOID:**
+
 - Generic numbering: `001-create-table.ts` (no module context)
 - Concatenated: `100001-create-table.ts` (hard to read)
 - Wrong separator: `100_001_create_table.ts` (use hyphens)
@@ -655,11 +685,13 @@ export class RenameIdColumns1734134700000 implements MigrationInterface {
 **Pattern:** `{unixtimestamp}-seed-{module_name}-{submodule_or_function}.ts`
 
 #### Naming Convention:
+
 - **Unix Timestamp:** 13-digit millisecond timestamp for chronological ordering
 - **Module Name:** Short module identifier (core, auth, api-keys, telemetry, etc.)
 - **Submodule/Function:** Specific domain area or functional component
 
 **Why Unix Timestamps?**
+
 - ✅ Guaranteed unique ordering
 - ✅ Chronological execution sequence
 - ✅ No conflicts between developers
@@ -675,9 +707,17 @@ export class SeedCoreIamPermissions1704240000101 implements Seeder {
     const permissionRepository = dataSource.getRepository(Permission);
 
     const permissions = [
-      { permission_id: uuid(), name: 'users:read', description: 'Read users' },
-      { permission_id: uuid(), name: 'users:write', description: 'Create/update users' },
-      { permission_id: uuid(), name: 'users:delete', description: 'Delete users' },
+      { permission_id: uuid(), name: "users:read", description: "Read users" },
+      {
+        permission_id: uuid(),
+        name: "users:write",
+        description: "Create/update users",
+      },
+      {
+        permission_id: uuid(),
+        name: "users:delete",
+        description: "Delete users",
+      },
     ];
 
     await permissionRepository.save(permissions);
@@ -732,16 +772,16 @@ export class SeedDashboardApmTemplate1704240900902 implements Seeder {
 
 #### Seed File Naming Patterns by Module:
 
-| Module | Pattern Example | Purpose |
-|--------|----------------|---------|
-| **100-core** | `1704240000101-seed-core-iam-permissions.ts` | IAM permissions |
-| | `1704240000102-seed-core-iam-roles.ts` | IAM roles |
-| | `1704240000103-seed-core-tenancy-regions.ts` | Multi-tenancy regions |
-| **200-auth** | `1704240100201-seed-auth-default-users.ts` | Default test users |
-| | `1704240100202-seed-auth-mfa-secrets.ts` | MFA test data |
-| **300-api-keys** | `1704240300301-seed-api-keys-test-keys.ts` | Test API keys |
-| **600-alerts** | `1704240600601-seed-alerts-default-rules.ts` | Default alert rules |
-| **900-dashboard** | `1704240900901-seed-dashboard-system-monitoring.ts` | Dashboard templates |
+| Module            | Pattern Example                                     | Purpose               |
+| ----------------- | --------------------------------------------------- | --------------------- |
+| **100-core**      | `1704240000101-seed-core-iam-permissions.ts`        | IAM permissions       |
+|                   | `1704240000102-seed-core-iam-roles.ts`              | IAM roles             |
+|                   | `1704240000103-seed-core-tenancy-regions.ts`        | Multi-tenancy regions |
+| **200-auth**      | `1704240100201-seed-auth-default-users.ts`          | Default test users    |
+|                   | `1704240100202-seed-auth-mfa-secrets.ts`            | MFA test data         |
+| **300-api-keys**  | `1704240300301-seed-api-keys-test-keys.ts`          | Test API keys         |
+| **600-alerts**    | `1704240600601-seed-alerts-default-rules.ts`        | Default alert rules   |
+| **900-dashboard** | `1704240900901-seed-dashboard-system-monitoring.ts` | Dashboard templates   |
 
 #### Generating Unix Timestamps:
 
@@ -782,30 +822,30 @@ export class SeedDashboardSystemMonitoringTemplate1704240900901 implements Seede
 
 ```http
 # ✅ Good - Resource collections
-GET    /api/v1/users
-POST   /api/v1/users
-GET    /api/v1/users/:id
-PATCH  /api/v1/users/:id
-DELETE /api/v1/users/:id
+GET    /api/v2/users
+POST   /api/v2/users
+GET    /api/v2/users/:id
+PATCH  /api/v2/users/:id
+DELETE /api/v2/users/:id
 
 # ✅ Good - Nested resources
-GET    /api/v1/organizations/:orgId/workspaces
-GET    /api/v1/workspaces/:workspaceId/tenants
+GET    /api/v2/organizations/:orgId/workspaces
+GET    /api/v2/workspaces/:workspaceId/tenants
 
 # ✅ Good - Actions (non-CRUD)
-POST   /api/v1/users/:id/activate
-POST   /api/v1/users/:id/deactivate
-POST   /api/v1/api-keys/:id/revoke
+POST   /api/v2/users/:id/activate
+POST   /api/v2/users/:id/deactivate
+POST   /api/v2/api-keys/:id/revoke
 
 # ✅ Good - Queries
-GET    /api/v1/metrics?metric_name=cpu_usage&start_time=1699564800
-GET    /api/v1/logs?severity=ERROR&limit=100
+GET    /api/v2/metrics?metric_name=cpu_usage&start_time=1699564800
+GET    /api/v2/logs?severity=ERROR&limit=100
 
 # ❌ Bad
-GET    /api/v1/getUsers
-GET    /api/v1/user
-POST   /api/v1/createUser
-GET    /api/v1/Users
+GET    /api/v2/getUsers
+GET    /api/v2/user
+POST   /api/v2/createUser
+GET    /api/v2/Users
 ```
 
 ### Query Parameters
@@ -814,10 +854,10 @@ GET    /api/v1/Users
 
 ```http
 # ✅ Good
-GET /api/v1/metrics?metric_name=cpu_usage&start_time=1699564800&end_time=1699651200
+GET /api/v2/metrics?metric_name=cpu_usage&start_time=1699564800&end_time=1699651200
 
 # ❌ Bad
-GET /api/v1/metrics?metricName=cpu_usage&startTime=1699564800&endTime=1699651200
+GET /api/v2/metrics?metricName=cpu_usage&startTime=1699564800&endTime=1699651200
 ```
 
 ### Request/Response Bodies
@@ -894,26 +934,26 @@ modules/
 
 **Use `snake_case` for file names:**
 
-| File Type | Pattern | Example |
-|-----------|---------|---------|
-| **Main Package** | `main.go` | `main.go` |
-| **Package File** | `{feature}.go` | `order.go`, `user.go` |
-| **Test File** | `{feature}_test.go` | `order_test.go` |
-| **Platform-Specific** | `{feature}_{os}.go` | `file_linux.go`, `file_windows.go` |
-| **Architecture-Specific** | `{feature}_{arch}.go` | `asm_amd64.go` |
-| **Platform + Arch** | `{feature}_{os}_{arch}.go` | `syscall_linux_amd64.go` |
+| File Type                 | Pattern                    | Example                            |
+| ------------------------- | -------------------------- | ---------------------------------- |
+| **Main Package**          | `main.go`                  | `main.go`                          |
+| **Package File**          | `{feature}.go`             | `order.go`, `user.go`              |
+| **Test File**             | `{feature}_test.go`        | `order_test.go`                    |
+| **Platform-Specific**     | `{feature}_{os}.go`        | `file_linux.go`, `file_windows.go` |
+| **Architecture-Specific** | `{feature}_{arch}.go`      | `asm_amd64.go`                     |
+| **Platform + Arch**       | `{feature}_{os}_{arch}.go` | `syscall_linux_amd64.go`           |
 
 **DDD/Clean Architecture Files:**
 
-| File Type | Pattern | Example |
-|-----------|---------|---------|
-| **Entity** | `{entity}.go` | `order.go`, `user.go` |
-| **Repository Interface** | `{entity}_repository.go` | `order_repository.go` |
-| **Repository Impl** | `{entity}_repository_{driver}.go` | `order_repository_postgres.go` |
-| **Service** | `{entity}_service.go` | `order_service.go` |
-| **Handler** | `{entity}_handler.go` | `order_handler.go` |
-| **DTO** | `{entity}_dto.go` | `order_dto.go` |
-| **Mapper** | `{entity}_mapper.go` | `order_mapper.go` |
+| File Type                | Pattern                           | Example                        |
+| ------------------------ | --------------------------------- | ------------------------------ |
+| **Entity**               | `{entity}.go`                     | `order.go`, `user.go`          |
+| **Repository Interface** | `{entity}_repository.go`          | `order_repository.go`          |
+| **Repository Impl**      | `{entity}_repository_{driver}.go` | `order_repository_postgres.go` |
+| **Service**              | `{entity}_service.go`             | `order_service.go`             |
+| **Handler**              | `{entity}_handler.go`             | `order_handler.go`             |
+| **DTO**                  | `{entity}_dto.go`                 | `order_dto.go`                 |
+| **Mapper**               | `{entity}_mapper.go`              | `order_mapper.go`              |
 
 ---
 
@@ -1032,19 +1072,19 @@ var UserId string     // Should be UserID (exported)
 
 **Common Acronym Conventions:**
 
-| Acronym | Exported | Unexported |
-|---------|----------|------------|
-| **ID** | `UserID`, `OrderID` | `userID`, `orderID` |
-| **URL** | `ImageURL`, `APIURL` | `imageURL`, `apiURL` |
-| **HTTP** | `HTTPClient`, `HTTPServer` | `httpClient`, `httpServer` |
-| **API** | `APIKey`, `APIVersion` | `apiKey`, `apiVersion` |
-| **JSON** | `JSONEncoder` | `jsonEncoder` |
-| **XML** | `XMLParser` | `xmlParser` |
-| **SQL** | `SQLQuery` | `sqlQuery` |
-| **TCP/UDP** | `TCPConn`, `UDPAddr` | `tcpConn`, `udpAddr` |
-| **UUID** | `UserUUID` | `userUUID` |
-| **GRPC** | `GRPCServer` | `grpcServer` |
-| **OTLP** | `OTLPExporter` | `otlpExporter` |
+| Acronym     | Exported                   | Unexported                 |
+| ----------- | -------------------------- | -------------------------- |
+| **ID**      | `UserID`, `OrderID`        | `userID`, `orderID`        |
+| **URL**     | `ImageURL`, `APIURL`       | `imageURL`, `apiURL`       |
+| **HTTP**    | `HTTPClient`, `HTTPServer` | `httpClient`, `httpServer` |
+| **API**     | `APIKey`, `APIVersion`     | `apiKey`, `apiVersion`     |
+| **JSON**    | `JSONEncoder`              | `jsonEncoder`              |
+| **XML**     | `XMLParser`                | `xmlParser`                |
+| **SQL**     | `SQLQuery`                 | `sqlQuery`                 |
+| **TCP/UDP** | `TCPConn`, `UDPAddr`       | `tcpConn`, `udpAddr`       |
+| **UUID**    | `UserUUID`                 | `userUUID`                 |
+| **GRPC**    | `GRPCServer`               | `grpcServer`               |
+| **OTLP**    | `OTLPExporter`             | `otlpExporter`             |
 
 ---
 
@@ -1150,21 +1190,21 @@ func HandleStuff(ctx context.Context) error {}  // "Stuff" is vague
 
 **Function Verb Prefixes:**
 
-| Prefix | Purpose | Example |
-|--------|---------|---------|
-| **Get** | Retrieve single item | `GetOrderByID()`, `GetUser()` |
-| **List** | Retrieve collection | `ListOrders()`, `ListUsers()` |
-| **Find** | Search with criteria | `FindByEmail()`, `FindActive()` |
-| **Create** | Create new item | `CreateOrder()`, `CreateUser()` |
-| **Update** | Modify existing | `UpdateOrder()`, `UpdateProfile()` |
-| **Delete** | Remove item | `DeleteOrder()`, `DeleteUser()` |
-| **New** | Constructor | `NewService()`, `NewClient()` |
-| **Parse** | Parse input | `ParseConfig()`, `ParseJSON()` |
-| **Format** | Format output | `FormatDate()`, `FormatMoney()` |
-| **Validate** | Validation | `ValidateEmail()`, `ValidateOrder()` |
-| **Is/Has/Can** | Boolean check | `IsValid()`, `HasAccess()`, `CanRetry()` |
-| **Must** | Panics on error | `MustParse()`, `MustCompile()` |
-| **With** | Builder pattern | `WithTimeout()`, `WithRetry()` |
+| Prefix         | Purpose              | Example                                  |
+| -------------- | -------------------- | ---------------------------------------- |
+| **Get**        | Retrieve single item | `GetOrderByID()`, `GetUser()`            |
+| **List**       | Retrieve collection  | `ListOrders()`, `ListUsers()`            |
+| **Find**       | Search with criteria | `FindByEmail()`, `FindActive()`          |
+| **Create**     | Create new item      | `CreateOrder()`, `CreateUser()`          |
+| **Update**     | Modify existing      | `UpdateOrder()`, `UpdateProfile()`       |
+| **Delete**     | Remove item          | `DeleteOrder()`, `DeleteUser()`          |
+| **New**        | Constructor          | `NewService()`, `NewClient()`            |
+| **Parse**      | Parse input          | `ParseConfig()`, `ParseJSON()`           |
+| **Format**     | Format output        | `FormatDate()`, `FormatMoney()`          |
+| **Validate**   | Validation           | `ValidateEmail()`, `ValidateOrder()`     |
+| **Is/Has/Can** | Boolean check        | `IsValid()`, `HasAccess()`, `CanRetry()` |
+| **Must**       | Panics on error      | `MustParse()`, `MustCompile()`           |
+| **With**       | Builder pattern      | `WithTimeout()`, `WithRetry()`           |
 
 ---
 
@@ -1746,46 +1786,46 @@ TestIntegration:          # PascalCase
 
 ### TypeScript/NestJS Conventions
 
-| Context | Convention | Example |
-|---------|------------|---------|
-| **TypeScript Variables** | camelCase | `userId`, `userName` |
-| **TypeScript Constants** | SCREAMING_SNAKE_CASE | `MAX_RETRY_ATTEMPTS` |
-| **TypeScript Functions** | camelCase | `createUser()`, `findAll()` |
-| **TypeScript Classes** | PascalCase | `UserService`, `CreateUserDto` |
-| **Files** | kebab-case.type.ts | `user.controller.ts` |
-| **Vue Components** | PascalCase | `UserCard.vue` |
-| **Vue Stores** | kebab-case-store | `user-store.ts` |
+| Context                  | Convention           | Example                        |
+| ------------------------ | -------------------- | ------------------------------ |
+| **TypeScript Variables** | camelCase            | `userId`, `userName`           |
+| **TypeScript Constants** | SCREAMING_SNAKE_CASE | `MAX_RETRY_ATTEMPTS`           |
+| **TypeScript Functions** | camelCase            | `createUser()`, `findAll()`    |
+| **TypeScript Classes**   | PascalCase           | `UserService`, `CreateUserDto` |
+| **Files**                | kebab-case.type.ts   | `user.controller.ts`           |
+| **Vue Components**       | PascalCase           | `UserCard.vue`                 |
+| **Vue Stores**           | kebab-case-store     | `user-store.ts`                |
 
 ### Go Conventions
 
-| Context | Convention | Example |
-|---------|------------|---------|
-| **Go Package Names** | lowercase, single-word | `order`, `config`, `http` |
-| **Go File Names** | snake_case | `order_service.go`, `order_test.go` |
-| **Go Variables (local)** | camelCase | `orderID`, `userName` |
-| **Go Variables (exported)** | MixedCaps | `DefaultTimeout`, `MaxRetries` |
-| **Go Constants** | MixedCaps (NOT SCREAMING) | `MaxRetryAttempts`, `StatusPending` |
-| **Go Functions (exported)** | MixedCaps/PascalCase | `CreateOrder()`, `GetByID()` |
-| **Go Functions (unexported)** | camelCase | `validateOrder()`, `formatID()` |
-| **Go Interfaces** | verb+er suffix | `Reader`, `Writer`, `OrderRepository` |
-| **Go Structs** | MixedCaps | `Order`, `OrderItem`, `CreateOrderRequest` |
-| **Go Errors** | Err prefix | `ErrNotFound`, `ErrInvalidInput` |
-| **Go Tests** | Test prefix + underscores | `TestOrderService_CreateOrder` |
-| **Go JSON Tags** | snake_case | `json:"user_id"`, `json:"created_at"` |
-| **Go Makefile Targets** | lowercase, hyphen-separated | `build-linux`, `test-unit` |
+| Context                       | Convention                  | Example                                    |
+| ----------------------------- | --------------------------- | ------------------------------------------ |
+| **Go Package Names**          | lowercase, single-word      | `order`, `config`, `http`                  |
+| **Go File Names**             | snake_case                  | `order_service.go`, `order_test.go`        |
+| **Go Variables (local)**      | camelCase                   | `orderID`, `userName`                      |
+| **Go Variables (exported)**   | MixedCaps                   | `DefaultTimeout`, `MaxRetries`             |
+| **Go Constants**              | MixedCaps (NOT SCREAMING)   | `MaxRetryAttempts`, `StatusPending`        |
+| **Go Functions (exported)**   | MixedCaps/PascalCase        | `CreateOrder()`, `GetByID()`               |
+| **Go Functions (unexported)** | camelCase                   | `validateOrder()`, `formatID()`            |
+| **Go Interfaces**             | verb+er suffix              | `Reader`, `Writer`, `OrderRepository`      |
+| **Go Structs**                | MixedCaps                   | `Order`, `OrderItem`, `CreateOrderRequest` |
+| **Go Errors**                 | Err prefix                  | `ErrNotFound`, `ErrInvalidInput`           |
+| **Go Tests**                  | Test prefix + underscores   | `TestOrderService_CreateOrder`             |
+| **Go JSON Tags**              | snake_case                  | `json:"user_id"`, `json:"created_at"`      |
+| **Go Makefile Targets**       | lowercase, hyphen-separated | `build-linux`, `test-unit`                 |
 
 ### Shared Conventions (All Languages)
 
-| Context | Convention | Example |
-|---------|------------|---------|
-| **Database Tables** | snake_case, plural | `users`, `telemetry_metrics` |
-| **Database Columns** | snake_case | `user_id`, `created_at` |
-| **Primary Keys** | {entity}_id | `user_id`, `order_id` |
-| **Boolean Columns** | is_{property} | `is_active`, `is_deleted` |
-| **Timestamp Columns** | {action}_at | `created_at`, `updated_at` |
-| **API Endpoints** | kebab-case, plural | `/api/v1/users`, `/api/v1/orders` |
-| **API Query Params** | snake_case | `?metric_name=cpu_usage` |
-| **JSON Keys (API)** | snake_case | `"user_id": "123"` |
+| Context               | Convention         | Example                           |
+| --------------------- | ------------------ | --------------------------------- |
+| **Database Tables**   | snake_case, plural | `users`, `metrics_v3`, `logs_v3`  |
+| **Database Columns**  | snake_case         | `user_id`, `created_at`           |
+| **Primary Keys**      | {entity}\_id       | `user_id`, `order_id`             |
+| **Boolean Columns**   | is\_{property}     | `is_active`, `is_deleted`         |
+| **Timestamp Columns** | {action}\_at       | `created_at`, `updated_at`        |
+| **API Endpoints**     | kebab-case, plural | `/api/v2/users`, `/api/v2/orders` |
+| **API Query Params**  | snake_case         | `?metric_name=cpu_usage`          |
+| **JSON Keys (API)**   | snake_case         | `"user_id": "123"`                |
 
 ---
 
@@ -1797,5 +1837,5 @@ TestIntegration:          # PascalCase
 
 ---
 
-- **Last Updated:** December 26, 2025
+- **Last Updated:** May 2026
 - **Maintained By:** DevOpsCorner Indonesia

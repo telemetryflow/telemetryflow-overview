@@ -4,7 +4,7 @@
 - **Category**: Backend / Business Modules
 - **Status**: Production Ready
 - **Priority:** 🔥 CRITICAL - Security Foundation
-- **Version**: 1.1.2-CE
+- **Version**: 1.4.0
 
 ---
 
@@ -13,6 +13,7 @@
 The **Audit module** provides **comprehensive audit logging** for security, compliance, and forensic analysis. It creates an **immutable audit trail** of all critical actions within the TelemetryFlow platform.
 
 Key features:
+
 - **Immutable logs**: No updates or deletes allowed
 - **Compliance support**: SOC2, ISO 27001, GDPR, HIPAA
 - **Event sourcing**: Domain events → Audit logs
@@ -74,6 +75,7 @@ graph TB
 ```
 
 **Key Principles:**
+
 - **Immutability**: Audit logs can never be updated or deleted
 - **Event-driven**: Automatically capture domain events
 - **Write-only repository**: No delete operations
@@ -124,7 +126,7 @@ export class AuditLog extends AggregateRoot<AuditLogId> {
 
     // Publish domain event
     auditLog.addDomainEvent(
-      new AuditLogCreatedEvent(id, userId, action, resource)
+      new AuditLogCreatedEvent(id, userId, action, resource),
     );
 
     return auditLog;
@@ -136,13 +138,27 @@ export class AuditLog extends AggregateRoot<AuditLogId> {
   }
 
   // Getters only (no setters!)
-  get workspaceId(): WorkspaceId | null { return this._props.workspaceId; }
-  get tenantId(): TenantId | null { return this._props.tenantId; }
-  get userId(): UserId { return this._props.userId; }
-  get action(): AuditAction { return this._props.action; }
-  get resource(): AuditResource { return this._props.resource; }
-  get context(): AuditContext { return this._props.context; }
-  get timestamp(): Date { return this._props.timestamp; }
+  get workspaceId(): WorkspaceId | null {
+    return this._props.workspaceId;
+  }
+  get tenantId(): TenantId | null {
+    return this._props.tenantId;
+  }
+  get userId(): UserId {
+    return this._props.userId;
+  }
+  get action(): AuditAction {
+    return this._props.action;
+  }
+  get resource(): AuditResource {
+    return this._props.resource;
+  }
+  get context(): AuditContext {
+    return this._props.context;
+  }
+  get timestamp(): Date {
+    return this._props.timestamp;
+  }
 }
 ```
 
@@ -156,61 +172,61 @@ export class AuditLog extends AggregateRoot<AuditLogId> {
 export class AuditAction extends ValueObject<string> {
   private static readonly VALID_ACTIONS = [
     // Authentication
-    'auth.login',
-    'auth.logout',
-    'auth.login_failed',
-    'auth.mfa_enabled',
-    'auth.mfa_disabled',
-    'auth.password_changed',
-    'auth.account_locked',
+    "auth.login",
+    "auth.logout",
+    "auth.login_failed",
+    "auth.mfa_enabled",
+    "auth.mfa_disabled",
+    "auth.password_changed",
+    "auth.account_locked",
 
     // User Management
-    'user.created',
-    'user.updated',
-    'user.deleted',
-    'user.role_assigned',
-    'user.role_removed',
+    "user.created",
+    "user.updated",
+    "user.deleted",
+    "user.role_assigned",
+    "user.role_removed",
 
     // API Keys
-    'api_key.created',
-    'api_key.rotated',
-    'api_key.revoked',
+    "api_key.created",
+    "api_key.rotated",
+    "api_key.revoked",
 
     // Alerts
-    'alert.created',
-    'alert.updated',
-    'alert.deleted',
-    'alert.triggered',
+    "alert.created",
+    "alert.updated",
+    "alert.deleted",
+    "alert.triggered",
 
     // Dashboards
-    'dashboard.created',
-    'dashboard.updated',
-    'dashboard.deleted',
-    'dashboard.shared',
+    "dashboard.created",
+    "dashboard.updated",
+    "dashboard.deleted",
+    "dashboard.shared",
 
     // Data Export
-    'export.requested',
-    'export.downloaded',
+    "export.requested",
+    "export.downloaded",
 
     // Organization
-    'organization.created',
-    'organization.updated',
-    'organization.settings_changed',
+    "organization.created",
+    "organization.updated",
+    "organization.settings_changed",
 
     // Workspace
-    'workspace.created',
-    'workspace.updated',
-    'workspace.deleted',
+    "workspace.created",
+    "workspace.updated",
+    "workspace.deleted",
 
     // Tenant
-    'tenant.created',
-    'tenant.updated',
-    'tenant.deleted',
+    "tenant.created",
+    "tenant.updated",
+    "tenant.deleted",
 
     // Security
-    'security.suspicious_activity',
-    'security.access_denied',
-    'security.rate_limit_exceeded',
+    "security.suspicious_activity",
+    "security.access_denied",
+    "security.rate_limit_exceeded",
   ];
 
   static create(value: string): AuditAction {
@@ -221,10 +237,18 @@ export class AuditAction extends ValueObject<string> {
   }
 
   // Helper factory methods
-  static authLogin(): AuditAction { return new AuditAction('auth.login'); }
-  static authLogout(): AuditAction { return new AuditAction('auth.logout'); }
-  static userCreated(): AuditAction { return new AuditAction('user.created'); }
-  static apiKeyRotated(): AuditAction { return new AuditAction('api_key.rotated'); }
+  static authLogin(): AuditAction {
+    return new AuditAction("auth.login");
+  }
+  static authLogout(): AuditAction {
+    return new AuditAction("auth.logout");
+  }
+  static userCreated(): AuditAction {
+    return new AuditAction("user.created");
+  }
+  static apiKeyRotated(): AuditAction {
+    return new AuditAction("api_key.rotated");
+  }
   // ... more helpers
 }
 ```
@@ -235,19 +259,29 @@ export class AuditAction extends ValueObject<string> {
 // /backend/src/modules/800-audit/domain/value-objects/AuditResource.ts
 
 export interface AuditResourceProps {
-  type: string;      // 'user', 'api_key', 'alert', 'dashboard'
+  type: string; // 'user', 'api_key', 'alert', 'dashboard'
   id: string | null; // Resource ID (null for collection operations)
-  name?: string;     // Human-readable resource name
+  name?: string; // Human-readable resource name
 }
 
 export class AuditResource extends ValueObject<AuditResourceProps> {
-  static create(type: string, id: string | null = null, name?: string): AuditResource {
+  static create(
+    type: string,
+    id: string | null = null,
+    name?: string,
+  ): AuditResource {
     return new AuditResource({ type, id, name });
   }
 
-  get type(): string { return this.props.type; }
-  get id(): string | null { return this.props.id; }
-  get name(): string | undefined { return this.props.name; }
+  get type(): string {
+    return this.props.type;
+  }
+  get id(): string | null {
+    return this.props.id;
+  }
+  get name(): string | undefined {
+    return this.props.name;
+  }
 
   toString(): string {
     if (this.props.name) {
@@ -297,8 +331,8 @@ export class AuditContext extends ValueObject<AuditContextProps> {
   static fromRequest(req: Request): AuditContext {
     return new AuditContext({
       ipAddress: req.ip ?? req.socket.remoteAddress ?? null,
-      userAgent: req.headers['user-agent'] ?? null,
-      requestId: req.headers['x-request-id'] as string ?? null,
+      userAgent: req.headers["user-agent"] ?? null,
+      requestId: (req.headers["x-request-id"] as string) ?? null,
       sessionId: req.session?.id ?? null,
       metadata: {},
     });
@@ -311,11 +345,21 @@ export class AuditContext extends ValueObject<AuditContextProps> {
     });
   }
 
-  get ipAddress(): string | null { return this.props.ipAddress; }
-  get userAgent(): string | null { return this.props.userAgent; }
-  get requestId(): string | null { return this.props.requestId; }
-  get sessionId(): string | null { return this.props.sessionId; }
-  get metadata(): Record<string, any> { return this.props.metadata; }
+  get ipAddress(): string | null {
+    return this.props.ipAddress;
+  }
+  get userAgent(): string | null {
+    return this.props.userAgent;
+  }
+  get requestId(): string | null {
+    return this.props.requestId;
+  }
+  get sessionId(): string | null {
+    return this.props.sessionId;
+  }
+  get metadata(): Record<string, any> {
+    return this.props.metadata;
+  }
 }
 ```
 
@@ -418,49 +462,49 @@ ALTER TABLE audit_logs_archive ADD INDEX idx_resource resource_type TYPE bloom_f
 
 ### Authentication Events
 
-| Action | Description | Compliance |
-|--------|-------------|------------|
-| `auth.login` | Successful login | SOC2, ISO27001 |
-| `auth.logout` | User logout | SOC2 |
-| `auth.login_failed` | Failed login attempt | SOC2, ISO27001 |
-| `auth.mfa_enabled` | MFA enabled | SOC2, ISO27001 |
-| `auth.mfa_disabled` | MFA disabled | SOC2, ISO27001 |
-| `auth.password_changed` | Password changed | SOC2 |
-| `auth.account_locked` | Account locked (brute force) | SOC2, ISO27001 |
+| Action                  | Description                  | Compliance     |
+| ----------------------- | ---------------------------- | -------------- |
+| `auth.login`            | Successful login             | SOC2, ISO27001 |
+| `auth.logout`           | User logout                  | SOC2           |
+| `auth.login_failed`     | Failed login attempt         | SOC2, ISO27001 |
+| `auth.mfa_enabled`      | MFA enabled                  | SOC2, ISO27001 |
+| `auth.mfa_disabled`     | MFA disabled                 | SOC2, ISO27001 |
+| `auth.password_changed` | Password changed             | SOC2           |
+| `auth.account_locked`   | Account locked (brute force) | SOC2, ISO27001 |
 
 ### User Management Events
 
-| Action | Description | Compliance |
-|--------|-------------|------------|
-| `user.created` | New user created | SOC2, GDPR |
-| `user.updated` | User profile updated | GDPR |
-| `user.deleted` | User deleted | SOC2, GDPR |
-| `user.role_assigned` | Role assigned to user | SOC2, ISO27001 |
-| `user.role_removed` | Role removed from user | SOC2, ISO27001 |
+| Action               | Description            | Compliance     |
+| -------------------- | ---------------------- | -------------- |
+| `user.created`       | New user created       | SOC2, GDPR     |
+| `user.updated`       | User profile updated   | GDPR           |
+| `user.deleted`       | User deleted           | SOC2, GDPR     |
+| `user.role_assigned` | Role assigned to user  | SOC2, ISO27001 |
+| `user.role_removed`  | Role removed from user | SOC2, ISO27001 |
 
 ### API Key Events
 
-| Action | Description | Compliance |
-|--------|-------------|------------|
+| Action            | Description     | Compliance     |
+| ----------------- | --------------- | -------------- |
 | `api_key.created` | API key created | SOC2, ISO27001 |
-| `api_key.rotated` | API key rotated | SOC2 |
+| `api_key.rotated` | API key rotated | SOC2           |
 | `api_key.revoked` | API key revoked | SOC2, ISO27001 |
 
 ### Data Access Events
 
-| Action | Description | Compliance |
-|--------|-------------|------------|
-| `export.requested` | Data export requested | GDPR, HIPAA |
-| `export.downloaded` | Data export downloaded | GDPR, HIPAA |
-| `dashboard.shared` | Dashboard shared externally | SOC2 |
+| Action              | Description                 | Compliance  |
+| ------------------- | --------------------------- | ----------- |
+| `export.requested`  | Data export requested       | GDPR, HIPAA |
+| `export.downloaded` | Data export downloaded      | GDPR, HIPAA |
+| `dashboard.shared`  | Dashboard shared externally | SOC2        |
 
 ### Security Events
 
-| Action | Description | Compliance |
-|--------|-------------|------------|
+| Action                         | Description                  | Compliance     |
+| ------------------------------ | ---------------------------- | -------------- |
 | `security.suspicious_activity` | Suspicious activity detected | SOC2, ISO27001 |
-| `security.access_denied` | Access denied (403) | SOC2 |
-| `security.rate_limit_exceeded` | Rate limit exceeded | SOC2 |
+| `security.access_denied`       | Access denied (403)          | SOC2           |
+| `security.rate_limit_exceeded` | Rate limit exceeded          | SOC2           |
 
 ---
 
@@ -468,21 +512,23 @@ ALTER TABLE audit_logs_archive ADD INDEX idx_resource resource_type TYPE bloom_f
 
 ### Query Audit Logs
 
-| Method | Endpoint | Description | Required Permission |
-|--------|----------|-------------|---------------------|
-| `GET` | `/api/v1/audit-logs` | List audit logs (paginated) | `audit:read:workspace` |
-| `GET` | `/api/v1/audit-logs/:id` | Get audit log details | `audit:read:workspace` |
-| `GET` | `/api/v1/audit-logs/export` | Export audit logs (CSV/JSON) | `audit:export:workspace` |
+| Method | Endpoint                    | Description                  | Required Permission      |
+| ------ | --------------------------- | ---------------------------- | ------------------------ |
+| `GET`  | `/api/v2/audit-logs`        | List audit logs (paginated)  | `audit:read:workspace`   |
+| `GET`  | `/api/v2/audit-logs/:id`    | Get audit log details        | `audit:read:workspace`   |
+| `GET`  | `/api/v2/audit-logs/export` | Export audit logs (CSV/JSON) | `audit:export:workspace` |
 
 ### List Audit Logs
 
 **Request:**
+
 ```http
-GET /api/v1/audit-logs?page=1&limit=50&action=auth.login&startDate=2025-12-01&endDate=2025-12-31
+GET /api/v2/audit-logs?page=1&limit=50&action=auth.login&startDate=2025-12-01&endDate=2025-12-31
 Authorization: Bearer <JWT>
 ```
 
 **Query Parameters:**
+
 - `page`: Page number (default: 1)
 - `limit`: Items per page (max: 100)
 - `action`: Filter by action (e.g., `auth.login`)
@@ -494,6 +540,7 @@ Authorization: Bearer <JWT>
 - `ipAddress`: Filter by IP address
 
 **Response:**
+
 ```json
 {
   "data": [
@@ -570,11 +617,13 @@ sequenceDiagram
 ```typescript
 // /backend/src/modules/800-audit/application/event-handlers/AuditEventHandler.ts
 
-@EventsHandler(UserCreatedEvent, UserDeletedEvent, AuthLoginEvent, /* ... */)
+@EventsHandler(UserCreatedEvent, UserDeletedEvent, AuthLoginEvent /* ... */)
 export class AuditEventHandler implements IEventHandler {
   constructor(
-    @Inject('AUDIT_LOG_REPOSITORY') private auditLogRepository: IAuditLogRepository,
-    @Inject('CURRENT_USER_SERVICE') private currentUserService: ICurrentUserService,
+    @Inject("AUDIT_LOG_REPOSITORY")
+    private auditLogRepository: IAuditLogRepository,
+    @Inject("CURRENT_USER_SERVICE")
+    private currentUserService: ICurrentUserService,
   ) {}
 
   async handle(event: DomainEvent): Promise<void> {
@@ -587,7 +636,7 @@ export class AuditEventHandler implements IEventHandler {
       return AuditLog.create(
         event.userId,
         AuditAction.userCreated(),
-        AuditResource.create('user', event.userId, event.email),
+        AuditResource.create("user", event.userId, event.email),
         AuditContext.fromRequest(this.currentUserService.getRequest()),
         this.currentUserService.getWorkspaceId(),
         this.currentUserService.getTenantId(),
@@ -598,8 +647,11 @@ export class AuditEventHandler implements IEventHandler {
       return AuditLog.create(
         event.userId,
         AuditAction.authLogin(),
-        AuditResource.create('user', event.userId),
-        AuditContext.fromRequest(event.request).withMetadata('loginMethod', event.method),
+        AuditResource.create("user", event.userId),
+        AuditContext.fromRequest(event.request).withMetadata(
+          "loginMethod",
+          event.method,
+        ),
         event.workspaceId,
         event.tenantId,
       );
@@ -638,23 +690,31 @@ export class FindAuditLogsQueryHandler {
     const filters = query.filters;
 
     const queryBuilder = this.repository
-      .createQueryBuilder('audit')
-      .where('audit.workspaceId = :workspaceId', { workspaceId: filters.workspaceId });
+      .createQueryBuilder("audit")
+      .where("audit.workspaceId = :workspaceId", {
+        workspaceId: filters.workspaceId,
+      });
 
     if (filters.tenantId) {
-      queryBuilder.andWhere('audit.tenantId = :tenantId', { tenantId: filters.tenantId });
+      queryBuilder.andWhere("audit.tenantId = :tenantId", {
+        tenantId: filters.tenantId,
+      });
     }
 
     if (filters.userId) {
-      queryBuilder.andWhere('audit.userId = :userId', { userId: filters.userId });
+      queryBuilder.andWhere("audit.userId = :userId", {
+        userId: filters.userId,
+      });
     }
 
     if (filters.action) {
-      queryBuilder.andWhere('audit.action = :action', { action: filters.action });
+      queryBuilder.andWhere("audit.action = :action", {
+        action: filters.action,
+      });
     }
 
     if (filters.startDate && filters.endDate) {
-      queryBuilder.andWhere('audit.timestamp BETWEEN :startDate AND :endDate', {
+      queryBuilder.andWhere("audit.timestamp BETWEEN :startDate AND :endDate", {
         startDate: filters.startDate,
         endDate: filters.endDate,
       });
@@ -662,12 +722,12 @@ export class FindAuditLogsQueryHandler {
 
     if (filters.metadata) {
       // JSONB query: metadata @> '{"key": "value"}'
-      queryBuilder.andWhere('audit.metadata @> :metadata', {
+      queryBuilder.andWhere("audit.metadata @> :metadata", {
         metadata: JSON.stringify(filters.metadata),
       });
     }
 
-    queryBuilder.orderBy('audit.timestamp', 'DESC');
+    queryBuilder.orderBy("audit.timestamp", "DESC");
     queryBuilder.skip((query.page - 1) * query.limit);
     queryBuilder.take(query.limit);
 
@@ -692,14 +752,14 @@ export class FindAuditLogsQueryHandler {
 // Generate SOC2 compliance report: All privileged actions in Q4 2025
 
 const report = await auditLogService.find({
-  action: ['user.role_assigned', 'user.deleted', 'api_key.created'],
-  startDate: new Date('2025-10-01'),
-  endDate: new Date('2025-12-31'),
-  workspaceId: 'production-workspace',
+  action: ["user.role_assigned", "user.deleted", "api_key.created"],
+  startDate: new Date("2025-10-01"),
+  endDate: new Date("2025-12-31"),
+  workspaceId: "production-workspace",
 });
 
 // Export to CSV for auditors
-await auditLogService.exportToCsv(report, 'soc2-q4-2025.csv');
+await auditLogService.exportToCsv(report, "soc2-q4-2025.csv");
 ```
 
 ---
@@ -709,6 +769,7 @@ await auditLogService.exportToCsv(report, 'soc2-q4-2025.csv');
 ### 1. Immutability Enforcement
 
 **Repository Pattern:**
+
 ```typescript
 // /backend/src/modules/800-audit/infrastructure/persistence/postgres/AuditLogRepository.ts
 
@@ -766,6 +827,7 @@ WHERE timestamp < NOW() - INTERVAL '90 days';
 ### 4. Tamper-Proof Logging
 
 **Cryptographic Hashing (Optional Enhancement):**
+
 ```typescript
 // Each audit log includes hash of previous log (blockchain-style)
 export class AuditLog {
@@ -832,12 +894,15 @@ AuditLog.create(
 
 ```typescript
 // Log password change with additional context
-const context = AuditContext.fromRequest(req).withMetadata('passwordStrength', 'strong');
+const context = AuditContext.fromRequest(req).withMetadata(
+  "passwordStrength",
+  "strong",
+);
 
 AuditLog.create(
   user.id,
-  AuditAction.create('auth.password_changed'),
-  AuditResource.create('user', user.id),
+  AuditAction.create("auth.password_changed"),
+  AuditResource.create("user", user.id),
   context,
 );
 ```
@@ -890,5 +955,5 @@ async generateMonthlyComplianceReport() {
 
 ---
 
-**Last Updated**: January 01st, 2026
+**Last Updated**: May 14th, 2026
 **Maintained By**: DevOpsCorner Indonesia

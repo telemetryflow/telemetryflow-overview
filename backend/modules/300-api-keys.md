@@ -4,7 +4,7 @@
 - **Category**: Backend / Business Modules
 - **Status**: Production Ready
 - **Priority:** 🔥 CRITICAL - Core Platform Functionality
-- **Version**: 1.1.2-CE
+- **Version**: 1.4.0
 
 ---
 
@@ -72,6 +72,7 @@ graph TB
 ```
 
 **Key Principles:**
+
 - **Domain-Driven Design**: ApiKey aggregate with rotation and revocation logic
 - **Security First**: Never store plaintext secrets
 - **Zero-downtime rotation**: Grace period for key migration
@@ -90,9 +91,9 @@ Authorization: Bearer tfk-a1b2c3d4e5f6.tfs-x1y2z3a4b5c6d7e8f9
                       └─ KeyId ─┘ └─── KeySecret ────┘
 ```
 
-| Component | Prefix | Length | Purpose | Storage |
-|-----------|--------|--------|---------|---------|
-| **KeyId** | `tfk-` | 20 chars | Public identifier | Plaintext in DB |
+| Component     | Prefix | Length   | Purpose           | Storage           |
+| ------------- | ------ | -------- | ----------------- | ----------------- |
+| **KeyId**     | `tfk-` | 20 chars | Public identifier | Plaintext in DB   |
 | **KeySecret** | `tfs-` | 40 chars | Secret credential | Hashed (Argon2id) |
 
 ### Key Generation Algorithm
@@ -101,21 +102,21 @@ Authorization: Bearer tfk-a1b2c3d4e5f6.tfs-x1y2z3a4b5c6d7e8f9
 // /backend/src/modules/300-api-keys/domain/value-objects/KeyId.ts
 
 export class KeyId extends ValueObject<string> {
-  private static readonly PREFIX = 'tfk-';
+  private static readonly PREFIX = "tfk-";
   private static readonly LENGTH = 16; // hex chars after prefix
 
   static generate(): KeyId {
-    const randomHex = randomBytes(this.LENGTH / 2).toString('hex');
+    const randomHex = randomBytes(this.LENGTH / 2).toString("hex");
     const value = `${this.PREFIX}${randomHex}`;
     return new KeyId(value);
   }
 
   validate(value: string): void {
     if (!value.startsWith(this.PREFIX)) {
-      throw new Error('Invalid KeyId prefix');
+      throw new Error("Invalid KeyId prefix");
     }
     if (value.length !== this.PREFIX.length + this.LENGTH) {
-      throw new Error('Invalid KeyId length');
+      throw new Error("Invalid KeyId length");
     }
   }
 }
@@ -125,11 +126,11 @@ export class KeyId extends ValueObject<string> {
 // /backend/src/modules/300-api-keys/domain/value-objects/KeySecret.ts
 
 export class KeySecret extends ValueObject<string> {
-  private static readonly PREFIX = 'tfs-';
+  private static readonly PREFIX = "tfs-";
   private static readonly LENGTH = 32; // hex chars after prefix
 
   static generate(): { secret: KeySecret; hash: string } {
-    const randomHex = randomBytes(this.LENGTH / 2).toString('hex');
+    const randomHex = randomBytes(this.LENGTH / 2).toString("hex");
     const value = `${this.PREFIX}${randomHex}`;
 
     // Hash immediately with Argon2id
@@ -161,7 +162,7 @@ export class KeySecret extends ValueObject<string> {
 ```typescript
 // /backend/src/modules/300-api-keys/domain/aggregates/ApiKey.ts
 
-export type ApiKeyStatus = 'active' | 'rotated' | 'revoked' | 'expired';
+export type ApiKeyStatus = "active" | "rotated" | "revoked" | "expired";
 
 export interface ApiKeyProps {
   keyId: KeyId;
@@ -208,7 +209,7 @@ export class ApiKey extends AggregateRoot<ApiKeyId> {
       tenantId: new TenantId(params.tenantId),
       workspaceId: new WorkspaceId(params.workspaceId),
       createdBy: new UserId(params.createdBy),
-      status: 'active',
+      status: "active",
       lastUsedAt: null,
       usageCount: 0,
       expiresAt: params.expiresAt ?? null,
@@ -218,21 +219,29 @@ export class ApiKey extends AggregateRoot<ApiKeyId> {
       createdAt: new Date(),
     });
 
-    apiKey.addDomainEvent(new ApiKeyCreatedEvent(apiKeyId, keyId, params.name, params.tenantId));
+    apiKey.addDomainEvent(
+      new ApiKeyCreatedEvent(apiKeyId, keyId, params.name, params.tenantId),
+    );
     return { apiKey, keyId };
   }
 
   // Rotate key (generate new KeyId, mark old as rotated)
-  rotate(newSecretHash: string, rotatedBy: string, gracePeriodMinutes: number = 30): { newKeyId: KeyId } {
-    if (this._props.status !== 'active') {
-      throw new Error('Can only rotate active keys');
+  rotate(
+    newSecretHash: string,
+    rotatedBy: string,
+    gracePeriodMinutes: number = 30,
+  ): { newKeyId: KeyId } {
+    if (this._props.status !== "active") {
+      throw new Error("Can only rotate active keys");
     }
 
     const newKeyId = KeyId.generate();
-    const gracePeriodExpiresAt = new Date(Date.now() + gracePeriodMinutes * 60 * 1000);
+    const gracePeriodExpiresAt = new Date(
+      Date.now() + gracePeriodMinutes * 60 * 1000,
+    );
 
     // Mark current key as rotated
-    this._props.status = 'rotated';
+    this._props.status = "rotated";
     this._props.gracePeriodExpiresAt = gracePeriodExpiresAt;
 
     this.addDomainEvent(
@@ -242,7 +251,7 @@ export class ApiKey extends AggregateRoot<ApiKeyId> {
         newKeyId,
         new UserId(rotatedBy),
         gracePeriodExpiresAt,
-      )
+      ),
     );
 
     return { newKeyId };
@@ -250,26 +259,28 @@ export class ApiKey extends AggregateRoot<ApiKeyId> {
 
   // Revoke key immediately
   revoke(revokedBy: string): void {
-    if (this._props.status === 'revoked') {
-      throw new Error('Key already revoked');
+    if (this._props.status === "revoked") {
+      throw new Error("Key already revoked");
     }
 
-    this._props.status = 'revoked';
+    this._props.status = "revoked";
     this._props.revokedAt = new Date();
     this._props.revokedBy = new UserId(revokedBy);
 
-    this.addDomainEvent(new ApiKeyRevokedEvent(this.id, this._props.keyId, new UserId(revokedBy)));
+    this.addDomainEvent(
+      new ApiKeyRevokedEvent(this.id, this._props.keyId, new UserId(revokedBy)),
+    );
   }
 
   // Check if key is usable
   isUsable(): boolean {
     // Active keys: check not expired
-    if (this._props.status === 'active') {
+    if (this._props.status === "active") {
       return !this.isExpired();
     }
 
     // Rotated keys: usable during grace period
-    if (this._props.status === 'rotated' && this._props.gracePeriodExpiresAt) {
+    if (this._props.status === "rotated" && this._props.gracePeriodExpiresAt) {
       return new Date() < this._props.gracePeriodExpiresAt && !this.isExpired();
     }
 
@@ -294,23 +305,33 @@ export class ApiKey extends AggregateRoot<ApiKeyId> {
 
   // Scope matching
   matchesScope(tenantId: string, workspaceId?: string): boolean {
-    if (this._props.scope.type === 'tenant') {
+    if (this._props.scope.type === "tenant") {
       return this._props.tenantId.equals(new TenantId(tenantId));
     }
 
-    if (this._props.scope.type === 'workspace') {
-      return this._props.workspaceId.equals(new WorkspaceId(workspaceId ?? ''));
+    if (this._props.scope.type === "workspace") {
+      return this._props.workspaceId.equals(new WorkspaceId(workspaceId ?? ""));
     }
 
     return false;
   }
 
   // Getters
-  get keyId(): KeyId { return this._props.keyId; }
-  get secretHash(): string { return this._props.secretHash; }
-  get status(): ApiKeyStatus { return this._props.status; }
-  get tenantId(): TenantId { return this._props.tenantId; }
-  get workspaceId(): WorkspaceId { return this._props.workspaceId; }
+  get keyId(): KeyId {
+    return this._props.keyId;
+  }
+  get secretHash(): string {
+    return this._props.secretHash;
+  }
+  get status(): ApiKeyStatus {
+    return this._props.status;
+  }
+  get tenantId(): TenantId {
+    return this._props.tenantId;
+  }
+  get workspaceId(): WorkspaceId {
+    return this._props.workspaceId;
+  }
 }
 ```
 
@@ -319,7 +340,7 @@ export class ApiKey extends AggregateRoot<ApiKeyId> {
 ```typescript
 // /backend/src/modules/300-api-keys/domain/value-objects/KeyScope.ts
 
-export type KeyScopeType = 'tenant' | 'workspace';
+export type KeyScopeType = "tenant" | "workspace";
 
 export interface KeyScopeProps {
   type: KeyScopeType;
@@ -328,11 +349,11 @@ export interface KeyScopeProps {
 
 export class KeyScope extends ValueObject<KeyScopeProps> {
   static forTenant(tenantId: string): KeyScope {
-    return new KeyScope({ type: 'tenant', resourceId: tenantId });
+    return new KeyScope({ type: "tenant", resourceId: tenantId });
   }
 
   static forWorkspace(workspaceId: string): KeyScope {
-    return new KeyScope({ type: 'workspace', resourceId: workspaceId });
+    return new KeyScope({ type: "workspace", resourceId: workspaceId });
   }
 
   get type(): KeyScopeType {
@@ -363,32 +384,38 @@ export class ApiKeyPermissions extends ValueObject<Set<string>> {
 
   // Common permission sets
   static readOnly(): ApiKeyPermissions {
-    return new ApiKeyPermissions(new Set([
-      'metrics:read:tenant',
-      'logs:read:tenant',
-      'traces:read:tenant',
-    ]));
+    return new ApiKeyPermissions(
+      new Set([
+        "metrics:read:tenant",
+        "logs:read:tenant",
+        "traces:read:tenant",
+      ]),
+    );
   }
 
   static fullAccess(): ApiKeyPermissions {
-    return new ApiKeyPermissions(new Set([
-      'metrics:read:tenant',
-      'metrics:write:tenant',
-      'logs:read:tenant',
-      'logs:write:tenant',
-      'traces:read:tenant',
-      'traces:write:tenant',
-      'alerts:read:tenant',
-      'alerts:write:tenant',
-    ]));
+    return new ApiKeyPermissions(
+      new Set([
+        "metrics:read:tenant",
+        "metrics:write:tenant",
+        "logs:read:tenant",
+        "logs:write:tenant",
+        "traces:read:tenant",
+        "traces:write:tenant",
+        "alerts:read:tenant",
+        "alerts:write:tenant",
+      ]),
+    );
   }
 
   static ingestionOnly(): ApiKeyPermissions {
-    return new ApiKeyPermissions(new Set([
-      'metrics:write:tenant',
-      'logs:write:tenant',
-      'traces:write:tenant',
-    ]));
+    return new ApiKeyPermissions(
+      new Set([
+        "metrics:write:tenant",
+        "logs:write:tenant",
+        "traces:write:tenant",
+      ]),
+    );
   }
 }
 ```
@@ -497,21 +524,22 @@ CREATE TABLE api_key_usage_logs_2025_12 PARTITION OF api_key_usage_logs
 
 ### API Key Management
 
-| Method | Endpoint | Description | Required Permission |
-|--------|----------|-------------|---------------------|
-| `POST` | `/api/v1/api-keys` | Create new API key | `api-keys:write:tenant` |
-| `GET` | `/api/v1/api-keys` | List API keys (paginated) | `api-keys:read:tenant` |
-| `GET` | `/api/v1/api-keys/:id` | Get API key details | `api-keys:read:tenant` |
-| `PATCH` | `/api/v1/api-keys/:id` | Update API key name/description | `api-keys:write:tenant` |
-| `DELETE` | `/api/v1/api-keys/:id` | Revoke API key | `api-keys:write:tenant` |
-| `POST` | `/api/v1/api-keys/:id/rotate` | Rotate API key | `api-keys:write:tenant` |
-| `GET` | `/api/v1/api-keys/:id/usage` | Get usage statistics | `api-keys:read:tenant` |
+| Method   | Endpoint                      | Description                     | Required Permission     |
+| -------- | ----------------------------- | ------------------------------- | ----------------------- |
+| `POST`   | `/api/v2/api-keys`            | Create new API key              | `api-keys:write:tenant` |
+| `GET`    | `/api/v2/api-keys`            | List API keys (paginated)       | `api-keys:read:tenant`  |
+| `GET`    | `/api/v2/api-keys/:id`        | Get API key details             | `api-keys:read:tenant`  |
+| `PATCH`  | `/api/v2/api-keys/:id`        | Update API key name/description | `api-keys:write:tenant` |
+| `DELETE` | `/api/v2/api-keys/:id`        | Revoke API key                  | `api-keys:write:tenant` |
+| `POST`   | `/api/v2/api-keys/:id/rotate` | Rotate API key                  | `api-keys:write:tenant` |
+| `GET`    | `/api/v2/api-keys/:id/usage`  | Get usage statistics            | `api-keys:read:tenant`  |
 
 ### Create API Key
 
 **Request:**
+
 ```http
-POST /api/v1/api-keys
+POST /api/v2/api-keys
 Authorization: Bearer <JWT>
 Content-Type: application/json
 
@@ -532,6 +560,7 @@ Content-Type: application/json
 ```
 
 **Response:**
+
 ```json
 {
   "apiKeyId": "uuid",
@@ -558,8 +587,9 @@ Content-Type: application/json
 ### Rotate API Key
 
 **Request:**
+
 ```http
-POST /api/v1/api-keys/:id/rotate
+POST /api/v2/api-keys/:id/rotate
 Authorization: Bearer <JWT>
 Content-Type: application/json
 
@@ -569,6 +599,7 @@ Content-Type: application/json
 ```
 
 **Response:**
+
 ```json
 {
   "apiKeyId": "uuid",
@@ -689,7 +720,7 @@ export class RotateApiKeyCommandHandler {
     const apiKey = await this.apiKeyRepository.findById(command.apiKeyId);
 
     if (!apiKey) {
-      throw new NotFoundException('API key not found');
+      throw new NotFoundException("API key not found");
     }
 
     // Generate new secret
@@ -721,7 +752,7 @@ export class RotateApiKeyCommandHandler {
 
     // Publish event
     await this.eventBus.publish(
-      new ApiKeyRotatedEvent(apiKey.id, apiKey.keyId, newKeyId, command.userId)
+      new ApiKeyRotatedEvent(apiKey.id, apiKey.keyId, newKeyId, command.userId),
     );
 
     return {
@@ -777,15 +808,15 @@ API_KEY_RATE_LIMIT_PER_HOUR=50000      # 50K requests/hour
 
 ```typescript
 // ❌ BAD: Storing plaintext
-await db.insert({ key_id: 'tfk-xxx', secret: 'tfs-yyy' });
+await db.insert({ key_id: "tfk-xxx", secret: "tfs-yyy" });
 
 // ✅ GOOD: Hash with Argon2id
-const secretHash = await argon2.hash('tfs-yyy', {
+const secretHash = await argon2.hash("tfs-yyy", {
   type: argon2.argon2id,
   memoryCost: 2 ** 16,
   timeCost: 3,
 });
-await db.insert({ key_id: 'tfk-xxx', secret_hash: secretHash });
+await db.insert({ key_id: "tfk-xxx", secret_hash: secretHash });
 ```
 
 ### 2. Only Return Secret Once
@@ -812,8 +843,8 @@ async ingestMetrics(@ApiKeyContext() apiKey: ApiKey) {
 ```typescript
 // Log key creation, rotation, revocation
 await this.auditLogService.log({
-  action: 'api_key.created',
-  resource: 'api_key',
+  action: "api_key.created",
+  resource: "api_key",
   resourceId: apiKey.id,
   userId: command.userId,
   tenantId: command.tenantId,
@@ -848,40 +879,40 @@ WHERE status = 'rotated'
 
 ```typescript
 // ❌ BAD
-name: "Key 1"
+name: "Key 1";
 
 // ✅ GOOD
-name: "Production OTLP Ingestion - us-west-2"
+name: "Production OTLP Ingestion - us-west-2";
 ```
 
 ### 2. Minimal Permissions
 
 ```typescript
 // ❌ BAD: Full access for ingestion
-permissions: ApiKeyPermissions.fullAccess()
+permissions: ApiKeyPermissions.fullAccess();
 
 // ✅ GOOD: Ingestion-only
-permissions: ApiKeyPermissions.ingestionOnly()
+permissions: ApiKeyPermissions.ingestionOnly();
 ```
 
 ### 3. Scope to Tenant
 
 ```typescript
 // ❌ BAD: Workspace-wide access
-scope: KeyScope.forWorkspace(workspaceId)
+scope: KeyScope.forWorkspace(workspaceId);
 
 // ✅ GOOD: Tenant-specific
-scope: KeyScope.forTenant(tenantId)
+scope: KeyScope.forTenant(tenantId);
 ```
 
 ### 4. Set Expiration
 
 ```typescript
 // ❌ BAD: No expiration
-expiresAt: null
+expiresAt: null;
 
 // ✅ GOOD: 1 year expiration
-expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)
+expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
 ```
 
 ### 5. Rotate Regularly
@@ -901,5 +932,5 @@ expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)
 
 ---
 
-- **Last Updated**: January 01st, 2026
+- **Last Updated**: May 14th, 2026
 - **Maintained By**: DevOpsCorner Indonesia

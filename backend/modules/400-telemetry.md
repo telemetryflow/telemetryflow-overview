@@ -4,7 +4,7 @@
 - **Category**: Backend / Business Modules
 - **Status**: Production Ready
 - **Priority:** 🔥 CRITICAL - Core Platform Functionality
-- **Version**: 1.1.2-CE
+- **Version**: 1.4.0
 
 ---
 
@@ -134,14 +134,14 @@ sequenceDiagram
 
 ### Endpoint Details
 
-| Endpoint | Method | Auth | Rate Limit | Purpose |
-|----------|--------|------|------------|---------|
-| `/v2/otlp/metrics` | POST | API Key | 1000/min | OTLP metrics ingestion |
-| `/v2/otlp/logs` | POST | API Key | 1000/min | OTLP logs ingestion |
-| `/v2/otlp/traces` | POST | API Key | 1000/min | OTLP traces ingestion |
-| `/v2/telemetry/metrics` | GET | JWT | 100/min | Query metrics |
-| `/v2/telemetry/logs` | GET | JWT | 100/min | Query logs |
-| `/v2/telemetry/traces` | GET | JWT | 100/min | Query traces |
+| Endpoint                | Method | Auth    | Rate Limit | Purpose                |
+| ----------------------- | ------ | ------- | ---------- | ---------------------- |
+| `/v2/otlp/metrics`      | POST   | API Key | 1000/min   | OTLP metrics ingestion |
+| `/v2/otlp/logs`         | POST   | API Key | 1000/min   | OTLP logs ingestion    |
+| `/v2/otlp/traces`       | POST   | API Key | 1000/min   | OTLP traces ingestion  |
+| `/v2/telemetry/metrics` | GET    | JWT     | 100/min    | Query metrics          |
+| `/v2/telemetry/logs`    | GET    | JWT     | 100/min    | Query logs             |
+| `/v2/telemetry/traces`  | GET    | JWT     | 100/min    | Query traces           |
 
 ---
 
@@ -153,8 +153,8 @@ sequenceDiagram
 // domain/aggregates/Metric.aggregate.ts
 export class Metric extends AggregateRoot {
   private readonly _id: MetricId;
-  private readonly _metricName: MetricName;  // Value Object
-  private readonly _metricType: MetricType;  // gauge, counter, histogram
+  private readonly _metricName: MetricName; // Value Object
+  private readonly _metricType: MetricType; // gauge, counter, histogram
   private _value: MetricValue;
   private readonly _timestamp: Timestamp;
   private readonly _tenantContext: TenantContext;
@@ -162,12 +162,12 @@ export class Metric extends AggregateRoot {
   static create(props: MetricProps): Metric {
     // Business Rule: Counter metrics must be monotonic
     if (props.metricType.isCounter() && props.isMonotonic === false) {
-      throw new DomainError('Counter metrics must be monotonic');
+      throw new DomainError("Counter metrics must be monotonic");
     }
 
     // Business Rule: Counter values cannot be negative
     if (props.metricType.isCounter() && props.value.isNegative()) {
-      throw new DomainError('Counter values cannot be negative');
+      throw new DomainError("Counter values cannot be negative");
     }
 
     const metric = new Metric(props);
@@ -177,7 +177,7 @@ export class Metric extends AggregateRoot {
 
   updateValue(newValue: MetricValue): void {
     if (this._metricType.isCounter() && newValue.isLessThan(this._value)) {
-      throw new DomainError('Counter values cannot decrease');
+      throw new DomainError("Counter values cannot decrease");
     }
     this._value = newValue;
     this.apply(new MetricValueUpdated(this));
@@ -302,6 +302,7 @@ graph TB
 ```
 
 **Performance Results:**
+
 - Bloom Filters: 10-50x faster for string searches
 - MinMax: 5-20x faster for range queries
 - Partitioning: Skip 80-95% of data for time-range queries
@@ -328,7 +329,7 @@ export class GetMetricTimeSeriesHandler {
       startTime: query.startTime,
       endTime: query.endTime,
       aggregation: query.aggregation, // avg, sum, min, max
-      interval: query.interval,       // 1m, 5m, 1h
+      interval: query.interval, // 1m, 5m, 1h
       tenantContext: query.tenantContext,
     });
 
@@ -376,10 +377,12 @@ sequenceDiagram
 ### 1. OTLP Format Support
 
 **Supported Formats:**
+
 - ✅ Protobuf (application/x-protobuf)
 - ✅ JSON (application/json)
 
 **OTLP Versions:**
+
 - ✅ OTLP 1.0 (Stable)
 - ✅ OTLP 0.x (Legacy compatibility)
 
@@ -406,6 +409,7 @@ flowchart TD
 ```
 
 **Priority Order:**
+
 1. HTTP Headers (`X-Tenant-ID`, `X-Workspace-ID`)
 2. OTLP Resource Attributes (`telemetryflow.tenant.id`)
 3. Default Tenant from API Key
@@ -413,6 +417,7 @@ flowchart TD
 ### 3. Async Processing
 
 **Queue Configuration:**
+
 ```typescript
 {
   name: 'otlp-ingestion',
@@ -475,12 +480,12 @@ graph LR
 
 ### Query Performance
 
-| Query Type | Cache Hit | Cache Miss | Optimization |
-|------------|-----------|------------|--------------|
-| **Time Series (1h)** | 10ms | 200ms | Partition pruning |
-| **Time Series (24h)** | 15ms | 500ms | Hourly aggregations |
-| **Service List** | 5ms | 100ms | Materialized view |
-| **Metric Names** | 5ms | 150ms | Bloom filter index |
+| Query Type            | Cache Hit | Cache Miss | Optimization        |
+| --------------------- | --------- | ---------- | ------------------- |
+| **Time Series (1h)**  | 10ms      | 200ms      | Partition pruning   |
+| **Time Series (24h)** | 15ms      | 500ms      | Hourly aggregations |
+| **Service List**      | 5ms       | 100ms      | Materialized view   |
+| **Metric Names**      | 5ms       | 150ms      | Bloom filter index  |
 
 ---
 
@@ -569,15 +574,18 @@ graph TB
 ## Testing
 
 ### Unit Tests
+
 - `Metric.aggregate.spec.ts` - Business rule validation
 - `MetricName.vo.spec.ts` - Value object validation
 - `IngestMetrics.handler.spec.ts` - Command handler logic
 
 ### Integration Tests
+
 - `otlp-ingestion.spec.ts` - Full ingestion pipeline
 - `metric-query.spec.ts` - Query performance
 
 ### E2E Tests
+
 - `otlp-ingestion.e2e.spec.ts` - End-to-end OTLP flow
 
 ---

@@ -7,7 +7,7 @@
 
   <h3>TelemetryFlow Platform - Overview Documentation</h3>
 
-[![Version](https://img.shields.io/badge/version-1.1.2--CE-orange.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.4.0-blue.svg)](CHANGELOG.md)
 [![License](https://img.shields.io/badge/license-Apache--2.0-green.svg)](LICENSE)
 [![NestJS](https://img.shields.io/badge/NestJS-11.x-E0234E?logo=nestjs)](https://nestjs.com/)
 [![Vue](https://img.shields.io/badge/Vue-3.5.24-4FC08D?logo=vue.js)](https://vuejs.org/)
@@ -213,6 +213,7 @@ The project includes detailed standardization specifications for all modules:
 - **Cache Module**: `.kiro/specs/cache-module-standardization/`
 
 Each specification includes:
+
 - `requirements.md` - 8 major requirements with 80 acceptance criteria using EARS patterns
 - `design.md` - DDD architecture, components, interfaces, and 8 correctness properties
 - `tasks.md` - 52-60 detailed implementation tasks with checkpoints
@@ -222,12 +223,14 @@ Each specification includes:
 All modules must pass these standardization gates:
 
 #### Gate 1: Documentation (100% Complete)
+
 - ✅ Root README.md (500+ lines) with comprehensive sections
 - ✅ Complete documentation structure (INDEX.md, ERD.mermaid.md, DFD.mermaid.md)
 - ✅ Testing documentation (TESTING.md, TEST_PATTERNS.md)
 - ✅ API documentation (openapi.yaml, endpoints.md, authentication.md)
 
 #### Gate 2: Test Coverage (≥90%)
+
 - ✅ Domain layer: ≥95% coverage (business logic is critical)
 - ✅ Application layer: ≥90% coverage (use cases and handlers)
 - ✅ Infrastructure layer: ≥85% coverage (database and external integrations)
@@ -235,24 +238,28 @@ All modules must pass these standardization gates:
 - ✅ Overall module: ≥90% coverage
 
 #### Gate 3: DDD Structure (100% Compliant)
+
 - ✅ Proper domain/application/infrastructure/presentation layering
 - ✅ Standardized file naming and organization
 - ✅ Barrel exports (index.ts) in all directories
 - ✅ TypeScript path mapping for clean imports
 
 #### Gate 4: Database Patterns (100% Compliant)
+
 - ✅ Migration naming: `{timestamp}-{Description}.ts`
 - ✅ Seed naming: `{timestamp}-seed-{module}-{entity}.ts`
 - ✅ Environment variables (no hardcoded values)
 - ✅ Proper foreign keys and indexes
 
 #### Gate 5: API Standards (100% Compliant)
+
 - ✅ Swagger decorators on all endpoints
 - ✅ Validation decorators on all DTOs
 - ✅ Permission guards on protected endpoints
 - ✅ REST conventions and error handling
 
 #### Gate 6: Build & Quality (0 Errors)
+
 - ✅ `pnpm build` succeeds with 0 errors
 - ✅ `pnpm lint` succeeds with 0 errors
 - ✅ `pnpm test` succeeds with 0 failures
@@ -261,6 +268,7 @@ All modules must pass these standardization gates:
 ### Working with Specifications
 
 #### Viewing Specifications
+
 ```bash
 # View IAM module requirements
 cat .kiro/specs/iam-module-standardization/requirements.md
@@ -273,6 +281,7 @@ cat .kiro/specs/iam-module-standardization/tasks.md
 ```
 
 #### Implementation Workflow
+
 1. **Review Requirements**: Read the requirements.md file for acceptance criteria
 2. **Study Design**: Review the design.md file for architecture and components
 3. **Follow Tasks**: Implement tasks from tasks.md in order
@@ -280,7 +289,9 @@ cat .kiro/specs/iam-module-standardization/tasks.md
 5. **Update Documentation**: Keep documentation current with changes
 
 #### Property-Based Testing
+
 Each module includes 8 correctness properties for comprehensive testing:
+
 1. **Idempotency**: Operations produce same result when repeated
 2. **Consistency**: Data remains consistent across operations
 3. **Validation**: All inputs are properly validated
@@ -293,6 +304,7 @@ Each module includes 8 correctness properties for comprehensive testing:
 ### Standardization Tools
 
 #### Coverage Enforcement
+
 ```bash
 # Check test coverage
 pnpm test:cov
@@ -307,6 +319,7 @@ pnpm test:cov
 ```
 
 #### Quality Validation
+
 ```bash
 # Run all quality checks
 pnpm lint && pnpm test && pnpm build
@@ -319,6 +332,7 @@ pnpm validate:naming
 ```
 
 #### Documentation Generation
+
 ```bash
 # Generate module documentation
 pnpm generate:docs --module iam
@@ -367,6 +381,7 @@ Fixes #123
 ```
 
 **Types:**
+
 - `feat`: New feature
 - `fix`: Bug fix
 - `docs`: Documentation changes
@@ -436,15 +451,15 @@ Follow these guidelines for tests:
 Example test structure:
 
 ```typescript
-import { User } from '../User';
-import { Email } from '../../value-objects/Email';
-import { UserCreatedEvent } from '../../events/UserCreated.event';
+import { User } from "../User";
+import { Email } from "../../value-objects/Email";
+import { UserCreatedEvent } from "../../events/UserCreated.event";
 
-describe('User Aggregate', () => {
-  describe('create', () => {
-    it('should create user with valid email', () => {
+describe("User Aggregate", () => {
+  describe("create", () => {
+    it("should create user with valid email", () => {
       // Arrange
-      const email = Email.create('test@example.com');
+      const email = Email.create("test@example.com");
 
       // Act
       const user = User.create(email);
@@ -456,9 +471,9 @@ describe('User Aggregate', () => {
       expect(user.getUncommittedEvents()[0]).toBeInstanceOf(UserCreatedEvent);
     });
 
-    it('should throw error for invalid email', () => {
+    it("should throw error for invalid email", () => {
       // Act & Assert
-      expect(() => Email.create('invalid-email')).toThrow();
+      expect(() => Email.create("invalid-email")).toThrow();
     });
   });
 });
@@ -479,16 +494,16 @@ We maintain high test coverage standards:
 Each module must implement 8 correctness properties:
 
 ```typescript
-describe('User Aggregate Properties', () => {
-  it('should maintain idempotency', () => {
+describe("User Aggregate Properties", () => {
+  it("should maintain idempotency", () => {
     // Test that operations produce same result when repeated
   });
 
-  it('should maintain consistency', () => {
+  it("should maintain consistency", () => {
     // Test that data remains consistent across operations
   });
 
-  it('should validate all inputs', () => {
+  it("should validate all inputs", () => {
     // Test that all inputs are properly validated
   });
 
@@ -550,14 +565,14 @@ Follow NestJS and TypeScript best practices:
 
 ### Naming Conventions
 
-| Type | Convention | Example |
-|------|------------|---------|
-| Modules | PascalCase | `IAMModule`, `AuditModule` |
-| Classes | PascalCase | `User`, `UserController`, `CreateUserHandler` |
-| Interfaces | PascalCase with I prefix | `IUserRepository`, `ILogger` |
-| Functions | camelCase | `createUser`, `validateEmail` |
-| Constants | UPPER_SNAKE_CASE | `DEFAULT_PAGE_SIZE`, `MAX_RETRY_ATTEMPTS` |
-| Files | PascalCase with suffix | `User.entity.ts`, `CreateUser.handler.ts` |
+| Type       | Convention               | Example                                       |
+| ---------- | ------------------------ | --------------------------------------------- |
+| Modules    | PascalCase               | `IAMModule`, `AuditModule`                    |
+| Classes    | PascalCase               | `User`, `UserController`, `CreateUserHandler` |
+| Interfaces | PascalCase with I prefix | `IUserRepository`, `ILogger`                  |
+| Functions  | camelCase                | `createUser`, `validateEmail`                 |
+| Constants  | UPPER_SNAKE_CASE         | `DEFAULT_PAGE_SIZE`, `MAX_RETRY_ATTEMPTS`     |
+| Files      | PascalCase with suffix   | `User.entity.ts`, `CreateUser.handler.ts`     |
 
 ### Error Handling
 
@@ -595,7 +610,7 @@ async getUser(@Param('id') id: string): Promise<UserResponseDto> {
 - Use JSDoc comments for TypeScript
 - Include type information in documentation
 
-```typescript
+````typescript
 /**
  * Creates a new user in the system.
  *
@@ -613,7 +628,7 @@ async getUser(@Param('id') id: string): Promise<UserResponseDto> {
 async execute(command: CreateUserCommand): Promise<void> {
   // Implementation...
 }
-```
+````
 
 ## Architecture Guidelines
 
@@ -675,11 +690,11 @@ Releases follow semantic versioning (SemVer):
 
 The project uses GitHub Actions for CI/CD:
 
-| Workflow       | Trigger           | Purpose                                 |
-| -------------- | ----------------- | --------------------------------------- |
-| `ci.yml`       | Push/PR           | Lint, test, build verification          |
-| `docker.yml`   | Push to main/tags | Build Docker images                     |
-| `release.yml`  | Tags (v*.*.*)     | Create GitHub release                   |
+| Workflow      | Trigger           | Purpose                        |
+| ------------- | ----------------- | ------------------------------ |
+| `ci.yml`      | Push/PR           | Lint, test, build verification |
+| `docker.yml`  | Push to main/tags | Build Docker images            |
+| `release.yml` | Tags (v*.*.\*)    | Create GitHub release          |
 
 ### Changelog
 
@@ -708,7 +723,7 @@ GitHub Actions will automatically:
 - **Questions**: Open a GitHub Discussion
 - **Bugs**: Open a GitHub Issue with the bug template
 - **Features**: Open a GitHub Issue with the feature request template
-- **Security**: Email security@devopscorner.id (do not open public issues)
+- **Security**: Email security@telemetryflow.id (do not open public issues)
 - **Standardization**: Review specs in `.kiro/specs/` directory
 
 ## Recognition
@@ -723,4 +738,4 @@ Thank you for contributing to TelemetryFlow Platform!
 
 ---
 
-Built with care by the **DevOpsCorner Indonesia** community
+Built with care by the **TelemetryFlow** community

@@ -140,8 +140,8 @@ tfo-mcp version
 
 ```
 TFO-MCP - TelemetryFlow MCP Server
-Version:    1.1.2
-Go Version: go1.24
+Version:    1.2.0
+Go Version: go1.26
 Build Date: 2024-01-15
 Git Commit: abc1234
 Platform:   darwin/arm64
@@ -295,7 +295,7 @@ sequenceDiagram
     },
     "serverInfo": {
       "name": "tfo-mcp",
-      "version": "1.1.2"
+      "version": "1.2.0"
     }
   }
 }

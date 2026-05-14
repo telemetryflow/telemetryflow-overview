@@ -1,7 +1,7 @@
 # TFO-OTEL Deployment Guide
 
-- **Version:** 1.1.2-CE
-- **Last Updated:** December 13, 2025
+- **Version:** 1.4.0
+- **Last Updated:** May 2026
 - **Component:** Deployment Patterns & Best Practices
 - **Target:** Production-Grade Deployments
 
@@ -26,16 +26,16 @@
 
 ## Overview
 
-This guide provides production-grade deployment patterns for TFO-OTEL components (Agent and Collector). Choose the pattern that best fits your infrastructure, scale, and reliability requirements.
+This guide provides production-grade deployment patterns for TFO-OTEL components (Agent v1.2.0 and Collector v1.2.1). Choose the pattern that best fits your infrastructure, scale, and reliability requirements.
 
 ### Decision Matrix
 
-| Pattern | Best For | Complexity | HA Support | Cost |
-|---------|----------|------------|------------|------|
-| **Hub-and-Spoke** | Large enterprises, multi-cluster | High | Excellent | High |
-| **Direct-to-Platform** | Small/medium deployments | Low | Good | Low |
-| **Edge Buffering** | IoT, intermittent connectivity | Medium | Excellent | Medium |
-| **Multi-Region** | Global deployments, compliance | Very High | Excellent | Very High |
+| Pattern                | Best For                         | Complexity | HA Support | Cost      |
+| ---------------------- | -------------------------------- | ---------- | ---------- | --------- |
+| **Hub-and-Spoke**      | Large enterprises, multi-cluster | High       | Excellent  | High      |
+| **Direct-to-Platform** | Small/medium deployments         | Low        | Good       | Low       |
+| **Edge Buffering**     | IoT, intermittent connectivity   | Medium     | Excellent  | Medium    |
+| **Multi-Region**       | Global deployments, compliance   | Very High  | Excellent  | Very High |
 
 ---
 
@@ -46,28 +46,24 @@ This guide provides production-grade deployment patterns for TFO-OTEL components
 ```mermaid
 graph TB
     subgraph PATTERN1[Hub-and-Spoke]
-        APPS1[Applications] --> AGENTS1[TFO-OTEL-Agents]
-        AGENTS1 --> COLLECTORS1[TFO-OTEL-Collectors]
+        APPS1[Applications + DB + K8s] --> AGENTS1[TFO-Agents v1.2.0]
+        AGENTS1 --> COLLECTORS1[TFO-Collector v1.2.1<br/>tfoauth + tfo]
         COLLECTORS1 --> PLATFORM1[TelemetryFlow]
     end
 
     subgraph PATTERN2[Direct-to-Platform]
-        APPS2[Applications] --> AGENTS2[TFO-OTEL-Agents]
+        APPS2[Applications + DB + K8s] --> AGENTS2[TFO-Agents v1.2.0]
         AGENTS2 --> PLATFORM2[TelemetryFlow]
     end
 
     subgraph PATTERN3[Edge Buffering]
-        APPS3[Applications] --> AGENTS3[TFO-OTEL-Agents<br/>+ Persistent Queue]
+        APPS3[Applications] --> AGENTS3[TFO-Agents v1.2.0<br/>+ Disk Buffer]
         AGENTS3 -.->|When online| PLATFORM3[TelemetryFlow]
     end
 
     style COLLECTORS1 fill:#81C784,stroke:#388E3C,color:#000
     style AGENTS1 fill:#FFE082,stroke:#F57C00,color:#000
-    style AGENTS2 fill:#FFE082,stroke:#F57C00,color:#000
-    style AGENTS3 fill:#FFE082,stroke:#F57C00,color:#000
     style PLATFORM1 fill:#64B5F6,stroke:#1976D2,color:#fff
-    style PLATFORM2 fill:#64B5F6,stroke:#1976D2,color:#fff
-    style PLATFORM3 fill:#64B5F6,stroke:#1976D2,color:#fff
 ```
 
 ---
@@ -82,32 +78,32 @@ graph TB
 graph TB
     subgraph REGION1[Region: US-East]
         subgraph CLUSTER1[K8s Cluster 1]
-            APPS1[Applications] --> AGENT1[TFO-OTEL-Agent<br/>DaemonSet]
+            APPS1[Applications] --> AGENT1[TFO-Agent v1.2.0<br/>DaemonSet<br/>K8s + cAdvisor + eBPF]
         end
 
         subgraph CLUSTER2[K8s Cluster 2]
-            APPS2[Applications] --> AGENT2[TFO-OTEL-Agent<br/>DaemonSet]
+            APPS2[Applications + DB] --> AGENT2[TFO-Agent v1.2.0<br/>DaemonSet<br/>K8s + DB Collectors]
         end
 
-        COLLECTOR1[TFO-OTEL-Collector<br/>Hub - 3 replicas]
+        COLLECTOR1[TFO-Collector v1.2.1<br/>OCB Native + tfoauth<br/>3 replicas]
     end
 
     subgraph REGION2[Region: US-West]
         subgraph CLUSTER3[K8s Cluster 3]
-            APPS3[Applications] --> AGENT3[TFO-OTEL-Agent<br/>DaemonSet]
+            APPS3[Applications] --> AGENT3[TFO-Agent v1.2.0<br/>DaemonSet]
         end
 
-        COLLECTOR2[TFO-OTEL-Collector<br/>Hub - 3 replicas]
+        COLLECTOR2[TFO-Collector v1.2.1<br/>OCB Native + tfoauth<br/>3 replicas]
     end
 
-    PLATFORM[TelemetryFlow Platform<br/>Central]
+    PLATFORM[TelemetryFlow Platform v1.4.0<br/>:3000]
 
     AGENT1 -->|OTLP HTTP| COLLECTOR1
     AGENT2 -->|OTLP HTTP| COLLECTOR1
     AGENT3 -->|OTLP HTTP| COLLECTOR2
 
-    COLLECTOR1 -->|OTLP HTTP| PLATFORM
-    COLLECTOR2 -->|OTLP HTTP| PLATFORM
+    COLLECTOR1 -->|tfo exporter| PLATFORM
+    COLLECTOR2 -->|tfo exporter| PLATFORM
 
     style AGENT1 fill:#FFE082,stroke:#F57C00,color:#000
     style AGENT2 fill:#FFE082,stroke:#F57C00,color:#000
@@ -116,14 +112,6 @@ graph TB
     style COLLECTOR2 fill:#81C784,stroke:#388E3C,color:#000
     style PLATFORM fill:#64B5F6,stroke:#1976D2,color:#fff
 ```
-
-### Benefits
-
-- **Aggregation Point**: Collectors aggregate data from multiple agents
-- **Traffic Reduction**: Batching and compression at aggregation layer
-- **Central Processing**: Filtering, sampling, and enrichment in one place
-- **Easier Upgrades**: Update collector config without touching edge agents
-- **Network Efficiency**: Fewer connections to backend
 
 ### Deployment
 
@@ -133,40 +121,67 @@ graph TB
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
-  name: tfo-otel-agent
+  name: tfo-agent
   namespace: observability
 spec:
   selector:
     matchLabels:
-      app: tfo-otel-agent
+      app: tfo-agent
   template:
     metadata:
       labels:
-        app: tfo-otel-agent
+        app: tfo-agent
+        version: "1.2.0"
     spec:
+      serviceAccountName: tfo-agent
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
       containers:
-      - name: otel-agent
-        image: otel/opentelemetry-collector-contrib:0.142.0
-        env:
-        - name: TELEMETRYFLOW_ENDPOINT
-          value: "http://tfo-otel-collector.observability.svc.cluster.local:4318"
-        - name: TELEMETRYFLOW_WORKSPACE_ID
-          valueFrom:
-            secretKeyRef:
-              name: telemetryflow-secrets
-              key: workspace-id
-        - name: TELEMETRYFLOW_TENANT_ID
-          valueFrom:
-            secretKeyRef:
-              name: telemetryflow-secrets
-              key: tenant-id
-        resources:
-          requests:
-            memory: "128Mi"
-            cpu: "100m"
-          limits:
-            memory: "256Mi"
-            cpu: "500m"
+        - name: tfo-agent
+          image: telemetryflow/telemetryflow-agent:1.2.0
+          imagePullPolicy: IfNotPresent
+          args:
+            - start
+            - --config=/etc/tfo-agent/tfo-agent.yaml
+          env:
+            - name: HOSTNAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: K8S_NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: TELEMETRYFLOW_API_ENDPOINT
+              value: "https://api.telemetryflow.id"
+            - name: TELEMETRYFLOW_API_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: telemetryflow-secrets
+                  key: api-key-id
+            - name: TELEMETRYFLOW_API_KEY_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: telemetryflow-secrets
+                  key: api-key-secret
+          ports:
+            - { containerPort: 4317, hostPort: 4317, name: otlp-grpc }
+            - { containerPort: 4318, hostPort: 4318, name: otlp-http }
+            - { containerPort: 13133, name: health }
+          resources:
+            requests: { memory: "128Mi", cpu: "100m" }
+            limits: { memory: "256Mi", cpu: "500m" }
+          volumeMounts:
+            - { name: config, mountPath: /etc/tfo-agent }
+            - { name: buffer-storage, mountPath: /var/lib/tfo-agent }
+      volumes:
+        - name: config
+          configMap:
+            name: tfo-agent-config
+        - name: buffer-storage
+          hostPath:
+            path: /var/lib/tfo-agent
+            type: DirectoryOrCreate
 ```
 
 #### 2. Deploy Collector (Deployment with HPA)
@@ -175,203 +190,191 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: tfo-otel-collector
+  name: tfo-collector
   namespace: observability
 spec:
   replicas: 3
   selector:
     matchLabels:
-      app: tfo-otel-collector
+      app: tfo-collector
   template:
     metadata:
       labels:
-        app: tfo-otel-collector
+        app: tfo-collector
+        version: "1.2.1"
     spec:
+      serviceAccountName: tfo-collector
       containers:
-      - name: otel-collector
-        image: otel/opentelemetry-collector-contrib:0.142.0
-        env:
-        - name: TELEMETRYFLOW_ENDPOINT
-          value: "https://api.telemetryflow.id/api"
-        - name: TELEMETRYFLOW_WORKSPACE_ID
-          valueFrom:
-            secretKeyRef:
-              name: telemetryflow-secrets
-              key: workspace-id
-        - name: TELEMETRYFLOW_TENANT_ID
-          valueFrom:
-            secretKeyRef:
-              name: telemetryflow-secrets
-              key: tenant-id
-        resources:
-          requests:
-            memory: "512Mi"
-            cpu: "500m"
-          limits:
-            memory: "2Gi"
-            cpu: "2000m"
+        - name: tfo-collector
+          image: telemetryflow/telemetryflow-collector:1.2.1
+          imagePullPolicy: IfNotPresent
+          args:
+            - --config=/etc/tfo-collector/otel-collector.yaml
+          env:
+            - name: TELEMETRYFLOW_API_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: telemetryflow-secrets
+                  key: api-key-id
+            - name: TELEMETRYFLOW_API_KEY_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: telemetryflow-secrets
+                  key: api-key-secret
+          ports:
+            - { containerPort: 4317, name: otlp-grpc }
+            - { containerPort: 4318, name: otlp-http }
+            - { containerPort: 8888, name: metrics }
+            - { containerPort: 8889, name: prometheus }
+            - { containerPort: 13133, name: health }
+          resources:
+            requests: { memory: "512Mi", cpu: "500m" }
+            limits: { memory: "2Gi", cpu: "2000m" }
+          volumeMounts:
+            - { name: config, mountPath: /etc/tfo-collector }
+      volumes:
+        - name: config
+          configMap:
+            name: tfo-collector-config
 
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: tfo-otel-collector
+  name: tfo-collector
   namespace: observability
 spec:
   selector:
-    app: tfo-otel-collector
+    app: tfo-collector
   ports:
-  - name: otlp-grpc
-    port: 4317
-    targetPort: 4317
-  - name: otlp-http
-    port: 4318
-    targetPort: 4318
+    - { port: 4317, targetPort: 4317, name: otlp-grpc }
+    - { port: 4318, targetPort: 4318, name: otlp-http }
+    - { port: 8888, targetPort: 8888, name: metrics }
+    - { port: 8889, targetPort: 8889, name: prometheus }
+    - { port: 13133, targetPort: 13133, name: health }
   type: ClusterIP
 
 ---
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: tfo-otel-collector-hpa
+  name: tfo-collector-hpa
   namespace: observability
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: tfo-otel-collector
+    name: tfo-collector
   minReplicas: 3
   maxReplicas: 10
   metrics:
-  - type: Resource
-    resource:
-      name: cpu
-      target:
-        type: Utilization
-        averageUtilization: 70
-  - type: Resource
-    resource:
-      name: memory
-      target:
-        type: Utilization
-        averageUtilization: 80
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80
 ```
 
-#### 3. Service Mesh Integration (Optional)
-
-If using Istio or Linkerd:
+### Collector Configuration
 
 ```yaml
-apiVersion: networking.istio.io/v1beta1
-kind: VirtualService
-metadata:
-  name: tfo-otel-collector
-  namespace: observability
-spec:
-  hosts:
-  - tfo-otel-collector
-  http:
-  - match:
-    - uri:
-        prefix: /v1/
-    retries:
-      attempts: 3
-      perTryTimeout: 10s
-    timeout: 30s
-    route:
-    - destination:
-        host: tfo-otel-collector
-        port:
-          number: 4318
-      weight: 100
-```
-
-### Configuration Example
-
-**Agent Config:**
-
-```yaml
+# tfo-collector-config ConfigMap
 receivers:
-  otlp:
+  tfootlp:
     protocols:
-      grpc:
-        endpoint: 0.0.0.0:4317
       http:
-        endpoint: 0.0.0.0:4318
+        endpoint: "0.0.0.0:4318"
+      grpc:
+        endpoint: "0.0.0.0:4317"
 
 processors:
-  batch:
-    timeout: 10s
-    send_batch_size: 512
+  k8sattributes:
+    auth_type: "serviceAccount"
+    passthrough: false
+    extract:
+      metadata:
+        - k8s.pod.name
+        - k8s.namespace.name
+        - k8s.node.name
 
-  memory_limiter:
-    limit_mib: 256
+  transform:
+    error_mode: ignore
+    metric_statements:
+      - context: metric
+        statements:
+          - set(description, "") where name == ""
+
+  batch:
+    send_batch_size: 8192
+    timeout: 200ms
 
 exporters:
-  otlphttp:
-    endpoint: http://tfo-otel-collector:4318
-    compression: gzip
-
-service:
-  pipelines:
-    metrics:
-      receivers: [otlp]
-      processors: [memory_limiter, batch]
-      exporters: [otlphttp]
-```
-
-**Collector Config:**
-
-```yaml
-receivers:
-  otlp:
-    protocols:
-      grpc:
-        endpoint: 0.0.0.0:4317
-      http:
-        endpoint: 0.0.0.0:4318
-
-processors:
-  batch:
-    timeout: 10s
-    send_batch_size: 2048
-
-  memory_limiter:
-    limit_mib: 2048
-
-  attributes:
-    actions:
-      - key: telemetryflow.workspace.id
-        value: ${env:TELEMETRYFLOW_WORKSPACE_ID}
-        action: upsert
-      - key: telemetryflow.tenant.id
-        value: ${env:TELEMETRYFLOW_TENANT_ID}
-        action: upsert
-
-exporters:
-  otlphttp/telemetryflow:
-    endpoint: ${env:TELEMETRYFLOW_ENDPOINT}
-    headers:
-      X-Workspace-Id: "${env:TELEMETRYFLOW_WORKSPACE_ID}"
-      X-Tenant-Id: "${env:TELEMETRYFLOW_TENANT_ID}"
+  tfo:
+    endpoint: "https://api.telemetryflow.id/api"
+    auth:
+      authenticator: tfoauth
     compression: gzip
     retry_on_failure:
       enabled: true
+      initial_interval: 5s
+      max_interval: 30s
     sending_queue:
       enabled: true
-      storage: file_storage
+      num_consumers: 10
+      queue_size: 5000
+
+  prometheus:
+    endpoint: "0.0.0.0:8889"
+
+connectors:
+  spanmetrics:
+    histogram:
+      explicit:
+        buckets: [2ms, 6ms, 10ms, 50ms, 100ms, 250ms, 500ms, 1s, 5s, 10s]
+    dimensions:
+      - name: http.method
+      - name: http.status_code
+    aggregation_temporality: "AGGREGATION_TEMPORALITY_CUMULATIVE"
+    metrics_flush_interval: 15s
+
+  servicegraph:
+    latency_histogram_buckets: [100ms, 250ms, 500ms, 1s, 5s, 10s]
 
 extensions:
-  file_storage:
-    directory: /var/lib/otelcol/queue
+  tfoauth:
+    api_key_id: "${env:TELEMETRYFLOW_API_KEY_ID}"
+    api_key_secret: "${env:TELEMETRYFLOW_API_KEY_SECRET}"
+
+  tfoidentity:
+    collector_id: "tfo-collector-hub"
+    labels:
+      environment: "production"
+
+  health_check:
+    endpoint: "0.0.0.0:13133"
 
 service:
-  extensions: [file_storage]
+  extensions: [tfoauth, tfoidentity, health_check]
   pipelines:
+    traces:
+      receivers: [tfootlp]
+      processors: [k8sattributes, batch]
+      exporters: [tfo, spanmetrics, servicegraph]
     metrics:
-      receivers: [otlp]
-      processors: [memory_limiter, attributes, batch]
-      exporters: [otlphttp/telemetryflow]
+      receivers: [tfootlp]
+      processors: [k8sattributes, transform, batch]
+      exporters: [tfo, prometheus]
+    logs:
+      receivers: [tfootlp]
+      processors: [k8sattributes, batch]
+      exporters: [tfo]
 ```
 
 ---
@@ -380,167 +383,35 @@ service:
 
 **Best For:** Small to medium deployments, simplified architecture
 
-### Architecture
-
-```mermaid
-graph TB
-    subgraph CLUSTER[Kubernetes Cluster]
-        subgraph NODE1[Node 1]
-            APPS1[Applications] --> AGENT1[TFO-OTEL-Agent]
-        end
-
-        subgraph NODE2[Node 2]
-            APPS2[Applications] --> AGENT2[TFO-OTEL-Agent]
-        end
-
-        subgraph NODE3[Node 3]
-            APPS3[Applications] --> AGENT3[TFO-OTEL-Agent]
-        end
-    end
-
-    PLATFORM[TelemetryFlow Platform]
-
-    AGENT1 -->|OTLP HTTP| PLATFORM
-    AGENT2 -->|OTLP HTTP| PLATFORM
-    AGENT3 -->|OTLP HTTP| PLATFORM
-
-    style AGENT1 fill:#FFE082,stroke:#F57C00,color:#000
-    style AGENT2 fill:#FFE082,stroke:#F57C00,color:#000
-    style AGENT3 fill:#FFE082,stroke:#F57C00,color:#000
-    style PLATFORM fill:#64B5F6,stroke:#1976D2,color:#fff
-```
-
-### Benefits
-
-- **Simplicity**: No collector layer to manage
-- **Lower Cost**: Fewer components to run
-- **Lower Latency**: Direct path to backend
-- **Easier Troubleshooting**: Simpler data flow
-
-### Trade-offs
-
-- **More Backend Connections**: One connection per agent
-- **Less Flexible**: Harder to change routing or add processing
-- **More Configuration**: Each agent needs full backend config
-
-### Deployment
-
 ```yaml
+# Agent sends directly to TelemetryFlow Platform
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
-  name: tfo-otel-agent
+  name: tfo-agent
   namespace: observability
 spec:
   selector:
     matchLabels:
-      app: tfo-otel-agent
+      app: tfo-agent
   template:
-    metadata:
-      labels:
-        app: tfo-otel-agent
     spec:
       containers:
-      - name: otel-agent
-        image: otel/opentelemetry-collector-contrib:0.142.0
-        env:
-        # Direct to TelemetryFlow Platform
-        - name: TELEMETRYFLOW_ENDPOINT
-          value: "https://api.telemetryflow.id/api"
-        - name: TELEMETRYFLOW_WORKSPACE_ID
-          valueFrom:
-            secretKeyRef:
-              name: telemetryflow-secrets
-              key: workspace-id
-        - name: TELEMETRYFLOW_TENANT_ID
-          valueFrom:
-            secretKeyRef:
-              name: telemetryflow-secrets
-              key: tenant-id
-        - name: TELEMETRYFLOW_API_KEY
-          valueFrom:
-            secretKeyRef:
-              name: telemetryflow-secrets
-              key: api-key
-        resources:
-          requests:
-            memory: "128Mi"
-            cpu: "100m"
-          limits:
-            memory: "256Mi"
-            cpu: "500m"
-```
-
-### Configuration
-
-```yaml
-receivers:
-  otlp:
-    protocols:
-      grpc:
-        endpoint: 0.0.0.0:4317
-      http:
-        endpoint: 0.0.0.0:4318
-
-processors:
-  batch:
-    timeout: 10s
-    send_batch_size: 512
-
-  memory_limiter:
-    limit_mib: 256
-
-  attributes:
-    actions:
-      - key: telemetryflow.workspace.id
-        value: ${env:TELEMETRYFLOW_WORKSPACE_ID}
-        action: upsert
-      - key: telemetryflow.tenant.id
-        value: ${env:TELEMETRYFLOW_TENANT_ID}
-        action: upsert
-
-exporters:
-  otlphttp/telemetryflow:
-    endpoint: ${env:TELEMETRYFLOW_ENDPOINT}
-    headers:
-      X-Workspace-Id: "${env:TELEMETRYFLOW_WORKSPACE_ID}"
-      X-Tenant-Id: "${env:TELEMETRYFLOW_TENANT_ID}"
-      Authorization: "Bearer ${env:TELEMETRYFLOW_API_KEY}"
-    compression: gzip
-    retry_on_failure:
-      enabled: true
-      initial_interval: 5s
-      max_interval: 30s
-    sending_queue:
-      enabled: true
-      queue_size: 5000
-      storage: file_storage
-
-extensions:
-  health_check:
-    endpoint: 0.0.0.0:13133
-
-  file_storage:
-    directory: /var/lib/otelcol/queue
-
-service:
-  extensions: [health_check, file_storage]
-
-  pipelines:
-    metrics:
-      receivers: [otlp]
-      processors: [memory_limiter, attributes, batch]
-      exporters: [otlphttp/telemetryflow]
-
-    logs:
-      receivers: [otlp]
-      processors: [memory_limiter, attributes, batch]
-      exporters: [otlphttp/telemetryflow]
-
-    traces:
-      receivers: [otlp]
-      processors: [memory_limiter, attributes, batch]
-      exporters: [otlphttp/telemetryflow]
+        - name: tfo-agent
+          image: telemetryflow/telemetryflow-agent:1.2.0
+          env:
+            - name: TELEMETRYFLOW_API_ENDPOINT
+              value: "https://api.telemetryflow.id/api"
+            - name: TELEMETRYFLOW_API_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: telemetryflow-secrets
+                  key: api-key-id
+            - name: TELEMETRYFLOW_API_KEY_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: telemetryflow-secrets
+                  key: api-key-secret
 ```
 
 ---
@@ -549,324 +420,96 @@ service:
 
 **Best For:** IoT devices, remote locations, intermittent connectivity
 
-### Architecture
-
-```mermaid
-graph TB
-    subgraph EDGE1[Edge Location 1]
-        DEVICES1[IoT Devices] --> AGENT1[TFO-OTEL-Agent<br/>+ Large Queue<br/>+ Persistent Storage]
-    end
-
-    subgraph EDGE2[Edge Location 2]
-        DEVICES2[IoT Devices] --> AGENT2[TFO-OTEL-Agent<br/>+ Large Queue<br/>+ Persistent Storage]
-    end
-
-    PLATFORM[TelemetryFlow Platform]
-
-    AGENT1 -.->|When online| PLATFORM
-    AGENT2 -.->|When online| PLATFORM
-
-    AGENT1 -->|Store locally| STORAGE1[Persistent<br/>Queue]
-    AGENT2 -->|Store locally| STORAGE2[Persistent<br/>Queue]
-
-    style AGENT1 fill:#FFE082,stroke:#F57C00,color:#000
-    style AGENT2 fill:#FFE082,stroke:#F57C00,color:#000
-    style STORAGE1 fill:#CE93D8,stroke:#7B1FA2,color:#fff
-    style STORAGE2 fill:#CE93D8,stroke:#7B1FA2,color:#fff
-    style PLATFORM fill:#64B5F6,stroke:#1976D2,color:#fff
-```
-
-### Benefits
-
-- **Resilient**: Data survives network outages
-- **Bandwidth Optimization**: Batching and compression
-- **Local Aggregation**: Pre-process data at edge
-- **Guaranteed Delivery**: Retry until successful
-
-### Deployment
-
 ```yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: tfo-otel-agent-edge
+  name: tfo-agent-edge
   namespace: edge
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: tfo-otel-agent-edge
+      app: tfo-agent-edge
   template:
-    metadata:
-      labels:
-        app: tfo-otel-agent-edge
     spec:
       containers:
-      - name: otel-agent
-        image: otel/opentelemetry-collector-contrib:0.142.0
-        env:
-        - name: TELEMETRYFLOW_ENDPOINT
-          value: "https://api.telemetryflow.id/api"
-        - name: TELEMETRYFLOW_WORKSPACE_ID
-          valueFrom:
-            secretKeyRef:
-              name: telemetryflow-secrets
-              key: workspace-id
-        - name: TELEMETRYFLOW_TENANT_ID
-          valueFrom:
-            secretKeyRef:
-              name: telemetryflow-secrets
-              key: tenant-id
-        volumeMounts:
-        - name: queue-storage
-          mountPath: /var/lib/otelcol/queue
-        resources:
-          requests:
-            memory: "256Mi"
-            cpu: "200m"
-          limits:
-            memory: "512Mi"
-            cpu: "1000m"
-
+        - name: tfo-agent
+          image: telemetryflow/telemetryflow-agent:1.2.0
+          env:
+            - name: TELEMETRYFLOW_API_ENDPOINT
+              value: "https://api.telemetryflow.id/api"
+          volumeMounts:
+            - name: queue-storage
+              mountPath: /var/lib/tfo-agent/buffer
       volumes:
-      - name: queue-storage
-        persistentVolumeClaim:
-          claimName: otel-agent-queue-pvc
+        - name: queue-storage
+          persistentVolumeClaim:
+            claimName: tfo-agent-queue-pvc
 
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: otel-agent-queue-pvc
+  name: tfo-agent-queue-pvc
   namespace: edge
 spec:
-  accessModes:
-    - ReadWriteOnce
+  accessModes: [ReadWriteOnce]
   resources:
     requests:
       storage: 10Gi
   storageClassName: fast-ssd
 ```
 
-### Configuration
+Edge agent configuration with large buffer:
 
 ```yaml
-receivers:
+buffer:
+  enabled: true
+  path: "/var/lib/tfo-agent/buffer"
+  max_size_mb: 500
+
+exporter:
   otlp:
-    protocols:
-      grpc:
-        endpoint: 0.0.0.0:4317
-      http:
-        endpoint: 0.0.0.0:4318
-
-processors:
-  batch:
-    timeout: 30s            # Longer batching for bandwidth efficiency
-    send_batch_size: 4096   # Larger batches
-
-  memory_limiter:
-    limit_mib: 512          # More memory for buffering
-
-  attributes:
-    actions:
-      - key: telemetryflow.workspace.id
-        value: ${env:TELEMETRYFLOW_WORKSPACE_ID}
-        action: upsert
-      - key: telemetryflow.tenant.id
-        value: ${env:TELEMETRYFLOW_TENANT_ID}
-        action: upsert
-      - key: edge.location
-        value: ${env:EDGE_LOCATION}
-        action: upsert
-
-exporters:
-  otlphttp/telemetryflow:
-    endpoint: ${env:TELEMETRYFLOW_ENDPOINT}
-    headers:
-      X-Workspace-Id: "${env:TELEMETRYFLOW_WORKSPACE_ID}"
-      X-Tenant-Id: "${env:TELEMETRYFLOW_TENANT_ID}"
-    compression: gzip
-    timeout: 60s
-    retry_on_failure:
+    enabled: true
+    endpoint: "https://api.telemetryflow.id/api"
+    retry:
       enabled: true
       initial_interval: 10s
       max_interval: 300s
-      max_elapsed_time: 3600s  # Retry for 1 hour
-    sending_queue:
-      enabled: true
-      num_consumers: 5
-      queue_size: 20000          # Very large queue
-      storage: file_storage
-
-extensions:
-  health_check:
-    endpoint: 0.0.0.0:13133
-
-  file_storage:
-    directory: /var/lib/otelcol/queue
-    timeout: 30s
-    compaction:
-      on_start: true
-      on_rebound: true
-      rebound_needed_threshold_mib: 200
-      rebound_trigger_threshold_mib: 20
-
-service:
-  extensions: [health_check, file_storage]
-
-  pipelines:
-    metrics:
-      receivers: [otlp]
-      processors: [memory_limiter, attributes, batch]
-      exporters: [otlphttp/telemetryflow]
-
-    logs:
-      receivers: [otlp]
-      processors: [memory_limiter, attributes, batch]
-      exporters: [otlphttp/telemetryflow]
-
-    traces:
-      receivers: [otlp]
-      processors: [memory_limiter, attributes, batch]
-      exporters: [otlphttp/telemetryflow]
+      max_elapsed_time: 3600s
 ```
 
 ---
 
 ## Multi-Region Deployment
 
-**Best For:** Global deployments, data sovereignty, low-latency requirements
-
-### Architecture
-
 ```mermaid
 graph TB
     subgraph REGION1[Region: US-EAST]
-        APPS1[Applications] --> AGENT1[TFO-OTEL-Agent]
-        AGENT1 --> COLLECTOR1[TFO-OTEL-Collector]
-        COLLECTOR1 --> PLATFORM1[TelemetryFlow<br/>US Instance]
+        AGENT1[TFO-Agents] --> COLLECTOR1[TFO-Collector v1.2.1]
+        COLLECTOR1 --> PLATFORM1[TelemetryFlow<br/>US Instance :3000]
     end
 
     subgraph REGION2[Region: EU-WEST]
-        APPS2[Applications] --> AGENT2[TFO-OTEL-Agent]
-        AGENT2 --> COLLECTOR2[TFO-OTEL-Collector]
-        COLLECTOR2 --> PLATFORM2[TelemetryFlow<br/>EU Instance]
+        AGENT2[TFO-Agents] --> COLLECTOR2[TFO-Collector v1.2.1]
+        COLLECTOR2 --> PLATFORM2[TelemetryFlow<br/>EU Instance :3000]
     end
 
     subgraph REGION3[Region: ASIA-PACIFIC]
-        APPS3[Applications] --> AGENT3[TFO-OTEL-Agent]
-        AGENT3 --> COLLECTOR3[TFO-OTEL-Collector]
-        COLLECTOR3 --> PLATFORM3[TelemetryFlow<br/>APAC Instance]
+        AGENT3[TFO-Agents] --> COLLECTOR3[TFO-Collector v1.2.1]
+        COLLECTOR3 --> PLATFORM3[TelemetryFlow<br/>APAC Instance :3000]
     end
 
     CENTRAL[Central Dashboard<br/>Federated Queries]
-
     PLATFORM1 -.->|Federated| CENTRAL
     PLATFORM2 -.->|Federated| CENTRAL
     PLATFORM3 -.->|Federated| CENTRAL
 
-    style AGENT1 fill:#FFE082,stroke:#F57C00,color:#000
-    style AGENT2 fill:#FFE082,stroke:#F57C00,color:#000
-    style AGENT3 fill:#FFE082,stroke:#F57C00,color:#000
     style COLLECTOR1 fill:#81C784,stroke:#388E3C,color:#000
     style COLLECTOR2 fill:#81C784,stroke:#388E3C,color:#000
     style COLLECTOR3 fill:#81C784,stroke:#388E3C,color:#000
     style PLATFORM1 fill:#64B5F6,stroke:#1976D2,color:#fff
-    style PLATFORM2 fill:#64B5F6,stroke:#1976D2,color:#fff
-    style PLATFORM3 fill:#64B5F6,stroke:#1976D2,color:#fff
-    style CENTRAL fill:#FF8A65,stroke:#D84315,color:#fff
-```
-
-### Benefits
-
-- **Low Latency**: Data stays in region
-- **Data Sovereignty**: Comply with GDPR, data residency laws
-- **High Availability**: Regional failures don't affect other regions
-- **Scalability**: Distribute load globally
-
-### Deployment Strategy
-
-#### 1. Regional Collectors
-
-```yaml
-# US-EAST Collector
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: tfo-otel-collector-us-east
-  namespace: observability
-  labels:
-    region: us-east
-spec:
-  replicas: 3
-  selector:
-    matchLabels:
-      app: tfo-otel-collector
-      region: us-east
-  template:
-    metadata:
-      labels:
-        app: tfo-otel-collector
-        region: us-east
-    spec:
-      affinity:
-        nodeAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            nodeSelectorTerms:
-            - matchExpressions:
-              - key: topology.kubernetes.io/region
-                operator: In
-                values:
-                - us-east-1
-      containers:
-      - name: otel-collector
-        image: otel/opentelemetry-collector-contrib:0.142.0
-        env:
-        - name: TELEMETRYFLOW_ENDPOINT
-          value: "https://us-east.telemetryflow.id/api"
-        - name: REGION
-          value: "us-east-1"
-```
-
-#### 2. Regional Routing
-
-```yaml
-processors:
-  attributes:
-    actions:
-      - key: deployment.region
-        value: ${env:REGION}
-        action: upsert
-      - key: telemetryflow.workspace.id
-        value: ${env:TELEMETRYFLOW_WORKSPACE_ID}
-        action: upsert
-      - key: telemetryflow.tenant.id
-        value: ${env:TELEMETRYFLOW_TENANT_ID}
-        action: upsert
-
-exporters:
-  # Primary: Regional endpoint
-  otlphttp/regional:
-    endpoint: ${env:TELEMETRYFLOW_ENDPOINT}
-    headers:
-      X-Workspace-Id: "${env:TELEMETRYFLOW_WORKSPACE_ID}"
-      X-Tenant-Id: "${env:TELEMETRYFLOW_TENANT_ID}"
-      X-Region: "${env:REGION}"
-
-  # Backup: Central endpoint (if regional fails)
-  otlphttp/central:
-    endpoint: "https://global.telemetryflow.id/api"
-    headers:
-      X-Workspace-Id: "${env:TELEMETRYFLOW_WORKSPACE_ID}"
-      X-Tenant-Id: "${env:TELEMETRYFLOW_TENANT_ID}"
-      X-Region: "${env:REGION}"
-
-service:
-  pipelines:
-    metrics:
-      receivers: [otlp]
-      processors: [attributes, batch]
-      exporters: [otlphttp/regional, otlphttp/central]
 ```
 
 ---
@@ -877,321 +520,142 @@ service:
 
 ```mermaid
 graph TB
-    AGENTS[TFO-OTEL-Agents] --> LB[Load Balancer<br/>HAProxy/Istio]
+    AGENTS[TFO-Agents v1.2.0] --> LB[Load Balancer]
 
-    LB --> COLLECTOR1[Collector 1]
-    LB --> COLLECTOR2[Collector 2]
-    LB --> COLLECTOR3[Collector 3]
+    LB --> COLLECTOR1[Collector 1<br/>tfoauth + tfo]
+    LB --> COLLECTOR2[Collector 2<br/>tfoauth + tfo]
+    LB --> COLLECTOR3[Collector 3<br/>tfoauth + tfo]
 
-    COLLECTOR1 --> PLATFORM[TelemetryFlow]
+    COLLECTOR1 --> PLATFORM[TelemetryFlow :3000]
     COLLECTOR2 --> PLATFORM
     COLLECTOR3 --> PLATFORM
 
     style AGENTS fill:#FFE082,stroke:#F57C00,color:#000
     style LB fill:#CE93D8,stroke:#7B1FA2,color:#fff
     style COLLECTOR1 fill:#81C784,stroke:#388E3C,color:#000
-    style COLLECTOR2 fill:#81C784,stroke:#388E3C,color:#000
-    style COLLECTOR3 fill:#81C784,stroke:#388E3C,color:#000
     style PLATFORM fill:#64B5F6,stroke:#1976D2,color:#fff
 ```
 
-### Components
-
-#### 1. Load Balancer (HAProxy)
-
-```haproxy
-global
-    maxconn 50000
-    log /dev/log local0
-
-defaults
-    mode tcp
-    timeout connect 5000ms
-    timeout client 50000ms
-    timeout server 50000ms
-    option tcplog
-
-# OTLP gRPC
-frontend otlp_grpc
-    bind *:4317
-    default_backend otlp_grpc_backend
-
-backend otlp_grpc_backend
-    balance roundrobin
-    option httpchk GET /health
-    http-check expect status 200
-    server collector1 collector1:4317 check inter 5s
-    server collector2 collector2:4317 check inter 5s
-    server collector3 collector3:4317 check inter 5s
-
-# OTLP HTTP
-frontend otlp_http
-    bind *:4318
-    mode http
-    default_backend otlp_http_backend
-
-backend otlp_http_backend
-    mode http
-    balance roundrobin
-    option httpchk GET /health
-    http-check expect status 200
-    server collector1 collector1:4318 check inter 5s
-    server collector2 collector2:4318 check inter 5s
-    server collector3 collector3:4318 check inter 5s
-```
-
-#### 2. Pod Disruption Budget
+### Pod Disruption Budget
 
 ```yaml
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
-  name: tfo-otel-collector-pdb
+  name: tfo-collector-pdb
   namespace: observability
 spec:
   minAvailable: 2
   selector:
     matchLabels:
-      app: tfo-otel-collector
-```
-
-#### 3. Anti-Affinity
-
-```yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: tfo-otel-collector
-spec:
-  template:
-    spec:
-      affinity:
-        podAntiAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-          - labelSelector:
-              matchExpressions:
-              - key: app
-                operator: In
-                values:
-                - tfo-otel-collector
-            topologyKey: kubernetes.io/hostname
+      app: tfo-collector
 ```
 
 ---
 
 ## Scaling Strategies
 
-### Horizontal Pod Autoscaler (HPA)
+### HPA
 
 ```yaml
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: tfo-otel-collector-hpa
+  name: tfo-collector-hpa
   namespace: observability
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: tfo-otel-collector
+    name: tfo-collector
   minReplicas: 3
   maxReplicas: 20
   metrics:
-  # CPU-based scaling
-  - type: Resource
-    resource:
-      name: cpu
-      target:
-        type: Utilization
-        averageUtilization: 70
-
-  # Memory-based scaling
-  - type: Resource
-    resource:
-      name: memory
-      target:
-        type: Utilization
-        averageUtilization: 80
-
-  # Custom metric: queue size
-  - type: Pods
-    pods:
-      metric:
-        name: otelcol_exporter_queue_size
-      target:
-        type: AverageValue
-        averageValue: "1000"
-
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    - type: Pods
+      pods:
+        metric:
+          name: otelcol_exporter_queue_size
+        target:
+          type: AverageValue
+          averageValue: "1000"
   behavior:
     scaleDown:
       stabilizationWindowSeconds: 300
-      policies:
-      - type: Percent
-        value: 50
-        periodSeconds: 60
     scaleUp:
       stabilizationWindowSeconds: 0
       policies:
-      - type: Percent
-        value: 100
-        periodSeconds: 30
-      - type: Pods
-        value: 4
-        periodSeconds: 30
+        - type: Percent
+          value: 100
+          periodSeconds: 30
       selectPolicy: Max
-```
-
-### Vertical Pod Autoscaler (VPA)
-
-```yaml
-apiVersion: autoscaling.k8s.io/v1
-kind: VerticalPodAutoscaler
-metadata:
-  name: tfo-otel-collector-vpa
-  namespace: observability
-spec:
-  targetRef:
-    apiVersion: apps/v1
-    kind: Deployment
-    name: tfo-otel-collector
-  updatePolicy:
-    updateMode: "Auto"
-  resourcePolicy:
-    containerPolicies:
-    - containerName: otel-collector
-      minAllowed:
-        cpu: 500m
-        memory: 512Mi
-      maxAllowed:
-        cpu: 4000m
-        memory: 8Gi
 ```
 
 ### Scaling Guidelines
 
-| Metric | Scale Up Threshold | Scale Down Threshold |
-|--------|-------------------|---------------------|
-| **CPU** | >70% | <30% |
-| **Memory** | >80% | <40% |
-| **Queue Size** | >5000 | <1000 |
-| **Request Rate** | >50K/sec | <10K/sec |
-| **Error Rate** | >5% | N/A (investigate) |
+| Metric         | Scale Up | Scale Down  |
+| -------------- | -------- | ----------- |
+| **CPU**        | >70%     | <30%        |
+| **Memory**     | >80%     | <40%        |
+| **Queue Size** | >5000    | <1000       |
+| **Error Rate** | >5%      | Investigate |
 
 ---
 
 ## Security
 
-### 1. Network Policies
+### Network Policies
 
 ```yaml
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: tfo-otel-agent-policy
+  name: tfo-collector-policy
   namespace: observability
 spec:
   podSelector:
     matchLabels:
-      app: tfo-otel-agent
-  policyTypes:
-  - Ingress
-  - Egress
+      app: tfo-collector
+  policyTypes: [Ingress, Egress]
   ingress:
-  # Allow from all pods in namespace
-  - from:
-    - podSelector: {}
-    ports:
-    - protocol: TCP
-      port: 4317
-    - protocol: TCP
-      port: 4318
+    - from:
+        - podSelector:
+            matchLabels:
+              app: tfo-agent
+      ports:
+        - { port: 4317, protocol: TCP }
+        - { port: 4318, protocol: TCP }
   egress:
-  # Allow to collector
-  - to:
-    - podSelector:
-        matchLabels:
-          app: tfo-otel-collector
-    ports:
-    - protocol: TCP
-      port: 4318
-  # Allow to DNS
-  - to:
-    - namespaceSelector:
-        matchLabels:
-          name: kube-system
-    ports:
-    - protocol: UDP
-      port: 53
-
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: tfo-otel-collector-policy
-  namespace: observability
-spec:
-  podSelector:
-    matchLabels:
-      app: tfo-otel-collector
-  policyTypes:
-  - Ingress
-  - Egress
-  ingress:
-  # Allow from agents
-  - from:
-    - podSelector:
-        matchLabels:
-          app: tfo-otel-agent
-    ports:
-    - protocol: TCP
-      port: 4317
-    - protocol: TCP
-      port: 4318
-  egress:
-  # Allow to TelemetryFlow Platform
-  - to:
-    - podSelector: {}
-    ports:
-    - protocol: TCP
-      port: 443
+    - to: []
+      ports:
+        - { port: 443, protocol: TCP }
 ```
 
-### 2. TLS/mTLS
+### Secrets Management
+
+```bash
+kubectl create secret generic telemetryflow-secrets \
+  --from-literal=api-key-id=tfk-live-abc123 \
+  --from-literal=api-key-secret=tfs-secret-xyz789 \
+  -n observability
+```
+
+### TLS/mTLS
 
 ```yaml
 receivers:
-  otlp:
+  tfootlp:
     protocols:
       grpc:
         endpoint: 0.0.0.0:4317
         tls:
           cert_file: /etc/otel/certs/server.crt
           key_file: /etc/otel/certs/server.key
-          client_ca_file: /etc/otel/certs/ca.crt
-          client_auth_type: RequireAndVerifyClientCert
-
-exporters:
-  otlphttp/telemetryflow:
-    endpoint: https://api.telemetryflow.id/api
-    tls:
-      insecure: false
-      ca_file: /etc/ssl/certs/ca-certificates.crt
-      cert_file: /etc/otel/certs/client.crt
-      key_file: /etc/otel/certs/client.key
-```
-
-### 3. Secrets Management
-
-```bash
-# Create secret for credentials
-kubectl create secret generic telemetryflow-secrets \
-  --from-literal=workspace-id=550e8400-e29b-41d4-a716-446655440000 \
-  --from-literal=tenant-id=660e8400-e29b-41d4-a716-446655440001 \
-  --from-literal=api-key=tfk-xxx.tfs-xxx \
-  -n observability
-
-# Seal secret (using Sealed Secrets)
-kubeseal --format=yaml < secret.yaml > sealed-secret.yaml
 ```
 
 ---
@@ -1202,65 +666,36 @@ kubeseal --format=yaml < secret.yaml > sealed-secret.yaml
 
 ```yaml
 groups:
-- name: tfo-otel-alerts
-  interval: 30s
-  rules:
-  # Agent offline
-  - alert: TFOAgentDown
-    expr: up{job="tfo-otel-agent"} == 0
-    for: 5m
-    labels:
-      severity: critical
-    annotations:
-      summary: "TFO-OTEL-Agent is down"
-      description: "Agent {{ $labels.instance }} has been down for more than 5 minutes"
+  - name: tfo-otel-alerts
+    interval: 30s
+    rules:
+      - alert: TFOAgentDown
+        expr: up{job="tfo-agent"} == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "TFO-Agent is down"
 
-  # High error rate
-  - alert: TFOHighErrorRate
-    expr: |
-      rate(otelcol_exporter_send_failed_metric_points[5m])
-      / rate(otelcol_exporter_sent_metric_points[5m]) > 0.01
-    for: 10m
-    labels:
-      severity: warning
-    annotations:
-      summary: "High error rate in TFO-OTEL"
-      description: "Error rate is {{ $value | humanizePercentage }} on {{ $labels.instance }}"
+      - alert: TFOHighErrorRate
+        expr: |
+          rate(otelcol_exporter_send_failed_metric_points[5m])
+          / rate(otelcol_exporter_sent_metric_points[5m]) > 0.01
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High error rate in TFO-OTEL"
 
-  # Queue filling up
-  - alert: TFOQueueFilling
-    expr: |
-      otelcol_exporter_queue_size / otelcol_exporter_queue_capacity > 0.8
-    for: 15m
-    labels:
-      severity: warning
-    annotations:
-      summary: "TFO-OTEL queue filling up"
-      description: "Queue is {{ $value | humanizePercentage }} full on {{ $labels.instance }}"
-
-  # High memory usage
-  - alert: TFOHighMemory
-    expr: |
-      container_memory_usage_bytes{pod=~"tfo-otel-.*"}
-      / container_spec_memory_limit_bytes{pod=~"tfo-otel-.*"} > 0.9
-    for: 5m
-    labels:
-      severity: warning
-    annotations:
-      summary: "TFO-OTEL high memory usage"
-      description: "Memory usage is {{ $value | humanizePercentage }} on {{ $labels.pod }}"
+      - alert: TFOQueueFilling
+        expr: |
+          otelcol_exporter_queue_size / otelcol_exporter_queue_capacity > 0.8
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "TFO-OTEL queue filling up"
 ```
-
-### Grafana Dashboard
-
-Key panels to include:
-
-1. **Throughput**: Data points per second
-2. **Error Rate**: Failed exports percentage
-3. **Queue Size**: Current vs capacity
-4. **Latency**: Export duration histogram
-5. **Resource Usage**: CPU and memory
-6. **Uptime**: Agent/collector availability
 
 ---
 
@@ -1268,158 +703,69 @@ Key panels to include:
 
 ### Pre-Deployment
 
-- [ ] **Configuration validated** with `otelcol validate`
-- [ ] **Resource limits** set for all containers
-- [ ] **Persistent storage** configured for queues
-- [ ] **Secrets** stored in secret manager (not in config)
-- [ ] **TLS certificates** provisioned and valid
-- [ ] **Network policies** defined
-- [ ] **Monitoring** configured (Prometheus, Grafana)
-- [ ] **Alerting** rules created
-- [ ] **Backup strategy** documented
+- [ ] Configuration validated with `tfo-collector validate`
+- [ ] Resource limits set for all containers
+- [ ] tfoauth configured with API keys (tfk-_/tfs-_)
+- [ ] tfoidentity configured with collector labels
+- [ ] Secrets stored in secret manager (not in config)
+- [ ] TLS certificates provisioned and valid
+- [ ] Network policies defined
+- [ ] Monitoring configured (Prometheus, Grafana)
+- [ ] Alerting rules created
 
 ### Deployment
 
-- [ ] **Agents deployed** as DaemonSet/StatefulSet
-- [ ] **Collectors deployed** with HA (3+ replicas)
-- [ ] **Load balancer** configured (if applicable)
-- [ ] **HPA/VPA** configured for auto-scaling
-- [ ] **PodDisruptionBudget** set
-- [ ] **Anti-affinity** rules applied
-- [ ] **Health checks** passing
+- [ ] Agents deployed as DaemonSet with relevant collectors
+- [ ] Collectors deployed with HA (3+ replicas)
+- [ ] Load balancer configured (if applicable)
+- [ ] HPA configured for auto-scaling
+- [ ] PodDisruptionBudget set
+- [ ] Anti-affinity rules applied
+- [ ] Health checks passing
 
 ### Post-Deployment
 
-- [ ] **Data flow verified** end-to-end
-- [ ] **Metrics visible** in TelemetryFlow UI
-- [ ] **Alerts firing** (test by stopping component)
-- [ ] **Dashboards populated** with data
-- [ ] **Documentation updated** with deployment details
-- [ ] **Runbook created** for common issues
-- [ ] **Performance baseline** established
-
-### Ongoing
-
-- [ ] **Monitor dashboards** daily
-- [ ] **Review alerts** and tune thresholds
-- [ ] **Update components** quarterly
-- [ ] **Test disaster recovery** quarterly
-- [ ] **Audit security** quarterly
-- [ ] **Review costs** monthly
+- [ ] Data flow verified end-to-end
+- [ ] Dual v1/v2 endpoints tested
+- [ ] Metrics visible in TelemetryFlow UI
+- [ ] spanmetrics + servicegraph connectors working
+- [ ] Performance baseline established
 
 ---
 
 ## Troubleshooting
 
-### Issue 1: Agents Not Sending Data
-
-**Symptoms:**
-- Agents show as online but no data in backend
-- Queue size increasing
-
-**Diagnosis:**
+### Agents Not Sending Data
 
 ```bash
-# Check agent logs
-kubectl logs -n observability -l app=tfo-otel-agent --tail=100
-
-# Check metrics
-kubectl port-forward -n observability svc/tfo-otel-agent-metrics 8888:8888
-curl http://localhost:8888/metrics | grep exporter_sent
+kubectl logs -n observability -l app=tfo-agent --tail=100
+kubectl exec -n observability tfo-agent-xxx -- env | grep TELEMETRYFLOW
 ```
 
-**Common Causes:**
-
-1. **Incorrect endpoint**: Verify `TELEMETRYFLOW_ENDPOINT`
-2. **Missing headers**: Check workspace/tenant IDs
-3. **Network policy blocking**: Review NetworkPolicy rules
-4. **Certificate issues**: Verify TLS configuration
-
-**Fix:**
+### Collector OOMKilled
 
 ```bash
-# Test connectivity
-kubectl exec -n observability tfo-otel-agent-xxx -- \
-  curl -v https://api.telemetryflow.id/api/health
-
-# Verify environment variables
-kubectl exec -n observability tfo-otel-agent-xxx -- env | grep TELEMETRYFLOW
+kubectl top pods -n observability -l app=tfo-collector
 ```
 
-### Issue 2: Collector Pods OOMKilled
+Fix: Increase memory limit and configure `memory_limiter`.
 
-**Symptoms:**
-- Collector pods restarting with OOMKilled
-- High memory usage before restart
-
-**Diagnosis:**
+### tfoauth Authentication Errors
 
 ```bash
-# Check memory usage
-kubectl top pods -n observability -l app=tfo-otel-collector
-
-# Review pod events
-kubectl describe pod -n observability tfo-otel-collector-xxx
+echo $TELEMETRYFLOW_API_KEY_ID
+echo $TELEMETRYFLOW_API_KEY_SECRET
+# Verify: tfk-* for key ID, tfs-* for secret
 ```
 
-**Fix:**
-
-1. **Increase memory limit**:
-```yaml
-resources:
-  limits:
-    memory: "4Gi"  # Increase from 2Gi
-```
-
-2. **Lower memory_limiter**:
-```yaml
-processors:
-  memory_limiter:
-    limit_mib: 3200  # 80% of 4Gi
-```
-
-3. **Reduce batch size**:
-```yaml
-processors:
-  batch:
-    send_batch_size: 512  # Reduce from 1024
-```
-
-### Issue 3: High Latency
-
-**Symptoms:**
-- Slow data arrival in backend
-- High export duration
-
-**Diagnosis:**
+### High Latency
 
 ```bash
-# Check metrics
 curl http://localhost:8888/metrics | grep duration
 ```
 
-**Fix:**
-
-1. **Reduce batch timeout**:
-```yaml
-processors:
-  batch:
-    timeout: 5s  # Reduce from 10s
-```
-
-2. **Add more exporters**:
-```yaml
-exporters:
-  otlphttp:
-    sending_queue:
-      num_consumers: 20  # Increase from 10
-```
-
-3. **Scale up collectors**:
-```bash
-kubectl scale deployment -n observability tfo-otel-collector --replicas=5
-```
+Fix: Reduce batch timeout, increase workers, or scale up collectors.
 
 ---
 
-**Version:** 1.1.2-CE | **Component:** Deployment Guide | **Last Updated:** December 13, 2025
+**Version:** 1.4.0 | **Component:** Deployment Guide | **Last Updated:** May 2026

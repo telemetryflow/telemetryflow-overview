@@ -1,8 +1,8 @@
 # TelemetryFlow MCP Server Architecture
 
-- **Version:** 1.1.2
+- **Version:** 1.2.0
 - **MCP Protocol:** 2024-11-05
-- **Last Updated:** January 2026
+- **Last Updated:** May 2026
 - **Status:** Production Ready
 
 ---
@@ -1624,10 +1624,10 @@ telemetryflow-mcp/
 
 | Component        | Version       | Compatibility         |
 | ---------------- | ------------- | --------------------- |
-| TFO-MCP          | v1.1.2        | MCP 2024-11-05        |
-| Go               | 1.24+         | Required              |
+| TFO-MCP          | v1.2.0        | MCP 2024-11-05        |
+| Go               | 1.26+         | Required              |
 | anthropic-sdk-go | v0.2.0-beta.3 | Claude API            |
-| OTEL SDK         | v1.39.0       | TFO ecosystem aligned |
+| OTEL SDK         | v1.43.0       | TFO ecosystem aligned |
 | Zerolog          | v1.33.0       | Logging               |
 | Viper            | v1.19.0       | Configuration         |
 | Cobra            | v1.8.1        | CLI                   |

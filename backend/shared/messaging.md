@@ -4,7 +4,7 @@
 - **Category**: Backend / Shared Modules
 - **Status**: Production Ready
 - **Priority:** 🔥 HIGH - Core Infrastructure
-- **Version**: 1.1.2-CE
+- **Version**: 1.4.0
 
 ---
 
@@ -77,19 +77,19 @@ sequenceDiagram
 @Injectable()
 export class HybridEventPublisher implements IDomainEventPublisher {
   private readonly realTimeEvents = [
-    'AlertTriggeredEvent',
-    'MetricReceivedEvent',
-    'DashboardUpdatedEvent',
-    'UserStatusChangedEvent',
-    'TraceCompletedEvent',
-    'AuthLoginEvent',
-    'AuthLogoutEvent',
-    'MfaValidatedEvent',
-    'AuditLogCreatedEvent',
-    'SsoLoginEvent',
-    'RolePermissionChangedEvent',
-    'SecurityEventDetected',
-    'SuspiciousActivityDetected',
+    "AlertTriggeredEvent",
+    "MetricReceivedEvent",
+    "DashboardUpdatedEvent",
+    "UserStatusChangedEvent",
+    "TraceCompletedEvent",
+    "AuthLoginEvent",
+    "AuthLogoutEvent",
+    "MfaValidatedEvent",
+    "AuditLogCreatedEvent",
+    "SsoLoginEvent",
+    "RolePermissionChangedEvent",
+    "SecurityEventDetected",
+    "SuspiciousActivityDetected",
   ];
 
   constructor(
@@ -118,8 +118,8 @@ export class HybridEventPublisher implements IDomainEventPublisher {
 
     // NATS: Real-time broadcast
     if (this.nats) {
-      const realTimeEvents = events.filter(e => this.shouldBroadcast(e));
-      await Promise.all(realTimeEvents.map(e => this.nats.broadcast(e)));
+      const realTimeEvents = events.filter((e) => this.shouldBroadcast(e));
+      await Promise.all(realTimeEvents.map((e) => this.nats.broadcast(e)));
     }
   }
 
@@ -133,21 +133,21 @@ export class HybridEventPublisher implements IDomainEventPublisher {
 
 ## Real-Time Event Types
 
-| Event Type | Description | Use Case |
-|------------|-------------|----------|
-| **AlertTriggeredEvent** | Alert rule triggered | Real-time notification |
-| **MetricReceivedEvent** | New metric data | Live dashboard updates |
-| **DashboardUpdatedEvent** | Dashboard modified | Collaborative editing |
-| **UserStatusChangedEvent** | User online/offline | Presence tracking |
-| **TraceCompletedEvent** | Trace span completed | Live trace viewer |
-| **AuthLoginEvent** | User logged in | Security monitoring |
-| **AuthLogoutEvent** | User logged out | Session tracking |
-| **MfaValidatedEvent** | MFA verification | Auth flow updates |
-| **AuditLogCreatedEvent** | Audit log entry | Compliance monitoring |
-| **SsoLoginEvent** | SSO authentication | SSO flow tracking |
-| **RolePermissionChangedEvent** | RBAC updated | Permission refresh |
-| **SecurityEventDetected** | Security anomaly | Security alerts |
-| **SuspiciousActivityDetected** | Suspicious behavior | Fraud detection |
+| Event Type                     | Description          | Use Case               |
+| ------------------------------ | -------------------- | ---------------------- |
+| **AlertTriggeredEvent**        | Alert rule triggered | Real-time notification |
+| **MetricReceivedEvent**        | New metric data      | Live dashboard updates |
+| **DashboardUpdatedEvent**      | Dashboard modified   | Collaborative editing  |
+| **UserStatusChangedEvent**     | User online/offline  | Presence tracking      |
+| **TraceCompletedEvent**        | Trace span completed | Live trace viewer      |
+| **AuthLoginEvent**             | User logged in       | Security monitoring    |
+| **AuthLogoutEvent**            | User logged out      | Session tracking       |
+| **MfaValidatedEvent**          | MFA verification     | Auth flow updates      |
+| **AuditLogCreatedEvent**       | Audit log entry      | Compliance monitoring  |
+| **SsoLoginEvent**              | SSO authentication   | SSO flow tracking      |
+| **RolePermissionChangedEvent** | RBAC updated         | Permission refresh     |
+| **SecurityEventDetected**      | Security anomaly     | Security alerts        |
+| **SuspiciousActivityDetected** | Suspicious behavior  | Fraud detection        |
 
 ---
 
@@ -173,10 +173,11 @@ export class NatsEventPublisher {
 ```
 
 **NATS Configuration:**
+
 ```typescript
 const natsConfig = {
-  servers: process.env.NATS_URL || 'nats://localhost:4222',
-  name: 'telemetryflow-publisher',
+  servers: process.env.NATS_URL || "nats://localhost:4222",
+  name: "telemetryflow-publisher",
   maxReconnectAttempts: -1, // Infinite
   reconnectTimeWait: 2000,
 };
@@ -208,7 +209,7 @@ export class BullMQEventPublisher {
   }
 
   async publishBatch(events: DomainEvent[]): Promise<void> {
-    const jobs = events.map(event => ({
+    const jobs = events.map((event) => ({
       name: event.constructor.name,
       data: {
         type: event.constructor.name,
@@ -253,6 +254,7 @@ async publish(event: DomainEvent): Promise<void> {
 ```
 
 **Degradation Scenarios:**
+
 - If NATS fails: Events still processed via BullMQ
 - If BullMQ fails: Real-time events still broadcast via NATS
 - If both fail: Errors logged, application continues
@@ -268,12 +270,9 @@ export class Alert extends AggregateRoot<AlertId> {
     this.status = AlertStatus.TRIGGERED;
 
     // Emit domain event
-    this.addDomainEvent(new AlertTriggeredEvent(
-      this.id.value,
-      this.name,
-      value,
-      this.threshold,
-    ));
+    this.addDomainEvent(
+      new AlertTriggeredEvent(this.id.value, this.name, value, this.threshold),
+    );
   }
 }
 
@@ -289,9 +288,9 @@ await alertRepository.save(alert); // Publishes AlertTriggeredEvent
 Event processors subscribe to events and execute business logic:
 
 ```typescript
-@Processor('domain-events')
+@Processor("domain-events")
 export class AlertEventProcessor {
-  @Process('AlertTriggeredEvent')
+  @Process("AlertTriggeredEvent")
   async handleAlertTriggered(job: Job<AlertTriggeredEvent>) {
     const event = job.data;
 
@@ -316,29 +315,26 @@ export class AlertEventProcessor {
 @Module({
   imports: [
     BullModule.registerQueue({
-      name: 'domain-events',
+      name: "domain-events",
       defaultJobOptions: {
         removeOnComplete: 1000,
         removeOnFail: 5000,
         attempts: 3,
         backoff: {
-          type: 'exponential',
+          type: "exponential",
           delay: 2000,
         },
       },
     }),
   ],
-  providers: [
-    NatsEventPublisher,
-    BullMQEventPublisher,
-    HybridEventPublisher,
-  ],
+  providers: [NatsEventPublisher, BullMQEventPublisher, HybridEventPublisher],
   exports: [HybridEventPublisher],
 })
 export class MessagingModule {}
 ```
 
 **Environment Variables:**
+
 ```bash
 # NATS Configuration
 NATS_URL=nats://localhost:4222
@@ -354,11 +350,13 @@ REDIS_PASSWORD=
 ## Performance
 
 **Publishing Performance:**
+
 - Single event: ~1-2ms (BullMQ) + ~0.5ms (NATS)
 - Batch publish (100 events): ~10-15ms (BullMQ) + ~5ms (NATS)
 - Real-time latency: <5ms from publish to subscriber
 
 **Reliability:**
+
 - BullMQ: At-least-once delivery with retries
 - NATS: At-most-once delivery (fire-and-forget)
 - Combined: Reliable processing + real-time notifications
@@ -388,5 +386,5 @@ REDIS_PASSWORD=
 
 ---
 
-- **Last Updated**: January 01st, 2026
+- **Last Updated**: May 14th, 2026
 - **Maintained By**: DevOpsCorner Indonesia

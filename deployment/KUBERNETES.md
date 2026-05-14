@@ -1,7 +1,7 @@
 # Kubernetes Deployment Guide
 
-- **Version:** 1.1.2-CE
-- **Last Updated:** December 13, 2025
+- **Version:** 1.4.0
+- **Last Updated:** May 14, 2026
 - **Status:** ✅ Production Ready
 
 ---
@@ -28,11 +28,11 @@
 
 ### Deployment Options
 
-| Method | Best For | Complexity | Customization |
-|--------|---------|------------|---------------|
-| **Raw Manifests** | Quick deployment, learning | Low | Medium |
-| **Helm Charts** | Production, multiple environments | Medium | High |
-| **Operators** | Advanced automation | High | Very High |
+| Method            | Best For                          | Complexity | Customization |
+| ----------------- | --------------------------------- | ---------- | ------------- |
+| **Raw Manifests** | Quick deployment, learning        | Low        | Medium        |
+| **Helm Charts**   | Production, multiple environments | Medium     | High          |
+| **Operators**     | Advanced automation               | High       | Very High     |
 
 ---
 
@@ -56,13 +56,13 @@ docker version
 
 ### Cluster Requirements
 
-| Resource | Minimum | Recommended | Production |
-|----------|---------|-------------|------------|
-| **Kubernetes Version** | 1.25+ | 1.28+ | 1.28+ |
-| **Nodes** | 3 | 5 | 10+ |
-| **Total CPU** | 8 cores | 16 cores | 32+ cores |
-| **Total Memory** | 16 GB | 32 GB | 64+ GB |
-| **Storage** | 100 GB | 500 GB | 2+ TB |
+| Resource               | Minimum | Recommended | Production |
+| ---------------------- | ------- | ----------- | ---------- |
+| **Kubernetes Version** | 1.25+   | 1.28+       | 1.28+      |
+| **Nodes**              | 3       | 5           | 10+        |
+| **Total CPU**          | 8 cores | 16 cores    | 32+ cores  |
+| **Total Memory**       | 16 GB   | 32 GB       | 64+ GB     |
+| **Storage**            | 100 GB  | 500 GB      | 2+ TB      |
 
 ### Cluster Features
 
@@ -97,7 +97,7 @@ graph TB
     end
 
     subgraph "Monitoring Layer"
-        OTEL[OTEL Collector<br/>DaemonSet]
+        OTEL[TFO Collector<br/>OCB-native<br/>DaemonSet]
         PROM[Prometheus<br/>StatefulSet]
         GRAF[Grafana<br/>Deployment]
     end
@@ -130,7 +130,7 @@ graph LR
         subgraph "Deployments"
             D1[Backend<br/>3-10 replicas]
             D2[Frontend<br/>3 replicas]
-            D3[OTEL Collector<br/>DaemonSet]
+            D3[TFO Collector<br/>DaemonSet]
         end
 
         subgraph "StatefulSets"
@@ -174,18 +174,21 @@ graph LR
 ### Option 1: Raw Kubernetes Manifests
 
 **1. Clone Repository:**
+
 ```bash
 git clone https://github.com/telemetryflow/telemetryflow-platform.git
 cd telemetryflow-platform
 ```
 
 **2. Review and Update Configuration:**
+
 ```bash
 # Edit the manifest to update domain, secrets, etc.
 vim manifest/k8s-deployment.yaml
 ```
 
 **3. Deploy:**
+
 ```bash
 # Create namespace
 kubectl create namespace telemetryflow-platform
@@ -200,6 +203,7 @@ kubectl get all -n telemetryflow-platform
 ### Option 2: Helm Chart (Recommended)
 
 **1. Add Helm Repository:**
+
 ```bash
 # (When available)
 helm repo add telemetryflow https://charts.telemetryflow.id
@@ -207,6 +211,7 @@ helm repo update
 ```
 
 **2. Customize Values:**
+
 ```bash
 # Create custom values file
 cat > custom-values.yaml <<EOF
@@ -249,6 +254,7 @@ EOF
 ```
 
 **3. Install:**
+
 ```bash
 helm install telemetryflow telemetryflow/telemetryflow-platform \\
   --namespace telemetryflow-platform \\
@@ -257,6 +263,7 @@ helm install telemetryflow telemetryflow/telemetryflow-platform \\
 ```
 
 **4. Verify Installation:**
+
 ```bash
 # Check all pods are running
 kubectl get pods -n telemetryflow-platform
@@ -296,8 +303,8 @@ data:
   NODE_ENV: "production"
   LOG_LEVEL: "info"
   OTEL_SERVICE_NAME: "telemetryflow-platform"
-  SERVICE_VERSION: "1.1.2-CE"
-  OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4317"
+  SERVICE_VERSION: "1.4.0"
+  OTEL_EXPORTER_OTLP_ENDPOINT: "http://tfo-collector:4317"
   CORS_ORIGIN: "https://app.yourdomain.com"
 ```
 
@@ -315,6 +322,7 @@ kubectl create secret generic telemetryflow-secrets \\
 ```
 
 Or using a YAML file:
+
 ```yaml
 apiVersion: v1
 kind: Secret
@@ -342,7 +350,7 @@ metadata:
   labels:
     app: telemetryflow
     component: backend
-    version: v1.1.2-CE
+    version: v1.4.0
 spec:
   replicas: 3
   selector:
@@ -359,104 +367,104 @@ spec:
       labels:
         app: telemetryflow
         component: backend
-        version: v1.1.2-CE
+        version: v1.4.0
       annotations:
         prometheus.io/scrape: "true"
-        prometheus.io/port: "3100"
+        prometheus.io/port: "3000"
         prometheus.io/path: "/metrics"
     spec:
       containers:
-      - name: backend
-        image: telemetryflow/telemetryflow-mcp-backend:1.1.2-CE
-        imagePullPolicy: IfNotPresent
-        ports:
-        - containerPort: 3100
-          name: http
-          protocol: TCP
-        env:
-        - name: NODE_ENV
-          value: "production"
-        - name: PORT
-          value: "3100"
-        - name: JWT_SECRET
-          valueFrom:
-            secretKeyRef:
-              name: telemetryflow-secrets
-              key: jwt-secret
-        - name: POSTGRES_HOST
-          value: "postgresql"
-        - name: POSTGRES_PORT
-          value: "5432"
-        - name: POSTGRES_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: telemetryflow-secrets
-              key: postgres-password
-        - name: CLICKHOUSE_HOST
-          value: "http://clickhouse:8123"
-        - name: REDIS_HOST
-          value: "redis"
-        - name: REDIS_PORT
-          value: "6379"
-        - name: NATS_URL
-          value: "nats://nats:4222"
-        # Kubernetes metadata injection
-        - name: K8S_NAMESPACE
-          valueFrom:
-            fieldRef:
-              fieldPath: metadata.namespace
-        - name: K8S_POD_NAME
-          valueFrom:
-            fieldRef:
-              fieldPath: metadata.name
-        - name: K8S_NODE_NAME
-          valueFrom:
-            fieldRef:
-              fieldPath: spec.nodeName
-        resources:
-          requests:
-            memory: "512Mi"
-            cpu: "500m"
-          limits:
-            memory: "1Gi"
-            cpu: "1000m"
-        livenessProbe:
-          httpGet:
-            path: /health
-            port: 3100
-          initialDelaySeconds: 30
-          periodSeconds: 10
-          timeoutSeconds: 5
-          failureThreshold: 3
-        readinessProbe:
-          httpGet:
-            path: /health
-            port: 3100
-          initialDelaySeconds: 10
-          periodSeconds: 5
-          timeoutSeconds: 3
-          failureThreshold: 3
-        lifecycle:
-          preStop:
-            exec:
-              command: ["/bin/sh", "-c", "sleep 15"]
+        - name: backend
+          image: devopscorner/telemetryflow-backend:1.4.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 3000
+              name: http
+              protocol: TCP
+          env:
+            - name: NODE_ENV
+              value: "production"
+            - name: PORT
+              value: "3000"
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: telemetryflow-secrets
+                  key: jwt-secret
+            - name: POSTGRES_HOST
+              value: "postgresql"
+            - name: POSTGRES_PORT
+              value: "5432"
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: telemetryflow-secrets
+                  key: postgres-password
+            - name: CLICKHOUSE_HOST
+              value: "http://clickhouse:8123"
+            - name: REDIS_HOST
+              value: "redis"
+            - name: REDIS_PORT
+              value: "6379"
+            - name: NATS_URL
+              value: "nats://nats:4222"
+            # Kubernetes metadata injection
+            - name: K8S_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: K8S_POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: K8S_NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "500m"
+            limits:
+              memory: "1Gi"
+              cpu: "1000m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          lifecycle:
+            preStop:
+              exec:
+                command: ["/bin/sh", "-c", "sleep 15"]
       terminationGracePeriodSeconds: 30
       affinity:
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
-          - weight: 100
-            podAffinityTerm:
-              labelSelector:
-                matchExpressions:
-                - key: app
-                  operator: In
-                  values:
-                  - telemetryflow
-                - key: component
-                  operator: In
-                  values:
-                  - backend
-              topologyKey: kubernetes.io/hostname
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: app
+                      operator: In
+                      values:
+                        - telemetryflow
+                    - key: component
+                      operator: In
+                      values:
+                        - backend
+                topologyKey: kubernetes.io/hostname
 ```
 
 ### 5. Frontend Deployment
@@ -480,18 +488,18 @@ spec:
         component: frontend
     spec:
       containers:
-      - name: frontend
-        image: telemetryflow/telemetryflow-mcp-frontend:1.1.2-CE
-        ports:
-        - containerPort: 80
-          name: http
-        resources:
-          requests:
-            memory: "128Mi"
-            cpu: "100m"
-          limits:
-            memory: "256Mi"
-            cpu: "200m"
+        - name: frontend
+          image: devopscorner/telemetryflow-frontend:1.4.0
+          ports:
+            - containerPort: 80
+              name: http
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "200m"
 ```
 
 ### 6. Services
@@ -506,10 +514,10 @@ metadata:
 spec:
   type: ClusterIP
   ports:
-  - port: 3100
-    targetPort: 3100
-    protocol: TCP
-    name: http
+    - port: 3000
+      targetPort: 3000
+      protocol: TCP
+      name: http
   selector:
     app: telemetryflow
     component: backend
@@ -523,10 +531,10 @@ metadata:
 spec:
   type: ClusterIP
   ports:
-  - port: 80
-    targetPort: 80
-    protocol: TCP
-    name: http
+    - port: 80
+      targetPort: 80
+      protocol: TCP
+      name: http
   selector:
     app: telemetryflow
     component: frontend
@@ -548,31 +556,31 @@ metadata:
     nginx.ingress.kubernetes.io/rate-limit: "100"
 spec:
   tls:
-  - hosts:
-    - api.yourdomain.com
-    - app.yourdomain.com
-    secretName: telemetryflow-tls
+    - hosts:
+        - api.yourdomain.com
+        - app.yourdomain.com
+      secretName: telemetryflow-tls
   rules:
-  - host: api.yourdomain.com
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: telemetryflow-backend
-            port:
-              number: 3100
-  - host: app.yourdomain.com
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: telemetryflow-frontend
-            port:
-              number: 80
+    - host: api.yourdomain.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: telemetryflow-backend
+                port:
+                  number: 3000
+    - host: app.yourdomain.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: telemetryflow-frontend
+                port:
+                  number: 80
 ```
 
 ### 8. Horizontal Pod Autoscaler (HPA)
@@ -591,31 +599,31 @@ spec:
   minReplicas: 3
   maxReplicas: 10
   metrics:
-  - type: Resource
-    resource:
-      name: cpu
-      target:
-        type: Utilization
-        averageUtilization: 70
-  - type: Resource
-    resource:
-      name: memory
-      target:
-        type: Utilization
-        averageUtilization: 80
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80
   behavior:
     scaleDown:
       stabilizationWindowSeconds: 300
       policies:
-      - type: Percent
-        value: 50
-        periodSeconds: 60
+        - type: Percent
+          value: 50
+          periodSeconds: 60
     scaleUp:
       stabilizationWindowSeconds: 60
       policies:
-      - type: Percent
-        value: 100
-        periodSeconds: 15
+        - type: Percent
+          value: 100
+          periodSeconds: 15
 ```
 
 ### 9. Pod Disruption Budget
@@ -648,67 +656,67 @@ spec:
       app: telemetryflow
       component: backend
   policyTypes:
-  - Ingress
-  - Egress
+    - Ingress
+    - Egress
   ingress:
-  - from:
-    - namespaceSelector:
-        matchLabels:
-          name: ingress-nginx
-    - podSelector:
-        matchLabels:
-          app: telemetryflow
-          component: frontend
-    ports:
-    - protocol: TCP
-      port: 3100
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: ingress-nginx
+        - podSelector:
+            matchLabels:
+              app: telemetryflow
+              component: frontend
+      ports:
+        - protocol: TCP
+          port: 3000
   egress:
-  # DNS
-  - to:
-    - namespaceSelector:
-        matchLabels:
-          name: kube-system
-    ports:
-    - protocol: UDP
-      port: 53
-  # PostgreSQL
-  - to:
-    - podSelector:
-        matchLabels:
-          app: postgresql
-    ports:
-    - protocol: TCP
-      port: 5432
-  # ClickHouse
-  - to:
-    - podSelector:
-        matchLabels:
-          app: clickhouse
-    ports:
-    - protocol: TCP
-      port: 8123
-  # Redis
-  - to:
-    - podSelector:
-        matchLabels:
-          app: redis
-    ports:
-    - protocol: TCP
-      port: 6379
-  # NATS
-  - to:
-    - podSelector:
-        matchLabels:
-          app: nats
-    ports:
-    - protocol: TCP
-      port: 4222
-  # External HTTPS
-  - to:
-    - namespaceSelector: {}
-    ports:
-    - protocol: TCP
-      port: 443
+    # DNS
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              name: kube-system
+      ports:
+        - protocol: UDP
+          port: 53
+    # PostgreSQL
+    - to:
+        - podSelector:
+            matchLabels:
+              app: postgresql
+      ports:
+        - protocol: TCP
+          port: 5432
+    # ClickHouse
+    - to:
+        - podSelector:
+            matchLabels:
+              app: clickhouse
+      ports:
+        - protocol: TCP
+          port: 8123
+    # Redis
+    - to:
+        - podSelector:
+            matchLabels:
+              app: redis
+      ports:
+        - protocol: TCP
+          port: 6379
+    # NATS
+    - to:
+        - podSelector:
+            matchLabels:
+              app: nats
+      ports:
+        - protocol: TCP
+          port: 4222
+    # External HTTPS
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - protocol: TCP
+          port: 443
 ```
 
 ---
@@ -719,35 +727,37 @@ spec:
 
 **Required Configuration:**
 
-| Variable | Description | Default | Production Value |
-|----------|-------------|---------|------------------|
-| `NODE_ENV` | Environment | development | production |
-| `PORT` | Backend port | 3100 | 3100 |
-| `JWT_SECRET` | JWT signing key | - | **REQUIRED (32+ chars)** |
-| `SESSION_SECRET` | Session key | - | **REQUIRED (32+ chars)** |
-| `POSTGRES_HOST` | PostgreSQL host | localhost | postgresql |
-| `CLICKHOUSE_HOST` | ClickHouse host | localhost | http://clickhouse:8123 |
-| `REDIS_HOST` | Redis host | localhost | redis |
-| `NATS_URL` | NATS URL | - | nats://nats:4222 |
+| Variable          | Description     | Default     | Production Value         |
+| ----------------- | --------------- | ----------- | ------------------------ |
+| `NODE_ENV`        | Environment     | development | production               |
+| `PORT`            | Backend port    | 3000        | 3000                     |
+| `JWT_SECRET`      | JWT signing key | -           | **REQUIRED (32+ chars)** |
+| `SESSION_SECRET`  | Session key     | -           | **REQUIRED (32+ chars)** |
+| `POSTGRES_HOST`   | PostgreSQL host | localhost   | postgresql               |
+| `CLICKHOUSE_HOST` | ClickHouse host | localhost   | http://clickhouse:8123   |
+| `REDIS_HOST`      | Redis host      | localhost   | redis                    |
+| `NATS_URL`        | NATS URL        | -           | nats://nats:4222         |
 
 **Optional Configuration:**
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `LOG_LEVEL` | Logging level | info |
-| `CORS_ORIGIN` | Allowed origins | * |
-| `OTEL_EXPORTER_OTLP_ENDPOINT` | OTEL endpoint | - |
-| `CACHE_ENABLED` | Enable caching | true |
-| `QUEUE_ENABLED` | Enable queues | true |
+| Variable                      | Description     | Default |
+| ----------------------------- | --------------- | ------- |
+| `LOG_LEVEL`                   | Logging level   | info    |
+| `CORS_ORIGIN`                 | Allowed origins | \*      |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | OTEL endpoint   | -       |
+| `CACHE_ENABLED`               | Enable caching  | true    |
+| `QUEUE_ENABLED`               | Enable queues   | true    |
 
 ### ConfigMap vs Secrets
 
 **Use ConfigMap for:**
+
 - Non-sensitive configuration (log levels, URLs, feature flags)
 - Service names and ports
 - Application metadata
 
 **Use Secrets for:**
+
 - Passwords and API keys
 - JWT signing keys
 - Database credentials
@@ -760,6 +770,7 @@ spec:
 ### Horizontal Scaling
 
 **Backend Scaling:**
+
 ```bash
 # Manual scaling
 kubectl scale deployment telemetryflow-backend \\
@@ -772,6 +783,7 @@ kubectl scale deployment telemetryflow-backend \\
 
 **Database Scaling:**
 For production, use managed database services:
+
 - **PostgreSQL:** AWS RDS, Google Cloud SQL, Azure Database
 - **ClickHouse:** ClickHouse Cloud, Altinity.Cloud
 - **Redis:** AWS ElastiCache, Google Memorystore, Azure Cache
@@ -779,6 +791,7 @@ For production, use managed database services:
 ### Vertical Scaling
 
 Update resource requests/limits:
+
 ```bash
 kubectl set resources deployment telemetryflow-backend \\
   --requests=cpu=1000m,memory=1Gi \\
@@ -793,6 +806,7 @@ kubectl set resources deployment telemetryflow-backend \\
 ### Prometheus Integration
 
 **ServiceMonitor (for Prometheus Operator):**
+
 ```yaml
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
@@ -805,23 +819,25 @@ spec:
       app: telemetryflow
       component: backend
   endpoints:
-  - port: http
-    path: /metrics
-    interval: 30s
+    - port: http
+      path: /metrics
+      interval: 30s
 ```
 
 **Check Metrics:**
+
 ```bash
 # Port-forward to access metrics
-kubectl port-forward svc/telemetryflow-backend 3100:3100 -n telemetryflow-platform
+kubectl port-forward svc/telemetryflow-backend 3000:3000 -n telemetryflow-platform
 
 # Access metrics
-curl http://localhost:3100/metrics
+curl http://localhost:3000/metrics
 ```
 
 ### Logging
 
 **Centralized Logging with Loki:**
+
 ```bash
 # View logs from all backend pods
 kubectl logs -l app=telemetryflow,component=backend \\
@@ -850,9 +866,9 @@ metadata:
   name: telemetryflow-backend
   namespace: telemetryflow-platform
 rules:
-- apiGroups: [""]
-  resources: ["configmaps", "secrets"]
-  verbs: ["get", "list"]
+  - apiGroups: [""]
+    resources: ["configmaps", "secrets"]
+    verbs: ["get", "list"]
 
 ---
 apiVersion: rbac.authorization.k8s.io/v1
@@ -861,8 +877,8 @@ metadata:
   name: telemetryflow-backend
   namespace: telemetryflow-platform
 subjects:
-- kind: ServiceAccount
-  name: telemetryflow-backend
+  - kind: ServiceAccount
+    name: telemetryflow-backend
 roleRef:
   kind: Role
   name: telemetryflow-backend
@@ -886,6 +902,7 @@ roleRef:
 ### Common Issues
 
 **1. Pods Not Starting:**
+
 ```bash
 # Check pod status
 kubectl get pods -n telemetryflow-platform
@@ -898,6 +915,7 @@ kubectl logs <pod-name> -n telemetryflow-platform
 ```
 
 **2. Database Connection Issues:**
+
 ```bash
 # Test PostgreSQL connection
 kubectl run -it --rm debug \\
@@ -908,6 +926,7 @@ kubectl run -it --rm debug \\
 ```
 
 **3. High Memory Usage:**
+
 ```bash
 # Check resource usage
 kubectl top pods -n telemetryflow-platform
@@ -919,6 +938,7 @@ kubectl set resources deployment telemetryflow-backend \\
 ```
 
 **4. HPA Not Scaling:**
+
 ```bash
 # Check HPA status
 kubectl get hpa -n telemetryflow-platform
@@ -979,4 +999,4 @@ kubectl top pods -n telemetryflow-platform
 
 ---
 
-**Version:** 1.1.2-CE | **Maintained By:** DevOpsCorner Indonesia
+**Version:** 1.4.0 | **Maintained By:** DevOpsCorner Indonesia

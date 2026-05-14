@@ -3,7 +3,7 @@
 - **Module**: `shared/logger`
 - **Category**: Backend / Shared Infrastructure
 - **Status**: Production Ready
-- **Version**: 1.1.2-CE
+- **Version**: 1.4.0
 
 ---
 
@@ -82,6 +82,7 @@ graph TB
 ```
 
 **Key Principles:**
+
 - **Dual mode**: Choose between simple NestJS logger or full-featured Winston
 - **OTEL integration**: Automatically correlate logs with traces
 - **Flexible transports**: Send logs to multiple destinations
@@ -96,14 +97,18 @@ graph TB
 ```typescript
 // /backend/src/shared/logger/logger.service.ts
 
-import { Injectable, LoggerService as NestLoggerService, Inject } from '@nestjs/common';
-import * as winston from 'winston';
-import { trace, context as otelContext } from '@opentelemetry/api';
+import {
+  Injectable,
+  LoggerService as NestLoggerService,
+  Inject,
+} from "@nestjs/common";
+import * as winston from "winston";
+import { trace, context as otelContext } from "@opentelemetry/api";
 
-export type LogLevel = 'error' | 'warn' | 'info' | 'debug' | 'verbose';
+export type LogLevel = "error" | "warn" | "info" | "debug" | "verbose";
 
 export interface LoggerConfig {
-  type: 'nestjs' | 'winston';
+  type: "nestjs" | "winston";
   level: LogLevel;
   json: boolean;
   timestamp: boolean;
@@ -132,14 +137,14 @@ export interface LoggerConfig {
 export class LoggerService implements NestLoggerService {
   private config: LoggerConfig;
   private winstonLogger: winston.Logger | null = null;
-  private context: string = 'Application';
+  private context: string = "Application";
 
-  constructor(@Inject('LOGGER_CONFIG') config: LoggerConfig) {
+  constructor(@Inject("LOGGER_CONFIG") config: LoggerConfig) {
     this.config = config;
   }
 
   async onModuleInit() {
-    if (this.config.type === 'winston') {
+    if (this.config.type === "winston") {
       await this.initializeWinston();
     }
   }
@@ -183,13 +188,17 @@ export class LoggerService implements NestLoggerService {
         new winston.transports.Console({
           format: winston.format.combine(
             winston.format.colorize({ all: this.config.colorize }),
-            winston.format.printf(({ timestamp, level, message, context, traceId, ...meta }) => {
-              const traceInfo = traceId ? ` [trace:${traceId.substring(0, 8)}]` : '';
-              const ctx = context ? `[${context}]` : '';
-              return `${timestamp} ${level} ${ctx}${traceInfo}: ${message} ${
-                Object.keys(meta).length ? JSON.stringify(meta) : ''
-              }`;
-            }),
+            winston.format.printf(
+              ({ timestamp, level, message, context, traceId, ...meta }) => {
+                const traceInfo = traceId
+                  ? ` [trace:${traceId.substring(0, 8)}]`
+                  : "";
+                const ctx = context ? `[${context}]` : "";
+                return `${timestamp} ${level} ${ctx}${traceInfo}: ${message} ${
+                  Object.keys(meta).length ? JSON.stringify(meta) : ""
+                }`;
+              },
+            ),
           ),
         }),
       );
@@ -197,13 +206,13 @@ export class LoggerService implements NestLoggerService {
 
     // Loki transport
     if (this.config.transports.loki?.enabled) {
-      const LokiTransport = (await import('winston-loki')).default;
+      const LokiTransport = (await import("winston-loki")).default;
       transports.push(
         new LokiTransport({
           host: this.config.transports.loki.host,
           labels: {
-            app: 'telemetryflow',
-            environment: process.env.NODE_ENV || 'development',
+            app: "telemetryflow",
+            environment: process.env.NODE_ENV || "development",
             ...this.config.transports.loki.labels,
           },
           json: true,
@@ -214,9 +223,11 @@ export class LoggerService implements NestLoggerService {
 
     // FluentBit transport
     if (this.config.transports.fluentbit?.enabled) {
-      const FluentTransport = (await import('fluent-logger')).support.winstonTransport();
+      const FluentTransport = (
+        await import("fluent-logger")
+      ).support.winstonTransport();
       transports.push(
-        new FluentTransport('telemetryflow', {
+        new FluentTransport("telemetryflow", {
           host: this.config.transports.fluentbit.host,
           port: this.config.transports.fluentbit.port,
           timeout: 3.0,
@@ -227,10 +238,12 @@ export class LoggerService implements NestLoggerService {
 
     // OpenSearch transport
     if (this.config.transports.opensearch?.enabled) {
-      const { Client } = await import('@opensearch-project/opensearch');
-      const client = new Client({ node: this.config.transports.opensearch.node });
+      const { Client } = await import("@opensearch-project/opensearch");
+      const client = new Client({
+        node: this.config.transports.opensearch.node,
+      });
 
-      const OpenSearchTransport = (await import('winston-opensearch')).default;
+      const OpenSearchTransport = (await import("winston-opensearch")).default;
       transports.push(
         new OpenSearchTransport({
           client,
@@ -279,7 +292,7 @@ export class LoggerService implements NestLoggerService {
     if (this.winstonLogger) {
       this.winstonLogger.debug(message, { context: ctx });
     } else {
-      if (this.config.level === 'debug' || this.config.level === 'verbose') {
+      if (this.config.level === "debug" || this.config.level === "verbose") {
         console.debug(`[${ctx}] ${message}`);
       }
     }
@@ -290,14 +303,19 @@ export class LoggerService implements NestLoggerService {
     if (this.winstonLogger) {
       this.winstonLogger.verbose(message, { context: ctx });
     } else {
-      if (this.config.level === 'verbose') {
+      if (this.config.level === "verbose") {
         console.log(`[${ctx}] ${message}`);
       }
     }
   }
 
   // Additional Winston-specific methods
-  logWithMetadata(level: LogLevel, message: string, metadata: Record<string, any>, context?: string) {
+  logWithMetadata(
+    level: LogLevel,
+    message: string,
+    metadata: Record<string, any>,
+    context?: string,
+  ) {
     const ctx = context || this.context;
     if (this.winstonLogger) {
       this.winstonLogger.log(level, message, { context: ctx, ...metadata });
@@ -334,16 +352,16 @@ export class LoggerService implements NestLoggerService {
   // HTTP request logging
   logHttpRequest(req: any, res: any, duration: number) {
     this.logStructured({
-      level: 'info',
+      level: "info",
       message: `${req.method} ${req.url}`,
-      context: 'HTTP',
+      context: "HTTP",
       requestId: req.id,
       duration,
       metadata: {
         method: req.method,
         url: req.url,
         statusCode: res.statusCode,
-        userAgent: req.headers['user-agent'],
+        userAgent: req.headers["user-agent"],
         ip: req.ip,
       },
     });
@@ -351,11 +369,11 @@ export class LoggerService implements NestLoggerService {
 
   // Query logging (database queries)
   logQuery(query: string, params: any[], duration: number) {
-    if (this.config.level === 'debug' || this.config.level === 'verbose') {
+    if (this.config.level === "debug" || this.config.level === "verbose") {
       this.logStructured({
-        level: 'debug',
-        message: 'Database query executed',
-        context: 'Database',
+        level: "debug",
+        message: "Database query executed",
+        context: "Database",
         duration,
         metadata: {
           query,
@@ -435,13 +453,13 @@ sequenceDiagram
 
 ## Log Levels
 
-| Level | Description | Use Case | Environment |
-|-------|-------------|----------|-------------|
-| **error** | Critical errors that need immediate attention | Exceptions, failures | All |
-| **warn** | Warning conditions that should be reviewed | Deprecated API usage, high latency | All |
-| **info** | Informational messages | User login, job completion | Production, Staging |
-| **debug** | Detailed debugging information | Function entry/exit, variable values | Development, Staging |
-| **verbose** | Very detailed information | Request/response bodies | Development only |
+| Level       | Description                                   | Use Case                             | Environment          |
+| ----------- | --------------------------------------------- | ------------------------------------ | -------------------- |
+| **error**   | Critical errors that need immediate attention | Exceptions, failures                 | All                  |
+| **warn**    | Warning conditions that should be reviewed    | Deprecated API usage, high latency   | All                  |
+| **info**    | Informational messages                        | User login, job completion           | Production, Staging  |
+| **debug**   | Detailed debugging information                | Function entry/exit, variable values | Development, Staging |
+| **verbose** | Very detailed information                     | Request/response bodies              | Development only     |
 
 ### Environment-Based Log Levels
 
@@ -449,13 +467,13 @@ sequenceDiagram
 // Recommended log levels per environment
 
 const LOG_LEVELS = {
-  production: 'info',
-  staging: 'debug',
-  development: 'verbose',
-  test: 'error',
+  production: "info",
+  staging: "debug",
+  development: "verbose",
+  test: "error",
 };
 
-const logLevel = LOG_LEVELS[process.env.NODE_ENV] || 'info';
+const logLevel = LOG_LEVELS[process.env.NODE_ENV] || "info";
 ```
 
 ---
@@ -471,14 +489,15 @@ new winston.transports.Console({
   format: winston.format.combine(
     winston.format.colorize({ all: true }),
     winston.format.printf(({ timestamp, level, message, context, traceId }) => {
-      const trace = traceId ? `[trace:${traceId.substring(0, 8)}]` : '';
+      const trace = traceId ? `[trace:${traceId.substring(0, 8)}]` : "";
       return `${timestamp} ${level} [${context}]${trace}: ${message}`;
     }),
   ),
-})
+});
 ```
 
 **Output:**
+
 ```
 2025-12-12T10:30:00.000Z info [UserService][trace:a1b2c3d4]: User created successfully
 ```
@@ -489,15 +508,15 @@ Send logs to Grafana Loki for centralized log aggregation.
 
 ```typescript
 new LokiTransport({
-  host: 'http://loki:3100',
+  host: "http://loki:3100",
   labels: {
-    app: 'telemetryflow',
-    environment: 'production',
-    service: 'backend',
+    app: "telemetryflow",
+    environment: "production",
+    service: "backend",
   },
   json: true,
   format: winston.format.json(),
-})
+});
 ```
 
 ### 3. FluentBit Transport
@@ -505,12 +524,12 @@ new LokiTransport({
 Forward logs to FluentBit for processing and routing.
 
 ```typescript
-new FluentTransport('telemetryflow', {
-  host: 'fluentbit',
+new FluentTransport("telemetryflow", {
+  host: "fluentbit",
   port: 24224,
   timeout: 3.0,
   requireAckResponse: false,
-})
+});
 ```
 
 ### 4. OpenSearch Transport
@@ -520,8 +539,8 @@ Index logs in OpenSearch for advanced search and analytics.
 ```typescript
 new OpenSearchTransport({
   client: opensearchClient,
-  index: 'telemetryflow-logs-{YYYY.MM.DD}',
-})
+  index: "telemetryflow-logs-{YYYY.MM.DD}",
+});
 ```
 
 ---
@@ -564,43 +583,55 @@ LOG_OPENSEARCH_INDEX=telemetryflow-logs    # Index pattern
 ```typescript
 // /backend/src/shared/logger/logger.module.ts
 
-import { Module, Global } from '@nestjs/common';
-import { LoggerService } from './logger.service';
-import { ConfigService } from '@nestjs/config';
+import { Module, Global } from "@nestjs/common";
+import { LoggerService } from "./logger.service";
+import { ConfigService } from "@nestjs/config";
 
 @Global()
 @Module({
   providers: [
     {
-      provide: 'LOGGER_CONFIG',
+      provide: "LOGGER_CONFIG",
       useFactory: (configService: ConfigService) => ({
-        type: configService.get('LOGGER_TYPE', 'winston'),
-        level: configService.get('LOG_LEVEL', 'info'),
-        json: configService.get('LOG_JSON', 'true') === 'true',
-        timestamp: configService.get('LOG_TIMESTAMP', 'true') === 'true',
-        colorize: configService.get('LOG_COLORIZE', 'false') === 'true',
+        type: configService.get("LOGGER_TYPE", "winston"),
+        level: configService.get("LOG_LEVEL", "info"),
+        json: configService.get("LOG_JSON", "true") === "true",
+        timestamp: configService.get("LOG_TIMESTAMP", "true") === "true",
+        colorize: configService.get("LOG_COLORIZE", "false") === "true",
         transports: {
-          console: configService.get('LOG_CONSOLE_ENABLED', 'true') === 'true',
+          console: configService.get("LOG_CONSOLE_ENABLED", "true") === "true",
           loki: {
-            enabled: configService.get('LOG_LOKI_ENABLED', 'false') === 'true',
-            host: configService.get('LOG_LOKI_HOST', 'http://loki:3100'),
-            labels: configService.get('LOG_LOKI_LABELS', '')
-              .split(',')
+            enabled: configService.get("LOG_LOKI_ENABLED", "false") === "true",
+            host: configService.get("LOG_LOKI_HOST", "http://loki:3100"),
+            labels: configService
+              .get("LOG_LOKI_LABELS", "")
+              .split(",")
               .reduce((acc, pair) => {
-                const [key, value] = pair.split(':');
+                const [key, value] = pair.split(":");
                 if (key && value) acc[key] = value;
                 return acc;
               }, {}),
           },
           fluentbit: {
-            enabled: configService.get('LOG_FLUENTBIT_ENABLED', 'false') === 'true',
-            host: configService.get('LOG_FLUENTBIT_HOST', 'fluentbit'),
-            port: parseInt(configService.get('LOG_FLUENTBIT_PORT', '24224'), 10),
+            enabled:
+              configService.get("LOG_FLUENTBIT_ENABLED", "false") === "true",
+            host: configService.get("LOG_FLUENTBIT_HOST", "fluentbit"),
+            port: parseInt(
+              configService.get("LOG_FLUENTBIT_PORT", "24224"),
+              10,
+            ),
           },
           opensearch: {
-            enabled: configService.get('LOG_OPENSEARCH_ENABLED', 'false') === 'true',
-            node: configService.get('LOG_OPENSEARCH_NODE', 'http://opensearch:9200'),
-            index: configService.get('LOG_OPENSEARCH_INDEX', 'telemetryflow-logs'),
+            enabled:
+              configService.get("LOG_OPENSEARCH_ENABLED", "false") === "true",
+            node: configService.get(
+              "LOG_OPENSEARCH_NODE",
+              "http://opensearch:9200",
+            ),
+            index: configService.get(
+              "LOG_OPENSEARCH_INDEX",
+              "telemetryflow-logs",
+            ),
           },
         },
       }),
@@ -620,13 +651,13 @@ export class LoggerModule {}
 ### 1. Basic Logging
 
 ```typescript
-import { Injectable } from '@nestjs/common';
-import { LoggerService } from '@shared/logger/logger.service';
+import { Injectable } from "@nestjs/common";
+import { LoggerService } from "@shared/logger/logger.service";
 
 @Injectable()
 export class UserService {
   constructor(private logger: LoggerService) {
-    this.logger.setContext('UserService');
+    this.logger.setContext("UserService");
   }
 
   async createUser(dto: CreateUserDto) {
@@ -648,13 +679,13 @@ export class UserService {
 
 ```typescript
 this.logger.logStructured({
-  level: 'info',
-  message: 'User login successful',
-  context: 'AuthService',
+  level: "info",
+  message: "User login successful",
+  context: "AuthService",
   userId: user.id,
   tenantId: user.tenantId,
   metadata: {
-    loginMethod: 'password',
+    loginMethod: "password",
     mfaUsed: user.mfaEnabled,
     ipAddress: req.ip,
   },
@@ -768,24 +799,24 @@ this.logger.log('User created');
 
 ```typescript
 // ❌ BAD: Everything is 'info'
-this.logger.log('Starting process');
-this.logger.log('Process failed: Connection refused');
+this.logger.log("Starting process");
+this.logger.log("Process failed: Connection refused");
 
 // ✅ GOOD: Use appropriate levels
-this.logger.debug('Starting process');
-this.logger.error('Process failed: Connection refused');
+this.logger.debug("Starting process");
+this.logger.error("Process failed: Connection refused");
 ```
 
 ### 3. Include Useful Metadata
 
 ```typescript
 // ❌ BAD: Vague message
-this.logger.error('Failed');
+this.logger.error("Failed");
 
 // ✅ GOOD: Detailed context
 this.logger.logStructured({
-  level: 'error',
-  message: 'Failed to create user',
+  level: "error",
+  message: "Failed to create user",
   userId: dto.email,
   tenantId: context.tenantId,
   metadata: {
@@ -813,8 +844,8 @@ this.logger.log(`Query took ${duration}ms with ${rowCount} rows`);
 
 // ✅ GOOD: Structured data
 this.logger.logStructured({
-  level: 'debug',
-  message: 'Database query completed',
+  level: "debug",
+  message: "Database query completed",
   duration,
   metadata: { rowCount },
 });
@@ -847,5 +878,5 @@ this.logger.log(`API response: 201 Created`);
 
 ---
 
-- **Last Updated**: January 01st, 2026
+- **Last Updated**: May 14th, 2026
 - **Maintained By**: DevOpsCorner Indonesia
