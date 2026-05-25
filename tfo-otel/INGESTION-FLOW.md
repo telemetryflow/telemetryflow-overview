@@ -255,7 +255,7 @@ connectors:
       - name: http.status_code
     aggregation_temporality: "AGGREGATION_TEMPORALITY_CUMULATIVE"
 
-  servicegraph:
+  service_graph:
     latency_histogram_buckets: [100ms, 250ms, 500ms, 1s, 5s, 10s]
 
 extensions:
@@ -590,7 +590,7 @@ connectors:
     dimensions:
       - name: http.method
       - name: http.status_code
-  servicegraph:
+  service_graph:
     latency_histogram_buckets: [100ms, 500ms, 1s, 5s, 10s]
 
 extensions:

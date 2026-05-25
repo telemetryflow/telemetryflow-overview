@@ -416,7 +416,7 @@ Generates service dependency maps from traces:
 
 ```yaml
 connectors:
-  servicegraph:
+  service_graph:
     latency_histogram_buckets: [100ms, 250ms, 500ms, 1s, 5s, 10s]
     dimensions: []
     store:
@@ -676,7 +676,7 @@ connectors:
       - name: http.status_code
     aggregation_temporality: "AGGREGATION_TEMPORALITY_CUMULATIVE"
 
-  servicegraph:
+  service_graph:
     latency_histogram_buckets: [100ms, 250ms, 500ms, 1s, 5s, 10s]
 
 extensions:

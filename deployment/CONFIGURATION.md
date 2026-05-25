@@ -744,7 +744,7 @@ QUEUE_DEBUG=true
 ### Staging Environment
 
 ```bash
-NODE_ENV=staging
+NODE_ENV=development
 LOG_LEVEL=info
 LOG_PRETTY_PRINT=false
 CORS_ORIGIN=https://staging.telemetryflow.id

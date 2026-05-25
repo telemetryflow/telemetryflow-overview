@@ -28,7 +28,7 @@
 
 </div>
 
-- **Version:** 1.4.0-CE
+- **Version:** 1.4.0
 - **Status:** Production Ready
 - **License:** Apache 2.0
 - **Built by:** DevOpsCorner Indonesia
@@ -961,7 +961,7 @@ graph LR
 | ClickHouse Base Tables         | 10                                      |
 | ClickHouse Materialized Views  | 24                                      |
 | BullMQ Queues                  | 6                                       |
-| Version                        | 1.4.0-CE                                |
+| Version                        | 1.4.0                                   |
 
 ---
 
