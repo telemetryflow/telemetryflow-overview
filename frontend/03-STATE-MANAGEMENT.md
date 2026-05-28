@@ -798,4 +798,4 @@ export const useCartStore = defineStore("cart", () => {
 ---
 
 - **Last Updated:** May 14, 2026
-- **Maintained By:** DevOpsCorner Indonesia
+- **Maintained By:** Telemetri Data Indonesia

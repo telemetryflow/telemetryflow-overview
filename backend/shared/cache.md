@@ -626,4 +626,4 @@ graph TB
 ---
 
 - **File Location:** `./backend/shared/cache.md`
-- **Maintained By:** DevOpsCorner Indonesia
+- **Maintained By:** Telemetri Data Indonesia

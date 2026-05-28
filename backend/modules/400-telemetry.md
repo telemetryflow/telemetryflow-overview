@@ -591,4 +591,4 @@ graph TB
 ---
 
 - **File Location:** `./backend/modules/400-telemetry.md`
-- **Maintained By:** DevOpsCorner Indonesia
+- **Maintained By:** Telemetri Data Indonesia

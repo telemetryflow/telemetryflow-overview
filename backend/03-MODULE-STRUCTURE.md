@@ -851,5 +851,5 @@ graph TB
 ---
 
 - **File Location:** `./backend/03-MODULE-STRUCTURE.md`
-- **Maintained By:** DevOpsCorner Indonesia
+- **Maintained By:** Telemetri Data Indonesia
 - **Last Updated:** May 2026

@@ -661,4 +661,4 @@ graph TB
 ---
 
 - **File Location:** `./backend/modules/100-core.md`
-- **Maintained By:** DevOpsCorner Indonesia
+- **Maintained By:** Telemetri Data Indonesia

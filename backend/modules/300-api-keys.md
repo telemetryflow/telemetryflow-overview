@@ -933,4 +933,4 @@ expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
 ---
 
 - **Last Updated**: May 14th, 2026
-- **Maintained By**: DevOpsCorner Indonesia
+- **Maintained By**: Telemetri Data Indonesia

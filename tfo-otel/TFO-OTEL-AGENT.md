@@ -997,7 +997,7 @@ make docker-build       # Build Docker image
 - **Website**: [https://telemetryflow.id](https://telemetryflow.id)
 - **Documentation**: [https://docs.telemetryflow.id](https://docs.telemetryflow.id)
 - **Repository**: [https://github.com/telemetryflow/telemetryflow-agent](https://github.com/telemetryflow/telemetryflow-agent)
-- **Developer**: [DevOpsCorner Indonesia](https://devopscorner.id)
+- **Developer**: [Telemetri Data Indonesia](https://telemetryflow.id)
 
 ---
 

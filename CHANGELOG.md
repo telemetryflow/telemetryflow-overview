@@ -356,7 +356,7 @@ See [SECURITY.md](SECURITY.md) for security policy and vulnerability reporting.
 
 ## Contributors
 
-- DevOpsCorner Indonesia Team
+- Telemetri Data Indonesia Team
 
 ## Acknowledgments
 

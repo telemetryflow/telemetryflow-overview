@@ -731,4 +731,4 @@ curl -X POST http://localhost:4318/v2/metrics \
 ---
 
 - **Last Updated:** May 2026
-- **Maintained By:** DevOpsCorner Indonesia
+- **Maintained By:** Telemetri Data Indonesia

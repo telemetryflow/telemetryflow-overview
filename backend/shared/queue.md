@@ -729,4 +729,4 @@ graph TB
 ---
 
 - **File Location:** `./backend/shared/queue.md`
-- **Maintained By:** DevOpsCorner Indonesia
+- **Maintained By:** Telemetri Data Indonesia

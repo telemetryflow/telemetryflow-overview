@@ -847,4 +847,4 @@ npm run config:validate
 
 ---
 
-**Version:** 1.4.0 | **Maintained By:** DevOpsCorner Indonesia
+**Version:** 1.4.0 | **Maintained By:** Telemetri Data Indonesia

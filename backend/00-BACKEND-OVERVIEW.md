@@ -1076,5 +1076,5 @@ graph LR
 ---
 
 - **File Location:** `./backend/00-BACKEND-OVERVIEW.md`
-- **Maintained By:** DevOpsCorner Indonesia
+- **Maintained By:** Telemetri Data Indonesia
 - **Last Updated:** May 2026

@@ -879,4 +879,4 @@ this.logger.log(`API response: 201 Created`);
 ---
 
 - **Last Updated**: May 14th, 2026
-- **Maintained By**: DevOpsCorner Indonesia
+- **Maintained By**: Telemetri Data Indonesia

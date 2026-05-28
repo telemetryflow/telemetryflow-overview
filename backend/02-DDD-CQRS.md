@@ -1244,5 +1244,5 @@ graph TB
 ---
 
 - **File Location:** `./backend/02-DDD-CQRS.md`
-- **Maintained By:** DevOpsCorner Indonesia
+- **Maintained By:** Telemetri Data Indonesia
 - **Last Updated:** May 2026

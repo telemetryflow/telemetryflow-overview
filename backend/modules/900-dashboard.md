@@ -753,4 +753,4 @@ graph TB
 ---
 
 - **File Location:** `./backend/modules/900-dashboard.md`
-- **Maintained By:** DevOpsCorner Indonesia
+- **Maintained By:** Telemetri Data Indonesia

@@ -473,4 +473,4 @@ async safeQuery<T>(query: string, params?: Record<string, any>): Promise<T[] | n
 ---
 
 **Last Updated**: May 14th, 2026
-**Maintained By**: DevOpsCorner Indonesia
+**Maintained By**: Telemetri Data Indonesia

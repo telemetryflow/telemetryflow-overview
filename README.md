@@ -31,7 +31,7 @@
 - **Version:** 1.4.0
 - **Status:** Production Ready
 - **License:** Apache 2.0
-- **Built by:** DevOpsCorner Indonesia
+- **Built by:** Telemetri Data Indonesia
 - **Last Updated:** May 14, 2026
 
 ---
@@ -973,7 +973,7 @@ Apache License 2.0 - See [LICENSE](./LICENSE) for details.
 
 ## Acknowledgments
 
-Built by **DevOpsCorner Indonesia**
+Built by **Telemetri Data Indonesia**
 
 - **Status:** Production Ready
 - **Last Updated:** May 14, 2026

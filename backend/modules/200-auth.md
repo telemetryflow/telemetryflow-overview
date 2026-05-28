@@ -646,4 +646,4 @@ graph TB
 ---
 
 - **File Location:** `./backend/modules/200-auth.md`
-- **Maintained By:** DevOpsCorner Indonesia
+- **Maintained By:** Telemetri Data Indonesia

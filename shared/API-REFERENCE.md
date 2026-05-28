@@ -360,4 +360,4 @@ GET /api/v2/telemetry/traces/query?query=service:api-gateway AND duration:>500ms
 ---
 
 - **File Location:** `./shared/API-REFERENCE.md`
-- **Maintained By:** DevOpsCorner Indonesia
+- **Maintained By:** Telemetri Data Indonesia

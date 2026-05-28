@@ -2095,5 +2095,5 @@ graph LR
 ---
 
 - **File Location:** `./architecture/05-PERFORMANCE.md`
-- **Maintained By:** DevOpsCorner Indonesia
+- **Maintained By:** Telemetri Data Indonesia
 - **Last Updated:** May 14, 2026

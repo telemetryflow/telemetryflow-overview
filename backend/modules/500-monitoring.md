@@ -310,4 +310,4 @@ UPTIME_CHECK_RETENTION_DAYS=90     # ClickHouse retention
 ---
 
 - **Last Updated**: May 14th, 2026
-- **Maintained By**: DevOpsCorner Indonesia
+- **Maintained By**: Telemetri Data Indonesia

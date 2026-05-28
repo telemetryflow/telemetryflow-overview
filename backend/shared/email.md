@@ -510,7 +510,7 @@ Templates are stored in `/backend/src/shared/email/templates/` with `.hbs` exten
     </div>
 
     <div class="footer">
-      <p>TelemetryFlow | DevOpsCorner Indonesia</p>
+      <p>TelemetryFlow | Telemetri Data Indonesia</p>
       <p>This is an automated security notification.</p>
     </div>
   </body>
@@ -894,4 +894,4 @@ export class SendEmailEventHandler {
 ---
 
 - **Last Updated**: May 14th, 2026
-- **Maintained By**: DevOpsCorner Indonesia
+- **Maintained By**: Telemetri Data Indonesia

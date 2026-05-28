@@ -121,4 +121,4 @@ CREATE TABLE status_page_monitors (
 ---
 
 **Last Updated**: May 14th, 2026
-**Maintained By**: DevOpsCorner Indonesia
+**Maintained By**: Telemetri Data Indonesia

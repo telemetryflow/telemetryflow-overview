@@ -999,4 +999,4 @@ kubectl top pods -n telemetryflow-platform
 
 ---
 
-**Version:** 1.4.0 | **Maintained By:** DevOpsCorner Indonesia
+**Version:** 1.4.0 | **Maintained By:** Telemetri Data Indonesia
