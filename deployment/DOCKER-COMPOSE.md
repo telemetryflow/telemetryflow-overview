@@ -70,6 +70,26 @@ graph TB
 
 ---
 
+## Deployment Paths
+
+TelemetryFlow ships several deployment options (see the `telemetryflow-deployment` repo):
+
+| Path | Where | Use |
+| ---- | ----- | --- |
+| **Single-host Docker Compose** | `docker-compose.yml` | Dev / small prod; profiles: `core`, `monitoring`, `tools`, `all`, `all-in` |
+| **3-VM standalone install** | `docker-compose/` | VM-Node + VM-ClickHouse + VM-DB, each a self-contained installer (no repo checkout needed on the VM) |
+| **Ansible** | `ansible/` | 3-VM (node / db / clickhouse) over SSH |
+| **ansible-k8s** | `ansible-k8s/` | RKE2 Kubernetes bring-up |
+| **Helm** | `helm/` | Kubernetes charts |
+| **Kubernetes Operator** | `operator/` | CRD-based reconciler for the full platform lifecycle |
+| **Terraform** | `terraform/` | AWS EKS |
+| **WHM / cPanel / CloudLinux** | `docker-compose/whm/` | Native (non-Docker) `tfo-agent` install for hosting servers |
+
+The single-host compose now mirrors the platform monolith's service set: PostgreSQL,
+ClickHouse, **Valkey ×2** (`cache-valkey` + `queue-valkey`), NATS, Backend, Frontend,
+**TFO-Collector 1.4.0**, **TFO-Agent 1.3.7**, **Jaeger** (monitoring profile), and
+Portainer (tools profile). Redis is still available as an optional cache fallback.
+
 ## Prerequisites
 
 **Required:**
@@ -463,7 +483,10 @@ DATA_PORTAINER=/opt/data/docker/telemetryflow-platform/portainer
 | **PostgreSQL**           | 5432          | 5432          | TCP      | Database                                 |
 | **ClickHouse HTTP**      | 8123          | 8123          | HTTP     | Query API                                |
 | **ClickHouse TCP**       | 9000          | 9000          | TCP      | Native protocol                          |
-| **Redis**                | 6379          | 6379          | TCP      | Cache/Queue                              |
+| **cache-valkey**         | 6379          | 6379          | TCP      | L2 cache + sessions (Valkey, allkeys-lru) |
+| **queue-valkey**         | 6379          | 6380          | TCP      | BullMQ store (Valkey, noeviction)        |
+| **Redis** (optional)     | 6379          | 6379          | TCP      | Cache/Queue fallback (`CACHE_L2_PROVIDER=redis`) |
+| **Jaeger UI**            | 16686         | 16686         | HTTP     | Tracing UI (monitoring profile)          |
 | **NATS Client**          | 4222          | 4222          | TCP      | Event streaming                          |
 | **NATS Monitor**         | 8222          | 8222          | HTTP     | Health/metrics                           |
 | **OTEL gRPC**            | 4317          | 4317          | gRPC     | TFO Collector OTLP receiver              |

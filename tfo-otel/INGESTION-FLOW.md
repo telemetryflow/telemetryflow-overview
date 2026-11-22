@@ -1,7 +1,7 @@
 # TFO-OTEL to TelemetryFlow Platform - Ingestion Flow
 
 - **Version:** 2.6.0
-- **Last Updated:** May 2026
+- **Last Updated:** November 2026
 - **Component:** Complete Ingestion Pipeline
 - **Protocol:** OTLP/gRPC (4317), OTLP/HTTP (4318)
 
@@ -707,4 +707,4 @@ kubectl scale deployment tfo-collector --replicas=5 -n observability
 
 ---
 
-**Version:** 2.6.0 | **Component:** Ingestion Flow | **Last Updated:** May 2026
+**Version:** 2.6.0 | **Component:** Ingestion Flow | **Last Updated:** November 2026

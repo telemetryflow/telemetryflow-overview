@@ -1,7 +1,7 @@
 # TFO-OTEL Configuration Reference
 
 - **Version:** 2.6.0
-- **Last Updated:** May 2026
+- **Last Updated:** November 2026
 - **Component:** Configuration Guide
 - **Collector:** OCB Native, OTEL Core v1.71.0, Contrib v0.165.1
 
@@ -570,6 +570,21 @@ collectors:
 
 ---
 
+## Sentry OTLP Export (optional, for Error Tracking)
+
+The collector can fan out traces to Sentry's native OTLP ingest as defense-in-depth,
+paired with a `resource/sentry` processor that pins a controlled `service.name`. It is
+**off by default** — enable by setting the DSN key.
+
+```bash
+SENTRY_ORG_SLUG=                  # Sentry org slug for the OTLP endpoint
+SENTRY_DSN_KEY=                   # Sentry project DSN public key (enables the otlphttp/sentry exporter)
+SENTRY_SERVICE_NAME=telemetryflow-collector   # pinned service.name sent to Sentry
+```
+
+Leave `SENTRY_DSN_KEY` empty to disable Sentry export entirely. This feeds the platform's
+**Error Tracking (TFO-Sentry)** capability.
+
 ## Environment Variables
 
 ### TelemetryFlow Context
@@ -739,4 +754,4 @@ tfo-collector --config /etc/tfo-collector/otel-collector.yaml --dry-run
 
 ---
 
-**Version:** 2.6.0 | **Component:** Configuration Reference | **Last Updated:** May 2026
+**Version:** 2.6.0 | **Component:** Configuration Reference | **Last Updated:** November 2026

@@ -36,7 +36,7 @@ graph TB
     style D fill:#f9ca24
 ```
 
-**Purpose:** High-performance multi-level caching system with L1 (in-memory) and L2 (Redis) tiers for optimal latency and distributed caching.
+**Purpose:** High-performance multi-level caching system with L1 (in-memory) and L2 tiers for optimal latency and distributed caching. The default L2 provider is **Valkey** (`cache-valkey`, Redis-compatible, `allkeys-lru`); **Redis** remains an optional fallback (`CACHE_L2_PROVIDER=redis`). The L2 client is `ioredis`, which speaks the same wire protocol to either backend.
 
 **Location:** `backend/src/shared/cache/`
 

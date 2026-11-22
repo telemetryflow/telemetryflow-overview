@@ -1,7 +1,7 @@
 # Database Schema Documentation
 
 - **Version:** 2.6.0
-- **Last Updated:** May 2026
+- **Last Updated:** November 2026
 - **Status:** Production Ready
 
 ---
@@ -1038,5 +1038,5 @@ graph LR
 
 ---
 
-- **Last Updated:** May 2026
+- **Last Updated:** November 2026
 - **Maintained By:** Telemetri Data Indonesia

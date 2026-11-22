@@ -32,7 +32,7 @@
 - **Status:** Production Ready
 - **License:** Apache 2.0
 - **Built by:** Telemetri Data Indonesia
-- **Last Updated:** May 14, 2026
+- **Last Updated:** November 22, 2026
 
 ---
 
@@ -77,6 +77,29 @@
 - **Database Monitoring** — Native collectors for 9 databases with Query Analytics (QAN)
 - **Infrastructure Agent** — TFO Agent replaces Prometheus, KSM, node-exporter, FluentBit
 - **AI Intelligence** — MCP servers for Claude AI, TFQL natural language queries
+
+---
+
+## What's New in v2.6.0
+
+- **Error Tracking — TFO-Sentry** (`Signals → APM → Error Tracking`): Sentry-class
+  error tracking with a Sentry-compatible ingest gateway (DSN-authenticated, gated
+  off by default), JS source-map symbolication, and an HMAC-verified Sentry webhook
+  with trace-id correlation. **Deployment Tracking** is in groundwork.
+- **TFO-Agent v1.3.7** — deployment reporting (`tfo-agent deploy`), a local RUM
+  ingestion edge (`tfo-agent rum-proxy`), and PostgreSQL 14→18 DB-collector
+  compatibility.
+- **TFO-Collector v1.4.0** — OpenTelemetry Collector **0.165** (core 0.165.0 /
+  contrib 0.165.1 / stable pdata v1.71.0) + security patches, gzip HTTP-receiver
+  decompression, agent-identity header alias.
+- **Valkey is the default cache/queue backend** (Redis-compatible, open-source):
+  `cache-valkey` (allkeys-lru — L2 cache + auth/session + rate limiters) and
+  `queue-valkey` (noeviction — dedicated BullMQ store). Redis remains an optional
+  fallback (`CACHE_L2_PROVIDER=redis`).
+- **Deployment paths** — single-host Docker Compose (profiles core / monitoring /
+  tools / all), a 3-VM standalone installer (`docker-compose/`), Ansible (3-VM),
+  ansible-k8s (RKE2), Helm charts, a Kubernetes Operator (CRD reconciler),
+  Terraform (EKS), and native WHM/cPanel agent install.
 
 ---
 
@@ -150,7 +173,7 @@ This documentation is organized into the following sections:
 - **Node.js** 20+ & **pnpm** 9+
 - **PostgreSQL** 16+
 - **ClickHouse** 23+
-- **Redis** 7+
+- **Valkey** 9 (Redis-compatible; Redis optional)
 - **Docker** & **Docker Compose** (for local development)
 - **Go** 1.24+ (for Agent/Collector development)
 
@@ -161,7 +184,7 @@ This documentation is organized into the following sections:
 git clone https://github.com/telemetryflow/telemetryflow-platform.git
 cd telemetryflow-platform
 
-# 2. Start infrastructure services (PostgreSQL, ClickHouse, Redis, NATS)
+# 2. Start infrastructure services (PostgreSQL, ClickHouse, Valkey, NATS)
 docker-compose --profile core up -d
 
 # 3. Install dependencies
@@ -264,6 +287,8 @@ sequenceDiagram
 
 #### TFO Agent v1.3.7 — One-For-All Collector
 
+**New in v1.3.6/1.3.7:** deployment reporting (`tfo-agent deploy`), a local RUM ingestion edge (`tfo-agent rum-proxy`), and PostgreSQL 14→18 compatibility across the DB collectors (PostgreSQL/MySQL/MSSQL/MongoDB/TimescaleDB).
+
 ```mermaid
 graph TB
     subgraph Replaced["Replaces These Tools"]
@@ -302,6 +327,8 @@ graph TB
 - **Cross-Platform**: Linux, macOS, Windows
 
 #### TFO Collector v1.4.0 — OCB-Native Gateway
+
+**New in v1.4.0:** upgraded to OpenTelemetry Collector **0.165** (core 0.165.0, contrib 0.165.1, stable pdata v1.71.0) with security patches (grpc/thrift/go-jose/otel CVEs); gzip decompression in the HTTP receiver (v1/v2 logs); agent-identity header alias (`X-TelemetryFlow-Agent-ID`) for v2 auth.
 
 ```mermaid
 flowchart LR
@@ -769,7 +796,7 @@ For detailed architecture documentation, see:
 | **Runtime**       | Node.js         | 20+     | JavaScript runtime              |
 | **Metadata DB**   | PostgreSQL      | 16+     | Relational data storage         |
 | **Telemetry DB**  | ClickHouse      | 23+     | Time-series data storage        |
-| **Cache & Queue** | Redis           | 7+      | L1/L2 caching and BullMQ queues |
+| **Cache & Queue** | Valkey (Redis-compat) | 9      | L1/L2 cache (cache-valkey) + BullMQ (queue-valkey); Redis optional |
 | **ORM**           | TypeORM         | 0.3.x   | PostgreSQL migrations           |
 | **Queue**         | BullMQ          | 5.x     | Async job processing (6 queues) |
 | **Messaging**     | NATS            | 2.x     | Event streaming                 |
@@ -976,5 +1003,5 @@ Apache License 2.0 - See [LICENSE](./LICENSE) for details.
 Built by **Telemetri Data Indonesia**
 
 - **Status:** Production Ready
-- **Last Updated:** May 14, 2026
+- **Last Updated:** November 22, 2026
 - **Website:** [telemetryflow.id](https://telemetryflow.id)

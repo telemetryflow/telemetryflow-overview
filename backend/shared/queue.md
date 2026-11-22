@@ -36,7 +36,7 @@ graph TB
     style D fill:#f9ca24
 ```
 
-**Purpose:** High-performance async job processing system using BullMQ for OTLP ingestion, alert evaluation, aggregations, cleanup, and notifications.
+**Purpose:** High-performance async job processing system using BullMQ for OTLP ingestion, alert evaluation, aggregations, cleanup, and notifications. The default backing store is the dedicated **`queue-valkey`** (Valkey, Redis-compatible, `noeviction` so queued jobs are never evicted under memory pressure); Redis remains an optional fallback.
 
 **Location:** `backend/src/shared/queue/`
 

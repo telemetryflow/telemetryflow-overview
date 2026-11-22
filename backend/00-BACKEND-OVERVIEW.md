@@ -1,7 +1,7 @@
 # Backend Architecture Overview
 
 - **Version:** 2.6.0
-- **Last Updated:** May 2026
+- **Last Updated:** November 2026
 - **Status:** ✅ Complete
 
 ---
@@ -108,7 +108,7 @@ graph TB
 | **Runtime**        | Node.js            | 18-20.x | JavaScript runtime               |
 | **PostgreSQL ORM** | TypeORM            | 0.3.x   | Relational data persistence      |
 | **ClickHouse**     | @clickhouse/client | 1.x     | Time-series data client          |
-| **Redis**          | ioredis            | 5.x     | Cache & queue backend            |
+| **Valkey**         | ioredis            | 5.x     | Cache & queue backend (Redis-compatible; Redis optional) |
 | **Queue**          | BullMQ             | 5.x     | Async job processing             |
 | **Validation**     | class-validator    | 0.14.x  | DTO validation                   |
 | **Transformation** | class-transformer  | 0.5.x   | DTO transformation               |
@@ -763,7 +763,7 @@ sequenceDiagram
 - **pnpm** 8.x or higher
 - **PostgreSQL** 15+
 - **ClickHouse** 23+
-- **Redis** 7+
+- **Valkey** 9 (Redis-compatible; Redis optional)
 
 ### Installation
 
@@ -1077,4 +1077,4 @@ graph LR
 
 - **File Location:** `./backend/00-BACKEND-OVERVIEW.md`
 - **Maintained By:** Telemetri Data Indonesia
-- **Last Updated:** May 2026
+- **Last Updated:** November 2026

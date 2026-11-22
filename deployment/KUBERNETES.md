@@ -31,8 +31,14 @@
 | Method            | Best For                          | Complexity | Customization |
 | ----------------- | --------------------------------- | ---------- | ------------- |
 | **Raw Manifests** | Quick deployment, learning        | Low        | Medium        |
-| **Helm Charts**   | Production, multiple environments | Medium     | High          |
-| **Operators**     | Advanced automation               | High       | Very High     |
+| **Helm Charts**   | Production, multiple environments (`helm/`) | Medium | High     |
+| **TFO Operator**  | Full-lifecycle CRD reconciler (`operator/`) | High | Very High    |
+| **ansible-k8s**   | RKE2 cluster bring-up (`ansible-k8s/`)       | Medium | High       |
+| **Terraform**     | Managed AWS EKS (`terraform/`)               | Medium | High       |
+
+> **Cache/queue on Kubernetes:** the charts/operator deploy **Valkey** (Redis-compatible)
+> as the default — `cache-valkey` (allkeys-lru) and `queue-valkey` (noeviction, BullMQ) —
+> each as its own StatefulSet. Redis remains an optional fallback.
 
 ---
 

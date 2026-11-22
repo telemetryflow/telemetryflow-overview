@@ -1,7 +1,7 @@
 # API Reference
 
 - **Version:** 2.6.0
-- **Last Updated:** May 2026
+- **Last Updated:** November 2026
 - **Base URL:** `http://localhost:3000/api/v2`
 
 ---

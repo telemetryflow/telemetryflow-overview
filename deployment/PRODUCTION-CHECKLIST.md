@@ -1553,7 +1553,7 @@ docker volume prune
 
 - [ ] PostgreSQL 15+ installed and configured
 - [ ] ClickHouse 23+ installed and configured
-- [ ] Redis 7+ installed and configured
+- [ ] Valkey 9 installed + configured (cache-valkey allkeys-lru + queue-valkey noeviction; Redis optional via CACHE_L2_PROVIDER=redis)
 - [ ] All migrations run successfully
 - [ ] Indexes created
 - [ ] Backups configured and tested

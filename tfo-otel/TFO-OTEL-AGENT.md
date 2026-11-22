@@ -1,7 +1,7 @@
 # TFO-OTEL-Agent Documentation
 
 - **Version:** 2.6.0
-- **Last Updated:** May 2026
+- **Last Updated:** November 2026
 - **Component:** TelemetryFlow Agent (Infrastructure Agent)
 - **Agent Version:** v1.3.7
 - **Go Version:** 1.26+
@@ -1001,4 +1001,4 @@ make docker-build       # Build Docker image
 
 ---
 
-**Version:** 2.6.0 | **Component:** TFO-Agent v1.3.7 | **OTEL SDK:** v1.43.0 | **Last Updated:** May 2026
+**Version:** 2.6.0 | **Component:** TFO-Agent v1.3.7 | **OTEL SDK:** v1.43.0 | **Last Updated:** November 2026

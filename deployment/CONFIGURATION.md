@@ -213,33 +213,39 @@ CLICKHOUSE_PASSWORD=telemetryflow     # Password (CHANGE IN PRODUCTION!)
 - Use materialized views for common queries
 - Monitor disk usage and query performance
 
-### Redis Configuration
+### Cache & Queue Configuration (Valkey — Redis-compatible)
+
+The default L2 cache / BullMQ backend is **Valkey** (open-source, Redis wire-compatible),
+split into two instances: **`cache-valkey`** (`allkeys-lru` — L2 cache + auth/session +
+rate limiters) and **`queue-valkey`** (`noeviction` — dedicated BullMQ store so queued
+jobs are never evicted). Redis remains an optional fallback via `CACHE_L2_PROVIDER=redis`.
 
 ```
 #================================================================================================
-# REDIS CONFIGURATION
+# CACHE & QUEUE (VALKEY — default; Redis-compatible)
 #================================================================================================
-# IMPORTANT: Redis eviction policy is set to 'noeviction' in config/redis/redis.conf
-#            This is CRITICAL for BullMQ to prevent job data loss.
+CACHE_L2_PROVIDER=valkey           # valkey (default) | redis
 
-REDIS_HOST=172.150.150.30         # Redis host (Docker IP or hostname)
-REDIS_PORT=6379                   # Redis port
-REDIS_PASSWORD=                   # Password (empty for dev, REQUIRED in production)
-REDIS_MAX_MEMORY=512mb            # Memory limit (increase for production)
+# cache-valkey — L2 cache + sessions + rate limiters (allkeys-lru)
+VALKEY_HOST=cache-valkey           # host (Docker service / IP)
+VALKEY_PORT=6379
+VALKEY_PASSWORD=                   # empty for dev, REQUIRED in production
+VALKEY_DB=0
 
-# Redis Database Separation (0-15 available)
-REDIS_SESSION_DB=0                # Session storage
-REDIS_CACHE_DB=1                  # L2 cache storage
-REDIS_QUEUE_DB=2                  # BullMQ queue storage
+# queue-valkey — dedicated BullMQ backing store (noeviction)
+BULLMQ_VALKEY_HOST=queue-valkey
+BULLMQ_VALKEY_PORT=6379            # host-published 6380 in single-host compose
+BULLMQ_VALKEY_DB=1
+
+# Redis is OPTIONAL (set CACHE_L2_PROVIDER=redis). ioredis speaks either backend.
 ```
 
-**Production Redis:**
+**Production notes:**
 
-- Enable password authentication (`requirepass`)
-- Set eviction policy to `noeviction` (critical for BullMQ)
-- Configure persistence (RDB + AOF)
-- Monitor memory usage
-- Use Redis Cluster for high availability
+- Enable password authentication on both Valkey instances.
+- `cache-valkey` uses `allkeys-lru`; `queue-valkey` MUST stay `noeviction` (BullMQ job safety).
+- Configure persistence (AOF) on `queue-valkey`.
+- Monitor memory; scale the two instances independently.
 
 ### NATS Configuration
 

@@ -1,7 +1,7 @@
 # Backend Technology Stack
 
 - **Version:** 2.6.0
-- **Last Updated:** May 2026
+- **Last Updated:** November 2026
 - **Status:** ✅ Production Ready
 
 ---
@@ -42,7 +42,7 @@ graph TB
     subgraph "Data Layer"
         C[PostgreSQL 15+]
         D[ClickHouse 23+]
-        E[Redis 7+]
+        E[Valkey 9]
     end
 
     subgraph "Processing"
@@ -314,7 +314,7 @@ TTL timestamp + INTERVAL 90 DAY DELETE  -- metrics, audit, uptime
 
 ## Caching & Queuing
 
-### Redis 7+
+### Valkey 9 (Redis-compatible)
 
 **Client:** `ioredis` 5.8.2
 
@@ -910,5 +910,5 @@ nest g resource my-resource
 
 ---
 
-- **Last Updated:** May 2026
+- **Last Updated:** November 2026
 - **Maintained By:** Telemetri Data Indonesia

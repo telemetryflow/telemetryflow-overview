@@ -1,7 +1,7 @@
 # TFO-OTEL Deployment Guide
 
 - **Version:** 2.6.0
-- **Last Updated:** May 2026
+- **Last Updated:** November 2026
 - **Component:** Deployment Patterns & Best Practices
 - **Target:** Production-Grade Deployments
 
@@ -768,4 +768,4 @@ Fix: Reduce batch timeout, increase workers, or scale up collectors.
 
 ---
 
-**Version:** 2.6.0 | **Component:** Deployment Guide | **Last Updated:** May 2026
+**Version:** 2.6.0 | **Component:** Deployment Guide | **Last Updated:** November 2026

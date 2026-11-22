@@ -1,7 +1,7 @@
 # TFO-OTEL-Collector Documentation
 
 - **Version:** 2.6.0
-- **Last Updated:** May 2026
+- **Last Updated:** November 2026
 - **Component:** TelemetryFlow Collector (OCB Native)
 - **Collector Version:** v1.4.0
 - **Go Version:** 1.26+
@@ -256,7 +256,7 @@ docker-compose logs -f tfo-collector
 ```bash
 docker build \
   --build-arg VERSION=1.2.1 \
-  --build-arg OTEL_VERSION=0.165.1 \
+  --build-arg OTEL_VERSION=0.165.0 \
   -t telemetryflow/telemetryflow-collector:1.4.0 .
 
 docker run -d --name tfo-collector \
@@ -817,4 +817,4 @@ make version            # Show version information
 
 ---
 
-**Version:** 2.6.0 | **Component:** TFO-Collector v1.4.0 | **OTEL Core:** v1.58.0 | **Contrib:** v0.152.0 | **Last Updated:** May 2026
+**Version:** 2.6.0 | **Component:** TFO-Collector v1.4.0 | **OTEL Core:** v1.58.0 | **Contrib:** v0.152.0 | **Last Updated:** November 2026
