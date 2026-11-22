@@ -959,8 +959,8 @@ flowchart TD
 
 | Component              | Version             | Key Features                                                                                                                                           |
 | ---------------------- | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **TFO-Collector**      | v1.2.1 (OCB-native) | OTEL Core v1.58.0, Contrib v0.152.0, 4 custom TFO components (`tfootlp`, `tfo`, `tfoauth`, `tfoidentity`)                                              |
-| **TFO-Agent**          | v1.2.0 (Go 1.26)    | OTEL SDK v1.43.0, 15+ collectors, 39+ integrations, eBPF (28 metrics), Docker/cAdvisor (32 per-container metrics), DB Monitoring QAN (9 DB collectors) |
+| **TFO-Collector**      | v1.4.0 (OCB-native) | OTEL Core v1.71.0, Contrib v0.165.1, 4 custom TFO components (`tfootlp`, `tfo`, `tfoauth`, `tfoidentity`)                                              |
+| **TFO-Agent**          | v1.3.7 (Go 1.26)    | OTEL SDK v1.47.0, 15+ collectors, 39+ integrations, eBPF (28 metrics), Docker/cAdvisor (32 per-container metrics), DB Monitoring QAN (9 DB collectors) |
 | **Component Registry** | 3 registries        | Graph (260+), Stat Panel (158), DataTable (41) with composable bridge pattern                                                                          |
 | **TFQL**               | Query Language      | Unified query interface translating to PromQL, ClickHouse SQL, and Elasticsearch DSL                                                                   |
 

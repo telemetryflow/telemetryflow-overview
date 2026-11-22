@@ -3,7 +3,7 @@
 - **Version:** 1.4.0
 - **Last Updated:** May 2026
 - **Component:** Configuration Guide
-- **Collector:** OCB Native, OTEL Core v1.58.0, Contrib v0.152.0
+- **Collector:** OCB Native, OTEL Core v1.71.0, Contrib v0.165.1
 
 ---
 

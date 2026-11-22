@@ -61,13 +61,13 @@ graph TB
         end
     end
 
-    subgraph "Tier 2: Edge Collection (TFO-Agent v1.2.0)"
+    subgraph "Tier 2: Edge Collection (TFO-Agent v1.3.7)"
         AGENT1[Agent - Host 1<br/>:4317, :4318]
         AGENT2[Agent - Host 2<br/>:4317, :4318]
         AGENT3[Agent - Host N<br/>:4317, :4318]
     end
 
-    subgraph "Tier 3: Aggregation (TFO-Collector v1.2.1)"
+    subgraph "Tier 3: Aggregation (TFO-Collector v1.4.0)"
         LB[Load Balancer]
         COLL1[Collector 1<br/>tfootlp + tfo + tfoauth]
         COLL2[Collector 2<br/>tfootlp + tfo + tfoauth]
@@ -106,7 +106,7 @@ graph TB
 
 ```mermaid
 graph TB
-    subgraph "TFO-Agent v1.2.0 (Go 1.26, OTEL SDK v1.43.0)"
+    subgraph "TFO-Agent v1.3.7 (Go 1.26, OTEL SDK v1.47.0)"
         subgraph "Native Collectors"
             RC_SYS[System<br/>CPU, Memory, Disk, Network]
             RC_NODE[Node Exporter<br/>130+ Metrics]
@@ -151,7 +151,7 @@ graph TB
 
 ```mermaid
 graph TB
-    subgraph "TFO-Collector v1.2.1 (OCB Native, Core v1.58.0, Contrib v0.152.0)"
+    subgraph "TFO-Collector v1.4.0 (OCB Native, Core v1.71.0, Contrib v0.165.1)"
         subgraph "TFO Receivers"
             RC_TFOOTLP[tfootlp Receiver<br/>v1 + v2 :4318]
             RC_GRPC[OTLP gRPC<br/>:4317]
@@ -210,8 +210,8 @@ graph TB
 ```mermaid
 sequenceDiagram
     participant App as Application<br/>(OTEL SDK)
-    participant Agent as TFO-Agent v1.2.0
-    participant Collector as TFO-Collector v1.2.1
+    participant Agent as TFO-Agent v1.3.7
+    participant Collector as TFO-Collector v1.4.0
     participant TFO as TelemetryFlow API<br/>:3000
     participant CH as ClickHouse
 
@@ -248,8 +248,8 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     participant Logger as Application Logger
-    participant Agent as TFO-Agent v1.2.0
-    participant Collector as TFO-Collector v1.2.1
+    participant Agent as TFO-Agent v1.3.7
+    participant Collector as TFO-Collector v1.4.0
     participant TFO as TelemetryFlow API<br/>:3000
     participant CH as ClickHouse
 
@@ -276,8 +276,8 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     participant App as Application<br/>(Instrumented)
-    participant Agent as TFO-Agent v1.2.0
-    participant Collector as TFO-Collector v1.2.1
+    participant Agent as TFO-Agent v1.3.7
+    participant Collector as TFO-Collector v1.4.0
     participant TFO as TelemetryFlow API<br/>:3000
     participant CH as ClickHouse
 
@@ -379,12 +379,12 @@ graph LR
     end
 
     subgraph "Agent Level"
-        SDK -->|2. Forward| AGENT[TFO-Agent v1.2.0]
+        SDK -->|2. Forward| AGENT[TFO-Agent v1.3.7]
         AGENT -->|3. Batch| AGENT
     end
 
     subgraph "Collector Level (tfoauth)"
-        AGENT -->|4. v2 Request| COLLECTOR[TFO-Collector v1.2.1]
+        AGENT -->|4. v2 Request| COLLECTOR[TFO-Collector v1.4.0]
         COLLECTOR -->|5. tfoauth resolves| AUTH[tfoauth Extension<br/>API Key → Tenant Mapping]
         AUTH -->|6. tfo exporter| EXPORT[tfo Exporter<br/>Auto-inject headers]
     end
@@ -453,13 +453,13 @@ graph TB
         AGENT1[Agent - Host 1]
         AGENT2[Agent - Host 2]
         AGENT3[Agent - Host 3]
-        COLL_EAST[Collector v1.2.1<br/>us-east-1<br/>3 replicas + tfoauth]
+        COLL_EAST[Collector v1.4.0<br/>us-east-1<br/>3 replicas + tfoauth]
     end
 
     subgraph "Region: eu-west-1"
         AGENT4[Agent - Host 4]
         AGENT5[Agent - Host 5]
-        COLL_EU[Collector v1.2.1<br/>eu-west-1<br/>3 replicas + tfoauth]
+        COLL_EU[Collector v1.4.0<br/>eu-west-1<br/>3 replicas + tfoauth]
     end
 
     subgraph "Central"
@@ -500,11 +500,11 @@ graph TB
 graph TB
     subgraph "Edge Location"
         APP[Applications]
-        AGENT[TFO-Agent v1.2.0<br/>Disk-Backed Buffer<br/>500MB]
+        AGENT[TFO-Agent v1.3.7<br/>Disk-Backed Buffer<br/>500MB]
     end
 
     subgraph "Cloud"
-        COLLECTOR[TFO-Collector v1.2.1]
+        COLLECTOR[TFO-Collector v1.4.0]
         TFO[TelemetryFlow :3000]
     end
 

@@ -23,15 +23,15 @@
 
 ## Overview
 
-This document explains the complete ingestion pipeline from **TFO-Agent v1.2.0** → **TFO-Collector v1.2.1** → **TelemetryFlow Platform v1.4.0**.
+This document explains the complete ingestion pipeline from **TFO-Agent v1.3.7** → **TFO-Collector v1.4.0** → **TelemetryFlow Platform v1.4.0**.
 
 ### Pipeline Summary
 
 ```mermaid
 graph LR
-    APP[Application<br/>OTEL SDK] -->|1. OTLP| AGENT[TFO-Agent v1.2.0<br/>:4317/:4318]
+    APP[Application<br/>OTEL SDK] -->|1. OTLP| AGENT[TFO-Agent v1.3.7<br/>:4317/:4318]
     INFRA[Infrastructure<br/>DB, K8s, eBPF] -->|1b. Native| AGENT
-    AGENT -->|2. OTLP HTTP<br/>+ Batching| COLLECTOR[TFO-Collector v1.2.1<br/>tfootlp :4318]
+    AGENT -->|2. OTLP HTTP<br/>+ Batching| COLLECTOR[TFO-Collector v1.4.0<br/>tfootlp :4318]
     COLLECTOR -->|3. tfo exporter<br/>+ tfoauth| API[TelemetryFlow API<br/>:3000]
     API -->|4. Queue| QUEUE[BullMQ Queue]
     QUEUE -->|5. Workers| CH[(ClickHouse)]
@@ -59,8 +59,8 @@ graph LR
 ```mermaid
 sequenceDiagram
     participant App as Application<br/>(OTEL SDK)
-    participant Agent as TFO-Agent v1.2.0
-    participant Collector as TFO-Collector v1.2.1
+    participant Agent as TFO-Agent v1.3.7
+    participant Collector as TFO-Collector v1.4.0
     participant API as TelemetryFlow API<br/>(NestJS :3000)
     participant Guard as ApiKeyAuthGuard
     participant Queue as BullMQ Queue
@@ -432,7 +432,7 @@ graph TB
 
 ```mermaid
 sequenceDiagram
-    participant Collector as TFO-Collector v1.2.1
+    participant Collector as TFO-Collector v1.4.0
     participant API as TelemetryFlow API :3000
     participant Guard as ApiKeyAuthGuard
     participant Cache as Redis Cache

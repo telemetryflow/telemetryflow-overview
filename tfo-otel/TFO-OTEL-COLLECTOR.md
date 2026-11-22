@@ -3,7 +3,7 @@
 - **Version:** 1.4.0
 - **Last Updated:** May 2026
 - **Component:** TelemetryFlow Collector (OCB Native)
-- **Collector Version:** v1.2.1
+- **Collector Version:** v1.4.0
 - **Go Version:** 1.26+
 - **OpenTelemetry Core:** v1.58.0
 - **OpenTelemetry Contrib:** v0.152.0
@@ -29,7 +29,7 @@
 
 ## Overview
 
-**TFO-Collector v1.2.1** is an enterprise-grade OpenTelemetry Collector distribution built **100% natively** with the OpenTelemetry Collector Builder (OCB). It features **85+ community components** from OTEL Core v1.58.0 and Contrib v0.152.0, plus **4 custom TFO components** for platform-specific authentication and dual endpoint support.
+**TFO-Collector v1.4.0** is an enterprise-grade OpenTelemetry Collector distribution built **100% natively** with the OpenTelemetry Collector Builder (OCB). It features **85+ community components** from OTEL Core v1.71.0 and Contrib v0.165.1, plus **4 custom TFO components** for platform-specific authentication and dual endpoint support.
 
 ### Key Capabilities
 
@@ -51,7 +51,7 @@ graph LR
         INFRA[Infrastructure]
     end
 
-    subgraph "TFO-Collector v1.2.1"
+    subgraph "TFO-Collector v1.4.0"
         RECEIVE[Receive & Validate<br/>tfootlp (v1 + v2)]
         PROCESS[Process & Enrich<br/>tfoauth + tfoidentity]
         EXPORT[Export via tfo<br/>Auto Auth Injection]
@@ -256,13 +256,13 @@ docker-compose logs -f tfo-collector
 ```bash
 docker build \
   --build-arg VERSION=1.2.1 \
-  --build-arg OTEL_VERSION=0.152.0 \
-  -t telemetryflow/telemetryflow-collector:1.2.1 .
+  --build-arg OTEL_VERSION=0.165.1 \
+  -t telemetryflow/telemetryflow-collector:1.4.0 .
 
 docker run -d --name tfo-collector \
   -p 4317:4317 -p 4318:4318 -p 8888:8888 -p 13133:13133 \
   -v /path/to/config.yaml:/etc/tfo-collector/otel-collector.yaml:ro \
-  telemetryflow/telemetryflow-collector:1.2.1
+  telemetryflow/telemetryflow-collector:1.4.0
 ```
 
 ### Method 4: Kubernetes Deployment
@@ -393,7 +393,7 @@ spec:
       serviceAccountName: tfo-collector
       containers:
         - name: tfo-collector
-          image: telemetryflow/telemetryflow-collector:1.2.1
+          image: telemetryflow/telemetryflow-collector:1.4.0
           imagePullPolicy: IfNotPresent
           args:
             - --config=/etc/tfo-collector/otel-collector.yaml
@@ -813,8 +813,8 @@ make version            # Show version information
 - **Website**: [https://telemetryflow.id](https://telemetryflow.id)
 - **Documentation**: [https://docs.telemetryflow.id](https://docs.telemetryflow.id)
 - **Repository**: [https://github.com/telemetryflow/telemetryflow-collector](https://github.com/telemetryflow/telemetryflow-collector)
-- **Developer**: [Telemetri Data Indonesia](https://telemetryflow.id)
+- **Developer**: [Telemetri Data Indonesia](https://telemetridata.id)
 
 ---
 
-**Version:** 1.4.0 | **Component:** TFO-Collector v1.2.1 | **OTEL Core:** v1.58.0 | **Contrib:** v0.152.0 | **Last Updated:** May 2026
+**Version:** 1.4.0 | **Component:** TFO-Collector v1.4.0 | **OTEL Core:** v1.58.0 | **Contrib:** v0.152.0 | **Last Updated:** May 2026

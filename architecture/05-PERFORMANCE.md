@@ -1771,7 +1771,7 @@ graph TB
         O[Log Collection]
     end
 
-    subgraph "TFO-Agent v1.2.0 Monitoring"
+    subgraph "TFO-Agent v1.3.7 Monitoring"
         P2[eBPF 28 metrics<br/>Docker/cAdvisor 32 metrics<br/>DB Monitoring QAN 9 collectors]
     end
 
@@ -2036,8 +2036,8 @@ flowchart TD
 
 TelemetryFlow's **6-layer performance optimization strategy** delivers:
 
-- **TFO-Collector v1.2.1**: OCB-native OTEL Collector (Core v1.58.0, Contrib v0.152.0) with 4 custom TFO components (`tfootlp`, `tfo`, `tfoauth`, `tfoidentity`)
-- **TFO-Agent v1.2.0**: Go 1.26 agent with 15+ collectors, 39+ integrations, eBPF (28 metrics), Docker/cAdvisor (32 per-container metrics), DB Monitoring QAN (9 DB collectors)
+- **TFO-Collector v1.4.0**: OCB-native OTEL Collector (Core v1.71.0, Contrib v0.165.1) with 4 custom TFO components (`tfootlp`, `tfo`, `tfoauth`, `tfoidentity`)
+- **TFO-Agent v1.3.7**: Go 1.26 agent with 15+ collectors, 39+ integrations, eBPF (28 metrics), Docker/cAdvisor (32 per-container metrics), DB Monitoring QAN (9 DB collectors)
 - **Component Registry**: 3 registries (graph 260+, stat-panel 158, datatable 41) with composable bridge pattern for optimized UI rendering
 
 - ✅ **50-90% reduction** in database load via multi-level caching

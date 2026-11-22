@@ -641,18 +641,35 @@ Registry composables bridge registries to components:
 - `useStatPanelsFromRegistry(ids, valueMap)` -- StatPanelConfig[]
 - `useDataTableFromRegistry(datatableId)` -- columns + pagination
 
+### TFO-Backend (Platform API)
+
+**TFO-Backend v2.6.0** - NestJS platform backend (DDD/CQRS):
+
+- PostgreSQL + ClickHouse dual-database, Valkey cache (L2), NATS domain events
+- OTLP v1/v2 ingestion, 5-tier RBAC, alerting, dashboards, DB Monitoring/QAN
+
+### TFO-Viz (Platform Frontend)
+
+**TFO-Viz v2.6.0** - Vue 3 observability frontend (TypeScript, Pinia):
+
+- Dashboards, visualizations, and Incident Response Management (IRM)
+- Composable component registry (graphs, stat panels, datatables)
+
+> **TFO-Platform v2.6.0** is delivered as these two components — **TFO-Backend**
+> and **TFO-Viz** — built from the same monolith at the same version.
+
 ### TFO-Collector (OTEL Collector)
 
-**TFO-Collector v1.2.1** - OCB-native OpenTelemetry Collector distribution:
+**TFO-Collector v1.4.0** - OCB-native OpenTelemetry Collector distribution:
 
-- OTEL Core v1.58.0, Contrib v0.152.0
+- OTEL Core v1.71.0, Contrib v0.165.1
 - 4 custom TFO components: `tfootlp` (OTLP receiver with TFO auth), `tfo` (processor), `tfoauth` (extension), `tfoidentity` (extension)
 
 ### TFO-Agent
 
-**TFO-Agent v1.2.0** - Go-based telemetry agent:
+**TFO-Agent v1.3.7** - Go-based telemetry agent:
 
-- Go 1.26, OTEL SDK v1.43.0
+- Go 1.26, OTEL SDK v1.47.0
 - 15+ collectors, 39+ integrations
 - eBPF-based kernel monitoring (28 metrics)
 - Docker/cAdvisor integration (32 per-container metrics)

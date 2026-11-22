@@ -26,7 +26,7 @@
 
 ## Overview
 
-This guide provides production-grade deployment patterns for TFO-OTEL components (Agent v1.2.0 and Collector v1.2.1). Choose the pattern that best fits your infrastructure, scale, and reliability requirements.
+This guide provides production-grade deployment patterns for TFO-OTEL components (Agent v1.3.7 and Collector v1.4.0). Choose the pattern that best fits your infrastructure, scale, and reliability requirements.
 
 ### Decision Matrix
 
@@ -46,18 +46,18 @@ This guide provides production-grade deployment patterns for TFO-OTEL components
 ```mermaid
 graph TB
     subgraph PATTERN1[Hub-and-Spoke]
-        APPS1[Applications + DB + K8s] --> AGENTS1[TFO-Agents v1.2.0]
-        AGENTS1 --> COLLECTORS1[TFO-Collector v1.2.1<br/>tfoauth + tfo]
+        APPS1[Applications + DB + K8s] --> AGENTS1[TFO-Agents v1.3.7]
+        AGENTS1 --> COLLECTORS1[TFO-Collector v1.4.0<br/>tfoauth + tfo]
         COLLECTORS1 --> PLATFORM1[TelemetryFlow]
     end
 
     subgraph PATTERN2[Direct-to-Platform]
-        APPS2[Applications + DB + K8s] --> AGENTS2[TFO-Agents v1.2.0]
+        APPS2[Applications + DB + K8s] --> AGENTS2[TFO-Agents v1.3.7]
         AGENTS2 --> PLATFORM2[TelemetryFlow]
     end
 
     subgraph PATTERN3[Edge Buffering]
-        APPS3[Applications] --> AGENTS3[TFO-Agents v1.2.0<br/>+ Disk Buffer]
+        APPS3[Applications] --> AGENTS3[TFO-Agents v1.3.7<br/>+ Disk Buffer]
         AGENTS3 -.->|When online| PLATFORM3[TelemetryFlow]
     end
 
@@ -78,22 +78,22 @@ graph TB
 graph TB
     subgraph REGION1[Region: US-East]
         subgraph CLUSTER1[K8s Cluster 1]
-            APPS1[Applications] --> AGENT1[TFO-Agent v1.2.0<br/>DaemonSet<br/>K8s + cAdvisor + eBPF]
+            APPS1[Applications] --> AGENT1[TFO-Agent v1.3.7<br/>DaemonSet<br/>K8s + cAdvisor + eBPF]
         end
 
         subgraph CLUSTER2[K8s Cluster 2]
-            APPS2[Applications + DB] --> AGENT2[TFO-Agent v1.2.0<br/>DaemonSet<br/>K8s + DB Collectors]
+            APPS2[Applications + DB] --> AGENT2[TFO-Agent v1.3.7<br/>DaemonSet<br/>K8s + DB Collectors]
         end
 
-        COLLECTOR1[TFO-Collector v1.2.1<br/>OCB Native + tfoauth<br/>3 replicas]
+        COLLECTOR1[TFO-Collector v1.4.0<br/>OCB Native + tfoauth<br/>3 replicas]
     end
 
     subgraph REGION2[Region: US-West]
         subgraph CLUSTER3[K8s Cluster 3]
-            APPS3[Applications] --> AGENT3[TFO-Agent v1.2.0<br/>DaemonSet]
+            APPS3[Applications] --> AGENT3[TFO-Agent v1.3.7<br/>DaemonSet]
         end
 
-        COLLECTOR2[TFO-Collector v1.2.1<br/>OCB Native + tfoauth<br/>3 replicas]
+        COLLECTOR2[TFO-Collector v1.4.0<br/>OCB Native + tfoauth<br/>3 replicas]
     end
 
     PLATFORM[TelemetryFlow Platform v1.4.0<br/>:3000]
@@ -138,7 +138,7 @@ spec:
       dnsPolicy: ClusterFirstWithHostNet
       containers:
         - name: tfo-agent
-          image: telemetryflow/telemetryflow-agent:1.2.0
+          image: telemetryflow/telemetryflow-agent:1.3.7
           imagePullPolicy: IfNotPresent
           args:
             - start
@@ -206,7 +206,7 @@ spec:
       serviceAccountName: tfo-collector
       containers:
         - name: tfo-collector
-          image: telemetryflow/telemetryflow-collector:1.2.1
+          image: telemetryflow/telemetryflow-collector:1.4.0
           imagePullPolicy: IfNotPresent
           args:
             - --config=/etc/tfo-collector/otel-collector.yaml
@@ -398,7 +398,7 @@ spec:
     spec:
       containers:
         - name: tfo-agent
-          image: telemetryflow/telemetryflow-agent:1.2.0
+          image: telemetryflow/telemetryflow-agent:1.3.7
           env:
             - name: TELEMETRYFLOW_API_ENDPOINT
               value: "https://api.telemetryflow.id/api"
@@ -435,7 +435,7 @@ spec:
     spec:
       containers:
         - name: tfo-agent
-          image: telemetryflow/telemetryflow-agent:1.2.0
+          image: telemetryflow/telemetryflow-agent:1.3.7
           env:
             - name: TELEMETRYFLOW_API_ENDPOINT
               value: "https://api.telemetryflow.id/api"
@@ -487,17 +487,17 @@ exporter:
 ```mermaid
 graph TB
     subgraph REGION1[Region: US-EAST]
-        AGENT1[TFO-Agents] --> COLLECTOR1[TFO-Collector v1.2.1]
+        AGENT1[TFO-Agents] --> COLLECTOR1[TFO-Collector v1.4.0]
         COLLECTOR1 --> PLATFORM1[TelemetryFlow<br/>US Instance :3000]
     end
 
     subgraph REGION2[Region: EU-WEST]
-        AGENT2[TFO-Agents] --> COLLECTOR2[TFO-Collector v1.2.1]
+        AGENT2[TFO-Agents] --> COLLECTOR2[TFO-Collector v1.4.0]
         COLLECTOR2 --> PLATFORM2[TelemetryFlow<br/>EU Instance :3000]
     end
 
     subgraph REGION3[Region: ASIA-PACIFIC]
-        AGENT3[TFO-Agents] --> COLLECTOR3[TFO-Collector v1.2.1]
+        AGENT3[TFO-Agents] --> COLLECTOR3[TFO-Collector v1.4.0]
         COLLECTOR3 --> PLATFORM3[TelemetryFlow<br/>APAC Instance :3000]
     end
 
@@ -520,7 +520,7 @@ graph TB
 
 ```mermaid
 graph TB
-    AGENTS[TFO-Agents v1.2.0] --> LB[Load Balancer]
+    AGENTS[TFO-Agents v1.3.7] --> LB[Load Balancer]
 
     LB --> COLLECTOR1[Collector 1<br/>tfoauth + tfo]
     LB --> COLLECTOR2[Collector 2<br/>tfoauth + tfo]

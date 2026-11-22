@@ -968,9 +968,9 @@ stateDiagram-v2
 
 ### Telemetry Components
 
-**TFO-Collector v1.2.1** - OCB-native OpenTelemetry Collector distribution with 4 custom TFO components (`tfootlp`, `tfo`, `tfoauth`, `tfoidentity`) for secure OTLP ingestion with built-in authentication.
+**TFO-Collector v1.4.0** - OCB-native OpenTelemetry Collector distribution with 4 custom TFO components (`tfootlp`, `tfo`, `tfoauth`, `tfoidentity`) for secure OTLP ingestion with built-in authentication.
 
-**TFO-Agent v1.2.0** - Go-based telemetry agent (Go 1.26, OTEL SDK v1.43.0) with 15+ collectors, 39+ integrations, eBPF monitoring, Docker/cAdvisor integration, and Database Monitoring with QAN (9 DB collectors).
+**TFO-Agent v1.3.7** - Go-based telemetry agent (Go 1.26, OTEL SDK v1.47.0) with 15+ collectors, 39+ integrations, eBPF monitoring, Docker/cAdvisor integration, and Database Monitoring with QAN (9 DB collectors).
 
 ---
 

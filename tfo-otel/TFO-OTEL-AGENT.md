@@ -3,7 +3,7 @@
 - **Version:** 1.4.0
 - **Last Updated:** May 2026
 - **Component:** TelemetryFlow Agent (Infrastructure Agent)
-- **Agent Version:** v1.2.0
+- **Agent Version:** v1.3.7
 - **Go Version:** 1.26+
 - **OpenTelemetry SDK:** v1.43.0
 - **Status:** Production Ready
@@ -28,7 +28,7 @@
 
 ## Overview
 
-**TFO-Agent v1.2.0** is an enterprise-grade telemetry collection agent built on **OpenTelemetry Go SDK v1.43.0**. It consolidates multiple monitoring tools into a single Go binary, replacing Prometheus, kube-state-metrics, node-exporter, FluentBit, and cAdvisor.
+**TFO-Agent v1.3.7** is an enterprise-grade telemetry collection agent built on **OpenTelemetry Go SDK v1.47.0**. It consolidates multiple monitoring tools into a single Go binary, replacing Prometheus, kube-state-metrics, node-exporter, FluentBit, and cAdvisor.
 
 The agent provides comprehensive infrastructure monitoring with **15+ built-in collectors** covering databases, containers, Kubernetes, eBPF, and system metrics, plus **39+ third-party integrations**.
 
@@ -45,11 +45,11 @@ The agent provides comprehensive infrastructure monitoring with **15+ built-in c
 
 ```mermaid
 graph LR
-    APP[Applications] -->|OTLP| AGENT[TFO-Agent v1.2.0]
+    APP[Applications] -->|OTLP| AGENT[TFO-Agent v1.3.7]
     INFRA[Infrastructure<br/>DB, K8s, Docker, eBPF] -->|Native Collectors| AGENT
     LOGS[Log Files] -->|File Collector| AGENT
 
-    AGENT -->|OTLP HTTP| COLLECTOR[TFO-Collector v1.2.1]
+    AGENT -->|OTLP HTTP| COLLECTOR[TFO-Collector v1.4.0]
     AGENT -.->|Direct Mode| TFO[TelemetryFlow API]
 
     style AGENT fill:#FFE082,stroke:#F57C00,color:#000
@@ -61,7 +61,7 @@ graph LR
 
 ```mermaid
 graph TB
-    subgraph Agent["TFO-Agent (Go 1.26, OTEL SDK v1.43.0)"]
+    subgraph Agent["TFO-Agent (Go 1.26, OTEL SDK v1.47.0)"]
         NE_MOD["Node Exporter<br/>CPU, Memory, DiskIO,<br/>Filesystem, Network"]
         K8S_MOD["Kubernetes<br/>Nodes, Pods, Deployments,<br/>Services, HPA, PDB"]
         CAD_MOD["cAdvisor / Docker<br/>Container CPU, Memory,<br/>Network, Filesystem<br/>32 per-container metrics"]
@@ -101,7 +101,7 @@ telemetryflow-agent/
 │   │   ├── system/          # System metrics collector
 │   │   └── timescaledb/     # TimescaleDB collector
 │   ├── config/              # Configuration management
-│   ├── exporter/            # OTLP data exporters (SDK v1.43.0)
+│   ├── exporter/            # OTLP data exporters (SDK v1.47.0)
 │   └── version/             # Version and banner info
 ├── pkg/                     # LEGO Building Blocks
 │   ├── api/                 # HTTP API client
@@ -132,9 +132,9 @@ telemetryflow-agent/
 
 ## Features
 
-### OpenTelemetry SDK v1.43.0
+### OpenTelemetry SDK v1.47.0
 
-- **OTEL Native**: Built on OTEL Go SDK v1.43.0
+- **OTEL Native**: Built on OTEL Go SDK v1.47.0
 - **OTLP Export**: OpenTelemetry Protocol for metrics, logs, and traces
 - **Multi-Signal Support**: Metrics, logs, and traces collection
 
@@ -246,13 +246,13 @@ docker build \
   --build-arg GIT_COMMIT=$(git rev-parse --short HEAD) \
   --build-arg GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD) \
   --build-arg BUILD_TIME=$(date -u '+%Y-%m-%dT%H:%M:%SZ') \
-  -t telemetryflow/telemetryflow-agent:1.2.0 .
+  -t telemetryflow/telemetryflow-agent:1.3.7 .
 
 docker run -d --name tfo-agent \
   -p 4317:4317 -p 4318:4318 -p 13133:13133 \
   -v /path/to/config.yaml:/etc/tfo-agent/tfo-agent.yaml:ro \
   -v /var/lib/tfo-agent:/var/lib/tfo-agent \
-  telemetryflow/telemetryflow-agent:1.2.0
+  telemetryflow/telemetryflow-agent:1.3.7
 ```
 
 ### Method 4: Kubernetes (DaemonSet)
@@ -358,7 +358,7 @@ spec:
 
       containers:
         - name: tfo-agent
-          image: telemetryflow/telemetryflow-agent:1.2.0
+          image: telemetryflow/telemetryflow-agent:1.3.7
           imagePullPolicy: IfNotPresent
           args:
             - start
@@ -789,13 +789,13 @@ sequenceDiagram
 ```mermaid
 graph TB
     subgraph HOST[Physical/Virtual Host]
-        AGENT[TFO-Agent v1.2.0]
+        AGENT[TFO-Agent v1.3.7]
         APP1[App 1] -->|OTLP| AGENT
         APP2[App 2] -->|OTLP| AGENT
         DB[(Database)] -->|Native Collector| AGENT
     end
 
-    COLLECTOR[TFO-Collector v1.2.1]
+    COLLECTOR[TFO-Collector v1.4.0]
     AGENT -->|OTLP HTTP| COLLECTOR
 
     style AGENT fill:#FFE082,stroke:#F57C00,color:#000
@@ -824,7 +824,7 @@ spec:
               value: "http://localhost:4318"
 
         - name: tfo-agent
-          image: telemetryflow/telemetryflow-agent:1.2.0
+          image: telemetryflow/telemetryflow-agent:1.3.7
           args: ["start", "--config=/etc/tfo-agent/config.yaml"]
           ports:
             - containerPort: 4317
@@ -997,8 +997,8 @@ make docker-build       # Build Docker image
 - **Website**: [https://telemetryflow.id](https://telemetryflow.id)
 - **Documentation**: [https://docs.telemetryflow.id](https://docs.telemetryflow.id)
 - **Repository**: [https://github.com/telemetryflow/telemetryflow-agent](https://github.com/telemetryflow/telemetryflow-agent)
-- **Developer**: [Telemetri Data Indonesia](https://telemetryflow.id)
+- **Developer**: [Telemetri Data Indonesia](https://telemetridata.id)
 
 ---
 
-**Version:** 1.4.0 | **Component:** TFO-Agent v1.2.0 | **OTEL SDK:** v1.43.0 | **Last Updated:** May 2026
+**Version:** 1.4.0 | **Component:** TFO-Agent v1.3.7 | **OTEL SDK:** v1.43.0 | **Last Updated:** May 2026

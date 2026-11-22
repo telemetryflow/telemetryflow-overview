@@ -262,7 +262,7 @@ sequenceDiagram
 
 ### 2. Infrastructure Monitoring
 
-#### TFO Agent v1.2.0 — One-For-All Collector
+#### TFO Agent v1.3.7 — One-For-All Collector
 
 ```mermaid
 graph TB
@@ -274,7 +274,7 @@ graph TB
         CAD["cAdvisor"]
     end
 
-    subgraph Agent["TFO Agent v1.2.0 (Go 1.26, OTEL SDK v1.43.0)"]
+    subgraph Agent["TFO Agent v1.3.7 (Go 1.26, OTEL SDK v1.47.0)"]
         NE_MOD["Node Exporter<br/>CPU, Memory, DiskIO,<br/>Filesystem, Network, Load"]
         K8S_MOD["Kubernetes<br/>Nodes, Pods, Deployments,<br/>Services, HPA, PDB, Events"]
         CAD_MOD["cAdvisor<br/>Container CPU, Memory,<br/>Network, Filesystem"]
@@ -301,7 +301,7 @@ graph TB
 - **Resilient**: Disk-backed buffer, auto-reconnection, graceful shutdown
 - **Cross-Platform**: Linux, macOS, Windows
 
-#### TFO Collector v1.2.1 — OCB-Native Gateway
+#### TFO Collector v1.4.0 — OCB-Native Gateway
 
 ```mermaid
 flowchart LR
@@ -311,7 +311,7 @@ flowchart LR
         EXT["External"]
     end
 
-    subgraph Collector["TFO Collector v1.2.1"]
+    subgraph Collector["TFO Collector v1.4.0"]
         RCV["tfootlp Receiver<br/>gRPC :4317 / HTTP :4318"]
         PROC["Processors<br/>k8sattributes, batch,<br/>transform, resource"]
         EXP_TFO["tfo Exporter<br/>→ TFO Platform"]
@@ -328,7 +328,7 @@ flowchart LR
 
 **Key Features:**
 
-- Built on OpenTelemetry Core v1.58.0 + Contrib v0.152.0
+- Built on OpenTelemetry Core v1.71.0 + Contrib v0.165.1
 - **Dual Endpoints**: Community v1 + Platform v2 on same port (4318)
 - **4 Custom TFO Components**: `tfootlp` receiver, `tfo` exporter, `tfoauth` extension, `tfoidentity` extension
 - **85+ OTel Community Components**: receivers, processors, exporters
@@ -595,8 +595,8 @@ flowchart TB
     end
 
     subgraph Collection["Collection Layer"]
-        AGENT["TFO Agent v1.2.0<br/>Node Exporter + K8s<br/>+ cAdvisor + DB + eBPF"]
-        TFOC["TFO Collector v1.2.1<br/>OCB Native<br/>v1/v2 Endpoints"]
+        AGENT["TFO Agent v1.3.7<br/>Node Exporter + K8s<br/>+ cAdvisor + DB + eBPF"]
+        TFOC["TFO Collector v1.4.0<br/>OCB Native<br/>v1/v2 Endpoints"]
     end
 
     subgraph Ingestion["Ingestion Layer"]

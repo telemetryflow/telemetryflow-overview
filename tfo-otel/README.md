@@ -29,8 +29,8 @@ The **TelemetryFlow OTEL Agent & Collector** ecosystem provides enterprise-grade
 
 | Component         | Version | Go Version | OTEL Version                   | Description                                                               |
 | ----------------- | ------- | ---------- | ------------------------------ | ------------------------------------------------------------------------- |
-| **TFO-Agent**     | v1.2.0  | 1.26+      | SDK v1.43.0                    | Infrastructure agent — replaces Prometheus, KSM, node-exporter, FluentBit |
-| **TFO-Collector** | v1.2.1  | 1.26+      | Core v1.58.0, Contrib v0.152.0 | OCB-native OTLP collector with TFO custom components                      |
+| **TFO-Agent**     | v1.3.7  | 1.26+      | SDK v1.47.0                    | Infrastructure agent — replaces Prometheus, KSM, node-exporter, FluentBit |
+| **TFO-Collector** | v1.4.0  | 1.26+      | Core v1.71.0, Contrib v0.165.1 | OCB-native OTLP collector with TFO custom components                      |
 
 Both components provide:
 
@@ -104,7 +104,7 @@ curl -X POST http://localhost:4318/v2/metrics \
 
 ## Components
 
-### TFO-Agent v1.2.0
+### TFO-Agent v1.3.7
 
 **Purpose:** Infrastructure agent replacing Prometheus, KSM, node-exporter, FluentBit, cAdvisor
 
@@ -144,7 +144,7 @@ telemetryflow-agent/
 │   │   ├── system/          # System metrics
 │   │   └── timescaledb/     # TimescaleDB
 │   ├── config/              # Configuration management
-│   └── exporter/            # OTLP data exporters (SDK v1.43.0)
+│   └── exporter/            # OTLP data exporters (SDK v1.47.0)
 ├── pkg/                     # LEGO Building Blocks
 ├── configs/                 # Configuration templates
 ├── deploy/                  # Helm charts & K8s manifests
@@ -157,7 +157,7 @@ telemetryflow-agent/
 - Memory: ~50MB RAM
 - CPU: <1% idle, ~5% peak
 
-### TFO-Collector v1.2.1
+### TFO-Collector v1.4.0
 
 **Purpose:** Centralized telemetry data processing hub (OCB Native)
 
@@ -221,11 +221,11 @@ graph TB
         APP2[Application 2<br/>OTEL SDK]
         INFRA[Infrastructure<br/>DB, K8s, Docker, eBPF]
 
-        AGENT[TFO-Agent v1.2.0<br/>:4317, :4318]
+        AGENT[TFO-Agent v1.3.7<br/>:4317, :4318]
     end
 
     subgraph "Aggregation Tier (Per Region/Cluster)"
-        COLLECTOR[TFO-Collector v1.2.1<br/>:4317, :4318<br/>tfootlp + tfo + tfoauth]
+        COLLECTOR[TFO-Collector v1.4.0<br/>:4317, :4318<br/>tfootlp + tfo + tfoauth]
     end
 
     subgraph "Backend Tier"
@@ -281,7 +281,7 @@ graph TB
         CAD["cAdvisor"]
     end
 
-    subgraph Agent["TFO-Agent (Go 1.26, OTEL SDK v1.43.0)"]
+    subgraph Agent["TFO-Agent (Go 1.26, OTEL SDK v1.47.0)"]
         NE_MOD["Node Exporter<br/>CPU, Memory, DiskIO,<br/>Filesystem, Network"]
         K8S_MOD["Kubernetes<br/>Nodes, Pods, Deployments,<br/>Services, HPA, PDB"]
         CAD_MOD["cAdvisor<br/>Container CPU, Memory,<br/>Network, Filesystem"]
@@ -457,8 +457,8 @@ curl http://localhost:3000/health
 
 | Repository                                                                          | Description                                          |
 | ----------------------------------------------------------------------------------- | ---------------------------------------------------- |
-| [telemetryflow-agent](https://github.com/telemetryflow/telemetryflow-agent)         | TFO-Agent source code (Go 1.26, OTEL SDK v1.43.0)    |
-| [telemetryflow-collector](https://github.com/telemetryflow/telemetryflow-collector) | TFO-Collector source code (OCB Native, Core v1.58.0) |
+| [telemetryflow-agent](https://github.com/telemetryflow/telemetryflow-agent)         | TFO-Agent source code (Go 1.26, OTEL SDK v1.47.0)    |
+| [telemetryflow-collector](https://github.com/telemetryflow/telemetryflow-collector) | TFO-Collector source code (OCB Native, Core v1.71.0) |
 | [telemetryflow-platform](https://github.com/telemetryflow/telemetryflow-platform)   | TelemetryFlow Platform (NestJS + Vue 3)              |
 
 ---
