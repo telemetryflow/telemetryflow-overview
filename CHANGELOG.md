@@ -7,7 +7,7 @@
 
   <h3>TelemetryFlow Platform - Overview Documentation</h3>
 
-[![Version](https://img.shields.io/badge/version-1.4.0-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-2.6.0-blue.svg)](CHANGELOG.md)
 [![License](https://img.shields.io/badge/license-Apache--2.0-green.svg)](LICENSE)
 [![NestJS](https://img.shields.io/badge/NestJS-11.x-E0234E?logo=nestjs)](https://nestjs.com/)
 [![Vue](https://img.shields.io/badge/Vue-3.5.24-4FC08D?logo=vue.js)](https://vuejs.org/)
@@ -33,6 +33,17 @@ All notable changes to **TelemetryFlow Platform Overview Documentation** will be
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [2.6.0] - 2026-11-22
+
+### Changed
+
+- **Doc-set version aligned to the TelemetryFlow Platform release (2.6.0)** —
+  version badges + per-page `Version:` headers `1.4.0` → `2.6.0`.
+- **Component versions refreshed to latest:** TFO-Agent `v1.3.7`, TFO-Collector
+  `v1.4.0` (OTel base Core `v1.71.0` / Contrib `v0.165.1`, SDK `v1.47.0`).
+- **TFO-Platform v2.6.0 documented as its two components** — TFO-Backend `v2.6.0`
+  + TFO-Viz `v2.6.0` (new entries in `architecture/01-SYSTEM-ARCHITECTURE.md`).
 
 ## [1.4.0] - 2026-05-14
 

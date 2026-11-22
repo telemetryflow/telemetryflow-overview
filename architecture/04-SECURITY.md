@@ -1,6 +1,6 @@
 # Security Architecture
 
-**Version:** 1.4.0
+**Version:** 2.6.0
 **Last Updated:** May 14, 2026
 **Status:** ✅ Production Ready
 

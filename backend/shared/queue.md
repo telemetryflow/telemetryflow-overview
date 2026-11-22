@@ -1,6 +1,6 @@
 # Shared Module: Queue (BullMQ Job Processing)
 
-- **Version:** 1.4.0
+- **Version:** 2.6.0
 - **Last Updated:** May 14th, 2026
 - **Status:** ✅ Production Ready
 - **Priority:** 🔥 CRITICAL - Async Processing Infrastructure

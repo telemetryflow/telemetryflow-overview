@@ -1,6 +1,6 @@
 # Naming Conventions
 
-- **Version**: 1.4.0
+- **Version**: 2.6.0
 - **Standard**: TypeScript + NestJS + Go
 - **Status**: Enforced
 

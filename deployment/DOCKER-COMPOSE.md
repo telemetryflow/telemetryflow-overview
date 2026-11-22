@@ -1,6 +1,6 @@
 # Docker Compose Deployment
 
-- **Version**: 1.4.0
+- **Version**: 2.6.0
 - **Docker Compose**: 3.4.0
 - **Status**: ✅ Production Ready
 

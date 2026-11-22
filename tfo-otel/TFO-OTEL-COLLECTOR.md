@@ -1,6 +1,6 @@
 # TFO-OTEL-Collector Documentation
 
-- **Version:** 1.4.0
+- **Version:** 2.6.0
 - **Last Updated:** May 2026
 - **Component:** TelemetryFlow Collector (OCB Native)
 - **Collector Version:** v1.4.0
@@ -817,4 +817,4 @@ make version            # Show version information
 
 ---
 
-**Version:** 1.4.0 | **Component:** TFO-Collector v1.4.0 | **OTEL Core:** v1.58.0 | **Contrib:** v0.152.0 | **Last Updated:** May 2026
+**Version:** 2.6.0 | **Component:** TFO-Collector v1.4.0 | **OTEL Core:** v1.58.0 | **Contrib:** v0.152.0 | **Last Updated:** May 2026

@@ -3,7 +3,7 @@
 - **Module**: `shared/logger`
 - **Category**: Backend / Shared Infrastructure
 - **Status**: Production Ready
-- **Version**: 1.4.0
+- **Version**: 2.6.0
 
 ---
 

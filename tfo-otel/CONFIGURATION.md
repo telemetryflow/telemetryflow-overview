@@ -1,6 +1,6 @@
 # TFO-OTEL Configuration Reference
 
-- **Version:** 1.4.0
+- **Version:** 2.6.0
 - **Last Updated:** May 2026
 - **Component:** Configuration Guide
 - **Collector:** OCB Native, OTEL Core v1.71.0, Contrib v0.165.1
@@ -739,4 +739,4 @@ tfo-collector --config /etc/tfo-collector/otel-collector.yaml --dry-run
 
 ---
 
-**Version:** 1.4.0 | **Component:** Configuration Reference | **Last Updated:** May 2026
+**Version:** 2.6.0 | **Component:** Configuration Reference | **Last Updated:** May 2026

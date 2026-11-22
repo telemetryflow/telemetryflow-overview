@@ -1,6 +1,6 @@
 # TelemetryFlow OTEL Agent & Collector
 
-- **Version:** 1.4.0
+- **Version:** 2.6.0
 - **Last Updated:** May 2026
 - **Status:** Production Ready
 
@@ -463,4 +463,4 @@ curl http://localhost:3000/health
 
 ---
 
-**Version:** 1.4.0 | **Maintained By:** Telemetri Data Indonesia
+**Version:** 2.6.0 | **Maintained By:** Telemetri Data Indonesia

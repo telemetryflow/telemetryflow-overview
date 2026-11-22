@@ -1,6 +1,6 @@
 # Vue Router Configuration
 
-- **Version**: 1.4.0
+- **Version**: 2.6.0
 - **Library**: Vue Router 4.6.3
 - **Mode**: History (HTML5)
 - **Status**: ✅ Production Ready

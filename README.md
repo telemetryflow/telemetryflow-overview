@@ -16,7 +16,7 @@
     Apache 2.0 Licensed
   </p>
 
-[![Version](https://img.shields.io/badge/version-1.4.0-orange.svg)](#)
+[![Version](https://img.shields.io/badge/version-2.6.0-orange.svg)](#)
 [![License](https://img.shields.io/badge/license-Apache--2.0-green.svg)](#)
 [![NestJS](https://img.shields.io/badge/NestJS-11.x-E0234E?logo=nestjs)](https://nestjs.com/)
 [![Vue](https://img.shields.io/badge/Vue-3.x-4FC08D?logo=vue.js)](https://vuejs.org/)
@@ -28,7 +28,7 @@
 
 </div>
 
-- **Version:** 1.4.0
+- **Version:** 2.6.0
 - **Status:** Production Ready
 - **License:** Apache 2.0
 - **Built by:** Telemetri Data Indonesia

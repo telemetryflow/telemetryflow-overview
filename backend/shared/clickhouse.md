@@ -4,7 +4,7 @@
 - **Category**: Backend / Shared Modules
 - **Status**: Production Ready
 - **Priority:** 🔥 CRITICAL - Time-Series Database
-- **Version**: 1.4.0
+- **Version**: 2.6.0
 
 ---
 
