@@ -446,7 +446,7 @@ graph TB
         E[TypeORM<br/>PostgreSQL]
         F[ClickHouse Client<br/>Time-Series]
         G[HTTP Clients<br/>REST APIs]
-        H[Redis<br/>Cache]
+        H[Valkey<br/>Cache]
     end
 
     A --> E

@@ -45,15 +45,15 @@ graph TB
     subgraph "Data Stores"
         PG[(PostgreSQL<br/>Metadata)]
         CH[(ClickHouse<br/>Telemetry)]
-        Redis[(Redis<br/>Cache/Queue)]
+        Valkey[(Valkey<br/>Cache/Queue)]
 
         PGData[• Users<br/>• Organizations<br/>• Workspaces<br/>• Alert Rules<br/>• Dashboards]
         CHData[• Metrics<br/>• Logs<br/>• Traces<br/>• Alert History<br/>• Audit Logs]
-        RedisData[• L2 Cache<br/>• BullMQ Jobs<br/>• Sessions]
+        ValkeyData[• L2 Cache<br/>• BullMQ Jobs<br/>• Sessions]
 
         PG -.-> PGData
         CH -.-> CHData
-        Redis -.-> RedisData
+        Valkey -.-> ValkeyData
     end
 
     subgraph "Async Processing - BullMQ Queues"
@@ -73,7 +73,7 @@ graph TB
 
     InfraLayer <--> PG
     InfraLayer <--> CH
-    InfraLayer <--> Redis
+    InfraLayer <--> Valkey
 
     InfraLayer --> Q1
     InfraLayer --> Q2
@@ -88,7 +88,7 @@ graph TB
     style InfraLayer fill:#ff6b6b
     style PG fill:#95a5a6
     style CH fill:#6c5ce7
-    style Redis fill:#e74c3c
+    style Valkey fill:#e74c3c
 ```
 
 ---
@@ -236,14 +236,14 @@ graph LR
         CHTables[Tables 10+:<br/>• metrics<br/>• logs<br/>• traces<br/>• spans<br/>• exemplars<br/>• alert_history<br/>• audit_logs<br/>• uptime_checks<br/>• service_list<br/>• metric_list]
     end
 
-    subgraph "Redis 7+"
-        RedisFeatures[• L2 cache<br/>• BullMQ queues<br/>• Session storage<br/>• Pub/Sub]
-        RedisKeys[Keys:<br/>• user:session:*<br/>• cache:*<br/>• bull:otlp:*<br/>• bull:alerts:*<br/>• bull:aggregation:*<br/>• bull:cleanup:*<br/>• bull:notify:*]
+    subgraph "Valkey 9"
+        ValkeyFeatures[• L2 cache<br/>• BullMQ queues<br/>• Session storage<br/>• Pub/Sub]
+        ValkeyKeys[Keys:<br/>• user:session:*<br/>• cache:*<br/>• bull:otlp:*<br/>• bull:alerts:*<br/>• bull:aggregation:*<br/>• bull:cleanup:*<br/>• bull:notify:*]
     end
 
     style PGFeatures fill:#4ecdc4
     style CHFeatures fill:#6c5ce7
-    style RedisFeatures fill:#e74c3c
+    style ValkeyFeatures fill:#e74c3c
 ```
 
 ---
@@ -271,7 +271,7 @@ graph TB
 
     subgraph "4. INFRASTRUCTURE LAYER"
         I1[Responsibilities: External systems, Persistence, 3rd party APIs]
-        I2[• TypeORM Entities PostgreSQL schema<br/>• Repository Implementations Adapters - UserRepository<br/>• ClickHouse Adapters Time-series persistence<br/>• Redis Cache Implementations<br/>• BullMQ Queue Processors<br/>• External Service Clients Email, Slack, PagerDuty<br/>• Mappers Domain ↔ Persistence transformation]
+        I2[• TypeORM Entities PostgreSQL schema<br/>• Repository Implementations Adapters - UserRepository<br/>• ClickHouse Adapters Time-series persistence<br/>• Valkey Cache Implementations<br/>• BullMQ Queue Processors<br/>• External Service Clients Email, Slack, PagerDuty<br/>• Mappers Domain ↔ Persistence transformation]
     end
 
     P2 -->|HTTP Request| A2
@@ -600,7 +600,7 @@ graph TB
 - Horizontal scaling via sharding
 - TFQL query language support (PromQL, ClickHouse SQL, Elasticsearch DSL)
 
-### Redis (Cache & Queue)
+### Valkey (Cache & Queue)
 
 **Purpose:** Ephemeral data, caching, and job queues
 
@@ -608,7 +608,7 @@ graph TB
 
 ```mermaid
 graph TB
-    subgraph "Redis Key-Value Store"
+    subgraph "Valkey Key-Value Store"
         subgraph "Cache Keys - cache module"
             Cache[• cache:metric:get:hash - Metric query cache<br/>• cache:log:get:hash - Log query cache<br/>• cache:trace:get:hash - Trace query cache<br/>• cache:dashboard:id - Dashboard data cache]
         end
@@ -685,7 +685,7 @@ Registry composables bridge registries to components:
 sequenceDiagram
     participant Request as HTTP Request
     participant L1 as L1 Cache In-Memory<br/>• TTL: 60s<br/>• Hit rate: 40-50%<br/>• Access: 0.1ms
-    participant L2 as L2 Cache Redis<br/>• TTL: 30min<br/>• Hit rate: 20-30%<br/>• Access: 1-5ms
+    participant L2 as L2 Cache Valkey<br/>• TTL: 30min<br/>• Hit rate: 20-30%<br/>• Access: 1-5ms
     participant DB as Database<br/>PostgreSQL/ClickHouse<br/>• Access: 10-500ms
 
     Request->>L1: Query Data
@@ -728,21 +728,21 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     participant API as API Endpoint<br/>POST /otlp/metrics
-    participant Redis as Redis Job Queue<br/>Queue: otlp-ingestion
+    participant Valkey as Valkey Job Queue<br/>Queue: otlp-ingestion
     participant Worker as BullMQ Worker Process<br/>Separate thread/process
     participant CH as ClickHouse
     participant Bus as Domain Event Bus
 
-    API->>Redis: Add Job<br/>Metrics payload
-    Note over Redis: Job 1: Metrics payload<br/>Job 2: Metrics payload<br/>Job 3: Metrics payload<br/>...
+    API->>Valkey: Add Job<br/>Metrics payload
+    Note over Valkey: Job 1: Metrics payload<br/>Job 2: Metrics payload<br/>Job 3: Metrics payload<br/>...
 
-    Redis->>Worker: Worker pulls job
+    Valkey->>Worker: Worker pulls job
     Worker->>Worker: 1. Validate metrics
     Worker->>Worker: 2. Transform to domain model
     Worker->>CH: 3. Save to ClickHouse
     CH-->>Worker: Saved
     Worker->>Worker: 4. Emit domain event
-    Worker->>Redis: 5. Mark job complete
+    Worker->>Valkey: 5. Mark job complete
 
     Worker->>Bus: Publish Domain Event
     Bus->>Bus: • Alert evaluation<br/>• Aggregation update<br/>• Audit logging
@@ -788,7 +788,7 @@ graph TB
     subgraph "Data Layer - Distributed"
         PG[(PostgreSQL<br/>Primary + Replicas)]
         CH[(ClickHouse<br/>Sharded)]
-        RD[(Redis<br/>Cluster)]
+        RD[(Valkey<br/>Cluster)]
     end
 
     LB --> N1
@@ -820,7 +820,7 @@ graph TB
 
 1. **API Layer:** Add more NestJS instances behind load balancer
 2. **Database:** PostgreSQL read replicas, ClickHouse sharding
-3. **Cache:** Redis Cluster for distributed caching
+3. **Cache:** Valkey Cluster for distributed caching
 4. **Queue:** BullMQ workers scale independently
 5. **Frontend:** CDN + multiple origin servers
 

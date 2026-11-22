@@ -56,8 +56,8 @@ graph TB
         Q5[Notification<br/>Priority: MEDIUM<br/>Workers: 5]
     end
 
-    subgraph "Redis Backend"
-        R[Redis DB 2<br/>Persistent Storage]
+    subgraph "Valkey Backend"
+        R[Valkey DB 2<br/>Persistent Storage]
     end
 
     subgraph "Workers"
@@ -625,7 +625,7 @@ graph LR
 ### Environment Variables
 
 ```bash
-# Redis Configuration (Queue Backend)
+# Valkey Configuration (Queue Backend)
 REDIS_HOST=localhost
 REDIS_PORT=6379
 REDIS_PASSWORD=
@@ -638,7 +638,7 @@ QUEUE_ALERT_CONCURRENCY=5
 QUEUE_ALERT_RATE_LIMIT=100
 ```
 
-### Redis Connection Config
+### Valkey Connection Config
 
 ```typescript
 export function getQueueConnectionConfig(): QueueConnectionConfig {

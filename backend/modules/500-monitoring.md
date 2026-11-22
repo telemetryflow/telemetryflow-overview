@@ -48,7 +48,7 @@ graph TB
         MYSQL[MySQL/MariaDB]
         MSSQL[MS SQL Server]
         MONGO[MongoDB]
-        REDIS[Redis]
+        REDIS[Valkey]
     end
 
     subgraph "Other"
@@ -78,7 +78,7 @@ export enum MonitorType {
   DOCKER_CONTAINER = "Docker Container",
   POSTGRES = "PostgreSQL",
   MYSQL_MARIADB = "MySQL/MariaDB",
-  REDIS = "Redis",
+  REDIS = "Valkey",
   // ... 14 total types
 }
 

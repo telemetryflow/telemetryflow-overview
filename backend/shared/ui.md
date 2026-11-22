@@ -27,7 +27,7 @@ graph TB
     BROWSER[Browser] -->|GET /ui/login| UI_CTRL[UiController]
 
     UI_CTRL -->|session auth| SESSION_GUARD[SessionAuthGuard]
-    SESSION_GUARD -->|validate| SESSION[(Session Store<br/>Redis)]
+    SESSION_GUARD -->|validate| SESSION[(Session Store<br/>Valkey)]
 
     SESSION -->|valid| EJS[EJS Template Engine]
     SESSION -->|invalid| REDIRECT[Redirect to Login]
@@ -409,7 +409,7 @@ public/
 ## Related Modules
 
 - **200-auth.md** - Authentication service
-- **cache.md** - Session storage (Redis)
+- **cache.md** - Session storage (Valkey)
 - **logger.md** - Request logging
 
 ---

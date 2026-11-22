@@ -12,7 +12,7 @@
 
 The **OpenTelemetry module** provides **self-instrumentation** for the TelemetryFlow platform. Features:
 
-- **Auto-instrumentation**: Automatic tracing for HTTP, Express, PostgreSQL, Redis
+- **Auto-instrumentation**: Automatic tracing for HTTP, Express, PostgreSQL, Valkey
 - **Custom spans**: Manual span creation for business logic
 - **OTLP export**: Traces and metrics exported via OTLP gRPC
 - **Context propagation**: Distributed tracing across services
@@ -264,7 +264,7 @@ sequenceDiagram
     participant API as API Gateway<br/>[Span 1]
     participant AUTH as Auth Service<br/>[Span 2]
     participant DB as PostgreSQL<br/>[Span 3]
-    participant CACHE as Redis<br/>[Span 4]
+    participant CACHE as Valkey<br/>[Span 4]
 
     CLIENT->>API: POST /api/metrics<br/>traceparent: 00-trace_id-parent_id-01
 

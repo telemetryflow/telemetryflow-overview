@@ -320,12 +320,12 @@ TTL timestamp + INTERVAL 90 DAY DELETE  -- metrics, audit, uptime
 
 **Use Cases:**
 
-1. **L2 Cache** (Multi-level caching, Redis DB 0)
+1. **L2 Cache** (Multi-level caching, Valkey DB 0)
    - 1800s TTL for queries
    - 60-80% hit rate
    - LRU eviction policy
 
-2. **BullMQ Queue Backend** (Redis DB 1)
+2. **BullMQ Queue Backend** (Valkey DB 1)
    - Job persistence
    - Distributed locking
    - Rate limiting
@@ -602,7 +602,7 @@ sdk.start();
 
 - HTTP requests/responses
 - Database queries (PostgreSQL)
-- Redis operations
+- Valkey operations
 - External API calls
 - Custom business logic spans
 
@@ -852,8 +852,8 @@ nest g resource my-resource
 | **TypeScript over JavaScript**   | Type safety, better IDE support, reduced runtime errors |
 | **PostgreSQL for metadata**      | ACID compliance, complex queries, mature ecosystem      |
 | **ClickHouse for telemetry**     | 100-1000x faster analytics, excellent compression       |
-| **Redis for cache**              | Sub-millisecond latency, rich data structures           |
-| **BullMQ over Agenda/Bee**       | Better Redis integration, job prioritization            |
+| **Valkey for cache**              | Sub-millisecond latency, rich data structures           |
+| **BullMQ over Agenda/Bee**       | Better Valkey integration, job prioritization            |
 | **Argon2id over bcrypt**         | OWASP recommended, GPU-resistant                        |
 | **OpenTelemetry**                | Vendor-neutral, industry standard                       |
 | **Socket.IO over raw WebSocket** | Automatic reconnection, room support                    |

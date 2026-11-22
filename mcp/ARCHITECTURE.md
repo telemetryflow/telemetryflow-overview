@@ -824,12 +824,12 @@ stateDiagram-v2
 
 ## Cache and Queue
 
-### Redis Cache Architecture
+### Valkey Cache Architecture
 
 ```mermaid
 graph TB
     subgraph "Cache Layer"
-        CACHE[Redis Cache]
+        CACHE[Valkey Cache]
         GET[Get/GetJSON]
         SET[Set/SetJSON]
         DEL[Delete/DeletePattern]
@@ -1070,7 +1070,7 @@ graph TB
     end
 
     subgraph "Caching Layer"
-        REDIS[(Redis)]
+        REDIS[(Valkey)]
         REDIS_CACHE[Response Cache]
         REDIS_SESSION[Session Cache]
     end

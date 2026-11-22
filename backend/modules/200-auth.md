@@ -15,7 +15,7 @@ graph TB
     subgraph "200-auth Module"
         A[JWT Authentication<br/>Access + Refresh Tokens]
         B[Multi-Factor Auth<br/>TOTP-based MFA]
-        C[Session Management<br/>Redis-backed Sessions]
+        C[Session Management<br/>Valkey-backed Sessions]
         D[Password Security<br/>Argon2id Hashing]
     end
 
@@ -75,7 +75,7 @@ graph TB
 
     subgraph "infrastructure/ - Storage"
         REPO1[AuthRepository<br/>PostgreSQL]
-        REPO2[SessionRepository<br/>Redis]
+        REPO2[SessionRepository<br/>Valkey]
         MAP1[Auth Mappers]
     end
 
@@ -108,7 +108,7 @@ sequenceDiagram
     participant Lockout as AccountLockoutService
     participant User as UserRepository
     participant JWT as JWT Service
-    participant Redis as Redis (Session)
+    participant Valkey as Valkey (Session)
     participant Audit as AuditLog
 
     Client->>API: POST /auth/login<br/>{email, password}
@@ -148,7 +148,7 @@ sequenceDiagram
         end
 
         Handler->>JWT: Generate access token (15min)<br/>Generate refresh token (7d)
-        Handler->>Redis: Store session<br/>session:{userId}
+        Handler->>Valkey: Store session<br/>session:{userId}
         Handler->>Audit: Log successful login
         Handler-->>Client: 200 {accessToken, refreshToken, expiresIn}
     end
@@ -206,7 +206,7 @@ sequenceDiagram
     participant Handler as RefreshTokenHandler
     participant JWT as JWT Service
     participant Blacklist as TokenBlacklistService
-    participant Redis as Redis (Session)
+    participant Valkey as Valkey (Session)
 
     Client->>API: POST /auth/refresh<br/>{refreshToken}
     API->>Handler: Execute RefreshTokenCommand
@@ -222,7 +222,7 @@ sequenceDiagram
     end
 
     Handler->>JWT: Extract userId from token
-    Handler->>Redis: Validate session exists
+    Handler->>Valkey: Validate session exists
 
     alt Session Expired
         Handler-->>Client: 401 Session Expired
@@ -231,7 +231,7 @@ sequenceDiagram
     Handler->>JWT: Generate new access token (15min)
     Handler->>JWT: Generate new refresh token (7d)
     Handler->>Blacklist: Blacklist old refresh token
-    Handler->>Redis: Update session timestamp
+    Handler->>Valkey: Update session timestamp
 
     Handler-->>Client: 200 {accessToken, refreshToken, expiresIn: 900}
 ```
@@ -492,7 +492,7 @@ CREATE INDEX idx_auth_verification_token ON auth(verification_token);
 CREATE INDEX idx_auth_reset_token ON auth(reset_token);
 ```
 
-### Session Table (Redis)
+### Session Table (Valkey)
 
 ```
 Key Pattern: session:{userId}:{sessionId}

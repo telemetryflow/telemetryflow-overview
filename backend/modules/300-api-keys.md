@@ -56,7 +56,7 @@ graph TB
 
     subgraph "Persistence"
         PG[(PostgreSQL<br/>API Keys)]
-        CACHE[(Redis<br/>Key Cache)]
+        CACHE[(Valkey<br/>Key Cache)]
     end
 
     REQ --> GUARD
@@ -623,7 +623,7 @@ sequenceDiagram
     participant G as ApiKeyGuard
     participant V as ApiKeyVerifyService
     participant DB as PostgreSQL
-    participant CACHE as Redis Cache
+    participant CACHE as Valkey Cache
     participant H as Handler
 
     C->>G: Request + Authorization: Bearer tfk-xxx.tfs-yyy

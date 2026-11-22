@@ -347,7 +347,7 @@ sequenceDiagram
     participant Client as Frontend
     participant API as MetricsController
     participant Handler as QueryHandler
-    participant Cache as Redis Cache
+    participant Cache as Valkey Cache
     participant Repo as MetricRepository
     participant CH as ClickHouse
 

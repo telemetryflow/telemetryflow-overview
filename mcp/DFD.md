@@ -106,7 +106,7 @@ flowchart TB
     subgraph External["External Services"]
         CLAUDE["Claude API"]
         OTLP["TelemetryFlow Collector"]
-        REDIS["Redis"]
+        REDIS["Valkey"]
     end
 
     C1 & C2 & C3 -->|"JSON-RPC"| P1

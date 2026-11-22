@@ -496,8 +496,8 @@ graph TB
 | Module         | Purpose                       | Key Features                                    |
 | -------------- | ----------------------------- | ----------------------------------------------- |
 | **logger**     | Structured logging with OTEL  | Winston 3.x, JSON format, trace correlation     |
-| **cache**      | Multi-level caching           | L1 in-memory (60s), L2 Redis DB 0 (1800s)       |
-| **queue**      | Async job processing          | BullMQ, 6 queues (Redis DB 1), retry strategies |
+| **cache**      | Multi-level caching           | L1 in-memory (60s), L2 Valkey DB 0 (1800s)       |
+| **queue**      | Async job processing          | BullMQ, 6 queues (Valkey DB 1), retry strategies |
 | **clickhouse** | ClickHouse client             | Query builder, connection pooling               |
 | **email**      | Email notifications           | Nodemailer, template engine                     |
 | **cors**       | CORS configuration            | Environment-based CORS rules                    |
@@ -835,7 +835,7 @@ CLICKHOUSE_DATABASE=telemetryflow_db
 CLICKHOUSE_USERNAME=default
 CLICKHOUSE_PASSWORD=
 
-# Redis
+# Valkey
 REDIS_HOST=localhost
 REDIS_PORT=6379
 REDIS_PASSWORD=

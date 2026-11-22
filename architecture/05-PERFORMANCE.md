@@ -46,7 +46,7 @@ graph TB
 
     subgraph "Layer 2: Application Cache"
         C[L1: In-Memory Cache<br/>60s TTL]
-        D[L2: Redis Cache<br/>30min TTL]
+        D[L2: Valkey Cache<br/>30min TTL]
     end
 
     subgraph "Layer 3: Async Processing"
@@ -100,7 +100,7 @@ TelemetryFlow implements a **two-tier caching strategy** to minimize database qu
 sequenceDiagram
     participant Client as API Client
     participant L1 as L1 Cache<br/>(In-Memory)
-    participant L2 as L2 Cache<br/>(Redis)
+    participant L2 as L2 Cache<br/>(Valkey)
     participant DB as Database<br/>(PostgreSQL/ClickHouse)
 
     Client->>L1: Request Data
@@ -156,7 +156,7 @@ classDiagram
 
     class CacheService {
         -Map~string,CacheEntry~ l1Cache
-        -Redis l2Cache
+        -Valkey l2Cache
         +get(key) Promise~any~
         +set(key, value, ttl) Promise~void~
         +del(key) Promise~void~
@@ -210,11 +210,11 @@ stateDiagram-v2
 | **Cleanup**    | Every 60 seconds           | Remove expired entries automatically |
 | **Validation** | Timestamp-based expiry     | Check `expiresAt` on every get       |
 
-### L2 Cache (Redis)
+### L2 Cache (Valkey)
 
 ```mermaid
 graph LR
-    subgraph "Redis DB 1 - Cache Storage"
+    subgraph "Valkey DB 1 - Cache Storage"
         A[Key-Value Pairs]
         B[SETEX with TTL]
         C[SCAN for Pattern Deletion]
@@ -227,7 +227,7 @@ graph LR
     end
 
     subgraph "Graceful Degradation"
-        G{Redis Available?}
+        G{Valkey Available?}
         G -->|Yes| A
         G -->|No| H[Fallback to L1 Only]
     end
@@ -244,11 +244,11 @@ graph LR
 
 | Feature              | Configuration               | Purpose                                          |
 | -------------------- | --------------------------- | ------------------------------------------------ |
-| **Storage**          | Redis DB 1                  | Distributed cache for multi-instance deployments |
+| **Storage**          | Valkey DB 1                  | Distributed cache for multi-instance deployments |
 | **TTL**              | 30 minutes (default)        | Longer retention than L1                         |
 | **Operation**        | SETEX (Set with Expiry)     | Atomic set + TTL                                 |
 | **Connection**       | Lazy connect, 5s timeout    | Non-blocking startup                             |
-| **Retry Strategy**   | Max 3, exponential backoff  | Resilience to Redis failures                     |
+| **Retry Strategy**   | Max 3, exponential backoff  | Resilience to Valkey failures                     |
 | **Fallback**         | L1-only mode if unavailable | Graceful degradation                             |
 | **Pattern Deletion** | SCAN-based invalidation     | Bulk cache clearing by pattern                   |
 
@@ -289,9 +289,9 @@ flowchart TD
     D --> G[L1: Iterate & delete matching]
     E --> H[L1: Map.clear]
 
-    F --> I[L2: Redis DEL key]
-    G --> J[L2: Redis SCAN + DEL pattern]
-    E --> K[L2: Redis FLUSHDB]
+    F --> I[L2: Valkey DEL key]
+    G --> J[L2: Valkey SCAN + DEL pattern]
+    E --> K[L2: Valkey FLUSHDB]
 
     I --> L[Audit Log: Cache Invalidation]
     J --> L
@@ -356,7 +356,7 @@ graph TB
         C[Dashboard Controller]
     end
 
-    subgraph "Queue Layer - Redis DB 2"
+    subgraph "Queue Layer - Valkey DB 2"
         D[OTLP Ingestion Queue<br/>Priority: HIGH<br/>1000 jobs/sec]
         E[Alert Evaluation Queue<br/>Priority: HIGH<br/>100 jobs/sec]
         F[Telemetry Processing Queue<br/>Priority: MEDIUM<br/>50 jobs/sec]
@@ -1172,17 +1172,17 @@ graph TB
     subgraph "Connection Pools"
         B[PostgreSQL Pool<br/>TypeORM<br/>Max: 10 connections<br/>Idle Timeout: 30s]
 
-        C[Redis Cache Pool<br/>DB 1<br/>Lazy Connect<br/>Max Retries: 1<br/>Timeout: 5s]
+        C[Valkey Cache Pool<br/>DB 1<br/>Lazy Connect<br/>Max Retries: 1<br/>Timeout: 5s]
 
-        D[Redis Queue Pool<br/>DB 2<br/>Lazy Connect<br/>Max Retries: 3<br/>Timeout: 10s]
+        D[Valkey Queue Pool<br/>DB 2<br/>Lazy Connect<br/>Max Retries: 3<br/>Timeout: 10s]
 
         E[ClickHouse Client<br/>HTTP Pool<br/>Async Inserts<br/>Query Timeout: 30s]
     end
 
     subgraph "Databases"
         F[(PostgreSQL<br/>Metadata)]
-        G[(Redis DB 1<br/>Cache)]
-        H[(Redis DB 2<br/>Queues)]
+        G[(Valkey DB 1<br/>Cache)]
+        H[(Valkey DB 2<br/>Queues)]
         I[(ClickHouse<br/>Telemetry)]
     end
 
@@ -1231,14 +1231,14 @@ stateDiagram-v2
     end note
 ```
 
-### Redis Connection Pools
+### Valkey Connection Pools
 
 ```mermaid
 sequenceDiagram
     participant App as Application
-    participant Cache as Redis Cache Pool<br/>(DB 1)
-    participant Queue as Redis Queue Pool<br/>(DB 2)
-    participant Redis as Redis Server
+    participant Cache as Valkey Cache Pool<br/>(DB 1)
+    participant Queue as Valkey Queue Pool<br/>(DB 2)
+    participant Valkey as Valkey Server
 
     App->>Cache: Initialize (Lazy Connect)
     Cache-->>App: Pool Ready (not connected)
@@ -1247,14 +1247,14 @@ sequenceDiagram
     Queue-->>App: Pool Ready (not connected)
 
     App->>Cache: First Cache Operation
-    Cache->>Redis: Connect to DB 1
+    Cache->>Valkey: Connect to DB 1
 
     alt Connection Success
-        Redis-->>Cache: Connected
+        Valkey-->>Cache: Connected
         Cache->>Cache: Execute Command
         Cache-->>App: Result
     else Connection Failure
-        Redis-->>Cache: Connection Refused
+        Valkey-->>Cache: Connection Refused
         Cache->>Cache: Retry (max 1)<br/>Backoff: 200ms
 
         alt Retry Success
@@ -1265,8 +1265,8 @@ sequenceDiagram
     end
 
     App->>Queue: Add Job
-    Queue->>Redis: Connect to DB 2
-    Redis-->>Queue: Connected
+    Queue->>Valkey: Connect to DB 2
+    Valkey-->>Queue: Connected
     Queue->>Queue: Execute Command (max 3 retries)
     Queue-->>App: Job Added
 
@@ -1319,13 +1319,13 @@ graph LR
         C[Pending Requests: 0]
     end
 
-    subgraph "Redis Cache Metrics"
+    subgraph "Valkey Cache Metrics"
         D[Connected: Yes]
         E[Commands/sec: 120]
         F[Errors/min: 0]
     end
 
-    subgraph "Redis Queue Metrics"
+    subgraph "Valkey Queue Metrics"
         G[Connected: Yes]
         H[Jobs Queued: 45]
         I[Workers Active: 25]
@@ -1368,7 +1368,7 @@ graph TB
     end
 
     subgraph "Storage Backend"
-        D[Redis DB 2<br/>Token Bucket Algorithm]
+        D[Valkey DB 2<br/>Token Bucket Algorithm]
     end
 
     subgraph "Endpoints"
@@ -1398,30 +1398,30 @@ graph TB
 sequenceDiagram
     participant Client as API Client
     participant Guard as ThrottlerGuard
-    participant Redis as Redis (Token Bucket)
+    participant Valkey as Valkey (Token Bucket)
     participant API as API Endpoint
 
     Client->>Guard: Request 1
-    Guard->>Redis: Check Tokens for IP/User
-    Redis-->>Guard: Bucket: 99/100 tokens<br/>Refill: +1 token/0.6s
-    Guard->>Redis: Consume 1 Token
-    Redis-->>Guard: Token Consumed (98 remaining)
+    Guard->>Valkey: Check Tokens for IP/User
+    Valkey-->>Guard: Bucket: 99/100 tokens<br/>Refill: +1 token/0.6s
+    Guard->>Valkey: Consume 1 Token
+    Valkey-->>Guard: Token Consumed (98 remaining)
     Guard->>API: Allow Request ✅
     API-->>Client: 200 OK
 
     Note over Client: 60 seconds later...<br/>Client sends 101 requests
 
     Client->>Guard: Request 101
-    Guard->>Redis: Check Tokens
-    Redis-->>Guard: Bucket: 0/100 tokens
+    Guard->>Valkey: Check Tokens
+    Valkey-->>Guard: Bucket: 0/100 tokens
     Guard-->>Client: 429 Too Many Requests ❌<br/>Retry-After: 1 second
 
-    Note over Redis: After 1 second, bucket refills +1 token
+    Note over Valkey: After 1 second, bucket refills +1 token
 
     Client->>Guard: Request 102 (after 1s)
-    Guard->>Redis: Check Tokens
-    Redis-->>Guard: Bucket: 1/100 tokens
-    Guard->>Redis: Consume 1 Token
+    Guard->>Valkey: Check Tokens
+    Valkey-->>Guard: Bucket: 1/100 tokens
+    Guard->>Valkey: Consume 1 Token
     Guard->>API: Allow Request ✅
 ```
 
@@ -1488,7 +1488,7 @@ graph LR
 
 ```mermaid
 graph TB
-    subgraph "Queue Rate Limits - Redis DB 2"
+    subgraph "Queue Rate Limits - Valkey DB 2"
         A[OTLP Ingestion<br/>1000 jobs/second]
         B[Alert Evaluation<br/>100 jobs/second]
         C[Telemetry Processing<br/>50 jobs/second]

@@ -283,7 +283,7 @@ Examples:
 sequenceDiagram
     participant User as User Request
     participant Guard as PermissionsGuard
-    participant Cache as Redis Cache
+    participant Cache as Valkey Cache
     participant DB as PostgreSQL
     participant Decision as Authorization Decision
 
@@ -602,7 +602,7 @@ stateDiagram-v2
 graph LR
     subgraph "Permission Cache Strategy"
         A[User Login] --> B[Load Roles + Permissions]
-        B --> C[Cache in Redis<br/>Key: perms:userId<br/>TTL: 5 minutes]
+        B --> C[Cache in Valkey<br/>Key: perms:userId<br/>TTL: 5 minutes]
         C --> D[Subsequent Requests<br/>Read from Cache]
     end
 

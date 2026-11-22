@@ -366,7 +366,7 @@ docker run -it --rm \
 The project includes a comprehensive `docker-compose.yaml` with all required services:
 
 ```bash
-# Start core services (MCP server, Redis, PostgreSQL, ClickHouse)
+# Start core services (MCP server, Valkey, PostgreSQL, ClickHouse)
 docker-compose up -d
 
 # Start with observability stack (add Jaeger, Prometheus, Grafana)
@@ -750,7 +750,7 @@ See [Troubleshooting Guide](TROUBLESHOOTING.md) for more detailed solutions.
 - [Architecture Guide](ARCHITECTURE.md) - System design, cache & queue architecture
 - [Entity Relationship Diagrams](ERD.md) - Database schemas
 - [Data Flow Diagrams](DFD.md) - Data flows, state machines
-- [Configuration Guide](CONFIGURATION.md) - Environment variables, Redis settings
+- [Configuration Guide](CONFIGURATION.md) - Environment variables, Valkey settings
 - [Commands Reference](COMMANDS.md)
 - [Development Guide](DEVELOPMENT.md)
 - [Troubleshooting Guide](TROUBLESHOOTING.md)

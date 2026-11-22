@@ -685,9 +685,9 @@ graph TD
     A[Query Request] --> B{Check L1 Cache}
 
     B -->|Hit| C[Return from Memory]
-    B -->|Miss| D{Check L2 Cache Redis}
+    B -->|Miss| D{Check L2 Cache Valkey}
 
-    D -->|Hit| E[Return from Redis]
+    D -->|Hit| E[Return from Valkey]
     D -->|Miss| F[Query Database]
 
     F --> G[Cache L2 tenant scoped]

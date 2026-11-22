@@ -368,7 +368,7 @@ export class OtlpController {
 
 ### Async Queue Processing
 
-**Queue:** BullMQ (Redis-backed) — `otlp-ingestion` (concurrency: 10)
+**Queue:** BullMQ (Valkey-backed) — `otlp-ingestion` (concurrency: 10)
 
 ```typescript
 @Processor("otlp-ingestion")
@@ -435,7 +435,7 @@ sequenceDiagram
     participant Collector as TFO-Collector v1.4.0
     participant API as TelemetryFlow API :3000
     participant Guard as ApiKeyAuthGuard
-    participant Cache as Redis Cache
+    participant Cache as Valkey Cache
     participant DB as PostgreSQL
 
     Collector->>API: POST /api/v2/otlp/metrics<br/>tfo exporter auto-injects:<br/>Authorization: tfk-.../tfs-...

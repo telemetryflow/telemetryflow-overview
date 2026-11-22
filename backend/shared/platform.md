@@ -38,7 +38,7 @@ graph TB
 
     REPO -->|aggregate| STATS[PlatformStats]
 
-    STATS --> CACHE[(Redis Cache<br/>5 min TTL)]
+    STATS --> CACHE[(Valkey Cache<br/>5 min TTL)]
 
     CACHE --> API
 

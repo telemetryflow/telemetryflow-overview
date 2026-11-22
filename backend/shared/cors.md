@@ -180,7 +180,7 @@ sequenceDiagram
     participant CLIENT as Browser
     participant API as API Gateway
     participant GUARD as CORS Guard
-    participant CACHE as Redis Cache
+    participant CACHE as Valkey Cache
     participant DB as PostgreSQL
 
     CLIENT->>API: OPTIONS /api/metrics<br/>Origin: https://app.example.com
@@ -376,7 +376,7 @@ export class CORSGuard implements CanActivate {
 ## Caching Strategy
 
 ```typescript
-// CORS validation results cached in Redis
+// CORS validation results cached in Valkey
 const cacheConfig = {
   keyPattern: "cors:{tenantId}:{origin}",
   ttl: 300, // 5 minutes
@@ -455,7 +455,7 @@ describe("CORSConfiguration", () => {
 ## Related Modules
 
 - **200-auth.md** - Authentication (CORS for auth endpoints)
-- **cache.md** - Redis caching for CORS validation
+- **cache.md** - Valkey caching for CORS validation
 - **logger.md** - Audit logging for CORS violations
 
 ---

@@ -13,7 +13,7 @@
 graph TB
     subgraph "Cache Module"
         A[L1 Cache<br/>In-Memory Map]
-        B[L2 Cache<br/>Redis]
+        B[L2 Cache<br/>Valkey]
         C[Cache Service<br/>Unified API]
         D[Cache Invalidation<br/>Pattern-based]
     end
@@ -56,8 +56,8 @@ graph TB
         L1[Node.js Map<br/>Max: 1000 items<br/>TTL: 60s]
     end
 
-    subgraph "L2 Cache - Redis"
-        L2[Redis<br/>Distributed<br/>TTL: 30min]
+    subgraph "L2 Cache - Valkey"
+        L2[Valkey<br/>Distributed<br/>TTL: 30min]
     end
 
     subgraph "Data Source"
@@ -134,7 +134,7 @@ sequenceDiagram
     participant App as Application
     participant Svc as CacheService
     participant L1 as L1 (Map)
-    participant L2 as Redis
+    participant L2 as Valkey
     participant DB as Database
 
     App->>Svc: get("metrics:tenant1:cpu:1h")
@@ -144,7 +144,7 @@ sequenceDiagram
         L1-->>Svc: Return cached data
         Svc-->>App: Data (10ms) ⚡
     else L1 Miss
-        Svc->>L2: Check L2 cache (Redis)
+        Svc->>L2: Check L2 cache (Valkey)
 
         alt L2 Hit
             L2-->>Svc: Return cached data
@@ -173,7 +173,7 @@ sequenceDiagram
     participant App as Application
     participant Svc as CacheService
     participant L1 as L1 (Map)
-    participant L2 as Redis
+    participant L2 as Valkey
 
     App->>Svc: delPattern("metrics:tenant1:*")
 
@@ -207,12 +207,12 @@ export class CacheService implements OnModuleInit {
   private readonly l1MaxSize: number = 1000;
   private readonly l1DefaultTTL: number = 60 * 1000; // 60 seconds
 
-  // L2 Cache: Redis client
+  // L2 Cache: Valkey client
   private redisClient: Redis;
   private readonly l2DefaultTTL: number = 30 * 60; // 30 minutes in seconds
 
   async onModuleInit() {
-    // Initialize Redis asynchronously (non-blocking)
+    // Initialize Valkey asynchronously (non-blocking)
     setImmediate(async () => {
       try {
         this.redisClient = new Redis({
@@ -227,9 +227,9 @@ export class CacheService implements OnModuleInit {
         });
 
         await this.redisClient.connect();
-        this.logger.log("✓ Cache service initialized with L1 + L2 (Redis)");
+        this.logger.log("✓ Cache service initialized with L1 + L2 (Valkey)");
       } catch (error) {
-        this.logger.warn("⚠ Redis unavailable, operating in L1-only mode");
+        this.logger.warn("⚠ Valkey unavailable, operating in L1-only mode");
         this.redisClient = null;
       }
     });
@@ -249,7 +249,7 @@ export class CacheService implements OnModuleInit {
       return l1Result;
     }
 
-    // Try L2 (Redis)
+    // Try L2 (Valkey)
     const l2Result = await this.getFromL2<T>(key);
     if (l2Result !== null) {
       this.logger.debug(`L2 cache HIT: ${key}`);
@@ -399,7 +399,7 @@ graph TB
 ### Environment Variables
 
 ```bash
-# Redis Configuration
+# Valkey Configuration
 REDIS_HOST=localhost
 REDIS_PORT=6379
 REDIS_PASSWORD=
@@ -423,7 +423,7 @@ export const defaultCacheConfig: CacheConfig = {
     max: 1000, // Maximum 1000 items
   },
 
-  // L2: Redis Cache (distributed, longer TTL)
+  // L2: Valkey Cache (distributed, longer TTL)
   l2: {
     ttl: 30 * 60 * 1000, // 30 minutes
     host: process.env.REDIS_HOST || "localhost",
@@ -621,7 +621,7 @@ graph TB
 
 ### Integration Tests
 
-- `cache-integration.spec.ts` - Redis integration
+- `cache-integration.spec.ts` - Valkey integration
 
 ---
 

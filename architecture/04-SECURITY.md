@@ -80,7 +80,7 @@ sequenceDiagram
     participant Frontend as Frontend
     participant API as Auth API
     participant DB as PostgreSQL
-    participant Cache as Redis Cache
+    participant Cache as Valkey Cache
     participant Audit as Audit Log
 
     User->>Frontend: Enter email & password
@@ -106,7 +106,7 @@ sequenceDiagram
         API->>DB: Increment failed_attempts
         alt failed_attempts >= 5
             API->>DB: Set locked_until = NOW() + 15min
-            API->>Cache: Set lock in Redis
+            API->>Cache: Set lock in Valkey
             API->>Audit: Log account lockout
             API-->>Frontend: 403 Account Locked
         else
@@ -142,7 +142,7 @@ sequenceDiagram
 
     API->>API: Generate JWT tokens<br/>Access (15min) + Refresh (7d)
     API->>DB: Create user_session record
-    API->>Cache: Store session (Redis)
+    API->>Cache: Store session (Valkey)
     API->>Audit: Log successful login
 
     API-->>Frontend: 200 OK<br/>{accessToken, refreshToken}
@@ -239,7 +239,7 @@ stateDiagram-v2
 
     note right of Locked
         locked_until = NOW() + 15min
-        Redis key: account:lock:{userId}
+        Valkey key: account:lock:{userId}
         Email notification sent
     end note
 ```
@@ -384,7 +384,7 @@ flowchart TD
     J --> K[Union of All Permissions<br/>user:read, user:write,<br/>dashboard:read, ...]
 
     K --> L{Cache Result}
-    L -->|Yes| M[Store in Redis<br/>5 min TTL]
+    L -->|Yes| M[Store in Valkey<br/>5 min TTL]
     M --> N[Return Permissions]
 
     B -->|No| O[Empty Permission Set]
@@ -444,7 +444,7 @@ sequenceDiagram
     participant Client as OTLP Client
     participant API as OTLP Endpoint
     participant Guard as ApiKeyAuthGuard
-    participant Cache as Redis Cache
+    participant Cache as Valkey Cache
     participant DB as PostgreSQL
     participant RL as Rate Limiter
     participant CH as ClickHouse
@@ -904,7 +904,7 @@ stateDiagram-v2
 
     note right of Revoked
         Token added to blacklist
-        Redis key: blacklist:{token}
+        Valkey key: blacklist:{token}
         TTL: remaining token lifetime
     end note
 ```

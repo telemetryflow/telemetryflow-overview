@@ -612,7 +612,7 @@ graph TB
     subgraph "Infrastructure Layer"
         Repo[MetricRepository<br/>Implementation Adapter]
         CH[(ClickHouse<br/>Time-Series DB)]
-        Cache[(Redis<br/>Cache)]
+        Cache[(Valkey<br/>Cache)]
     end
 
     Agg --> IRepo

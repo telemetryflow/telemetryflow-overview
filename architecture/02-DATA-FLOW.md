@@ -25,7 +25,7 @@ TelemetryFlow implements a comprehensive data flow architecture that handles:
 
 - **Ingestion**: 15,000+ OTLP metrics/logs/traces per second
 - **Storage**: Dual database strategy (PostgreSQL + ClickHouse)
-- **Caching**: Multi-level (L1 in-memory + L2 Redis)
+- **Caching**: Multi-level (L1 in-memory + L2 Valkey)
 - **Async Processing**: BullMQ with 6 specialized queues
 - **Real-time**: WebSocket for live dashboard updates
 - **Query Language**: TFQL (TelemetryFlow Query Language) - unified query interface for metrics, logs, and traces
@@ -57,7 +57,7 @@ graph TB
     subgraph "Data Storage"
         K[PostgreSQL<br/>Metadata]
         L[ClickHouse<br/>Telemetry]
-        M[Redis<br/>Cache & Queue]
+        M[Valkey<br/>Cache & Queue]
     end
 
     A -->|OTLP gRPC/HTTP| D
@@ -95,7 +95,7 @@ sequenceDiagram
     participant Queue as BullMQ Queue
     participant Worker as OTLP Processor
     participant DB as ClickHouse
-    participant Cache as Redis Cache
+    participant Cache as Valkey Cache
 
     Client->>API: POST /api/v2/otlp/metrics<br/>Headers: X-API-Key-ID, X-API-Key-Secret
     API->>Guard: Validate API Key
@@ -342,12 +342,12 @@ sequenceDiagram
     participant Lockout as Account Lockout
     participant MFA as MFA Service
     participant DB as PostgreSQL
-    participant Cache as Redis
+    participant Cache as Valkey
 
     User->>API: POST /api/v2/auth/login<br/>{email, password}
     API->>Service: validateUser(email, password)
     Service->>Lockout: isAccountLocked(userId)
-    Lockout->>Cache: Check lock status (Redis)
+    Lockout->>Cache: Check lock status (Valkey)
     Cache-->>Lockout: Not locked
     Lockout-->>Service: Continue
 
@@ -360,7 +360,7 @@ sequenceDiagram
         Lockout->>Lockout: Increment failed_attempts
         alt failed_attempts >= 5
             Lockout->>DB: Set locked_until (15min)
-            Lockout->>Cache: Set lock in Redis
+            Lockout->>Cache: Set lock in Valkey
             Lockout-->>Service: Account Locked
             Service-->>API: 403 Forbidden
             API-->>User: Account locked for 15 minutes
@@ -374,7 +374,7 @@ sequenceDiagram
 
         alt MFA Not Enabled
             Service->>Service: Generate JWT tokens
-            Service->>Cache: Store session (Redis)
+            Service->>Cache: Store session (Valkey)
             Service-->>API: Access + Refresh tokens
             API-->>User: 200 OK + Tokens
         else MFA Enabled
@@ -434,7 +434,7 @@ sequenceDiagram
     Backend->>DB: Find or create user<br/>(by email)
     DB-->>Backend: User entity
     Backend->>Backend: Generate JWT tokens
-    Backend->>Backend: Store session (Redis)
+    Backend->>Backend: Store session (Valkey)
     Backend-->>Frontend: Redirect to app<br/>with tokens in query/cookie
     Frontend-->>User: Logged in successfully
 ```
@@ -547,7 +547,7 @@ graph TD
 
     B -->|HIT| C[Return from L1<br/>sub-millisecond latency]
 
-    B -->|MISS| D{Check L2 Cache<br/>Redis, 30min TTL}
+    B -->|MISS| D{Check L2 Cache<br/>Valkey, 30min TTL}
 
     D -->|HIT| E[Return from L2<br/>1-5ms latency]
     E --> F[Populate L1 Cache]
@@ -638,7 +638,7 @@ graph TB
     subgraph "Backends"
         D1[ClickHouse]
         D2[PostgreSQL]
-        D3[Redis]
+        D3[Valkey]
         D4[External APIs<br/>Slack, Email, Webhook]
     end
 
@@ -714,7 +714,7 @@ sequenceDiagram
     participant Gateway as Telemetry Gateway<br/>(WebSocket)
     participant Worker as OTLP Worker
     participant CH as ClickHouse
-    participant Cache as Redis Pub/Sub
+    participant Cache as Valkey Pub/Sub
 
     Browser->>Gateway: Connect WebSocket<br/>auth: JWT token
     Gateway->>Gateway: Validate JWT
